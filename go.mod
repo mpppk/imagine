@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blang/semver/v4 v4.0.0
+	github.com/boltdb/bolt v1.3.1
 	github.com/comail/colog v0.0.0-20160416085026-fba8e7b1f46c
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/google/wire v0.4.0
@@ -18,8 +19,9 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
+	github.com/timshannon/bolthold v0.0.0-20200603170222-fa67e4fbfbc3
 	github.com/valyala/fasttemplate v1.1.0 // indirect
+	go.etcd.io/bbolt v1.3.5
 	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d // indirect
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
-	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect
 )
