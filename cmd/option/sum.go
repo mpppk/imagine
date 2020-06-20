@@ -2,7 +2,7 @@ package option
 
 import (
 	"fmt"
-	"github.com/mpppk/cli-template/util"
+	"github.com/mpppk/imagine/util"
 
 	"github.com/spf13/viper"
 )

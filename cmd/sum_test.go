@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mpppk/cli-template/cmd"
+	"github.com/mpppk/imagine/cmd"
 )
 
 func TestSum(t *testing.T) {

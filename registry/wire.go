@@ -6,11 +6,11 @@ package registry
 
 import (
 	"github.com/labstack/echo"
-	"github.com/mpppk/cli-template/domain/model"
-	"github.com/mpppk/cli-template/handler"
-	"github.com/mpppk/cli-template/infra"
-	"github.com/mpppk/cli-template/infra/repoimpl"
-	"github.com/mpppk/cli-template/usecase"
+	"github.com/mpppk/imagine/domain/model"
+	"github.com/mpppk/imagine/handler"
+	"github.com/mpppk/imagine/infra"
+	"github.com/mpppk/imagine/infra/repoimpl"
+	"github.com/mpppk/imagine/usecase"
 )
 import "github.com/google/wire"
 

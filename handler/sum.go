@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/mpppk/cli-template/usecase"
+	"github.com/mpppk/imagine/usecase"
 )
 
 // Handlers represent handlers of echo server

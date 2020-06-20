@@ -11,7 +11,7 @@ import (
 
 // Version represents version of this tool
 const Version = "0.2.5"
-const slug = "mpppk/cli-template"
+const slug = "mpppk/imagine"
 
 // Do execute updating binary
 func Do() (bool, error) {

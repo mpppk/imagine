@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mpppk/cli-template/registry"
+	"github.com/mpppk/imagine/registry"
 
-	"github.com/mpppk/cli-template/domain/model"
+	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/labstack/echo"
 
-	"github.com/mpppk/cli-template/handler"
+	"github.com/mpppk/imagine/handler"
 )
 
 func TestSumHistory(t *testing.T) {

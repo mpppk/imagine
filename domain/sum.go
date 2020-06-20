@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"github.com/mpppk/cli-template/domain/model"
-	"github.com/mpppk/cli-template/util"
+	"github.com/mpppk/imagine/domain/model"
+	"github.com/mpppk/imagine/util"
 )
 
 // NewNumbersFromStringSlice create new Numbers with numbers from string slice

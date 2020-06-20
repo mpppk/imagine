@@ -1,4 +1,4 @@
-module github.com/mpppk/cli-template
+module github.com/mpppk/imagine
 
 go 1.14
 

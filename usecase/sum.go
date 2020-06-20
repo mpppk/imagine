@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/mpppk/cli-template/domain/model"
-	"github.com/mpppk/cli-template/domain/repository"
+	"github.com/mpppk/imagine/domain/model"
+	"github.com/mpppk/imagine/domain/repository"
 )
 
 // Sum represents usecases related sum calculation

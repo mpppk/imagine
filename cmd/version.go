@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/mpppk/cli-template/util"
+	"github.com/mpppk/imagine/util"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )

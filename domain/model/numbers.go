@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/mpppk/cli-template/util"
+	"github.com/mpppk/imagine/util"
 	"math"
 )
 

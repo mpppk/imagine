@@ -3,7 +3,7 @@ package usecase_test
 import (
 	"testing"
 
-	"github.com/mpppk/cli-template/registry"
+	"github.com/mpppk/imagine/registry"
 )
 
 func TestCalcSum(t *testing.T) {

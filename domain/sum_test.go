@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mpppk/cli-template/domain"
+	"github.com/mpppk/imagine/domain"
 
-	"github.com/mpppk/cli-template/domain/model"
+	"github.com/mpppk/imagine/domain/model"
 
-	"github.com/mpppk/cli-template/util"
+	"github.com/mpppk/imagine/util"
 )
 
 func TestNewNumbers(t *testing.T) {

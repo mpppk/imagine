@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mpppk/cli-template/util"
+	"github.com/mpppk/imagine/util"
 
-	"github.com/mpppk/cli-template/cmd/option"
+	"github.com/mpppk/imagine/cmd/option"
 
 	"github.com/spf13/afero"
 
@@ -29,8 +29,8 @@ func NewRootCmd(fs afero.Fs) (*cobra.Command, error) {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "cli-template",
-		Short:             "cli-template",
+		Use:               "imagine",
+		Short:             "imagine",
 		SilenceErrors:     true,
 		SilenceUsage:      true,
 		PersistentPreRunE: pPreRunE,
@@ -66,7 +66,7 @@ func registerFlags(cmd *cobra.Command) error {
 			BaseFlag: &option.BaseFlag{
 				Name:         "config",
 				IsPersistent: true,
-				Usage:        "config file (default is $HOME/.cli-template.yaml)",
+				Usage:        "config file (default is $HOME/.imagine.yaml)",
 			}},
 		&option.BoolFlag{
 			BaseFlag: &option.BaseFlag{
@@ -109,9 +109,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".cli-template" (without extension).
+		// Search config in home directory with name ".imagine" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".cli-template")
+		viper.SetConfigName(".imagine")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

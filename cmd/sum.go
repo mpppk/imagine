@@ -5,9 +5,9 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/mpppk/cli-template/registry"
+	"github.com/mpppk/imagine/registry"
 
-	"github.com/mpppk/cli-template/cmd/option"
+	"github.com/mpppk/imagine/cmd/option"
 	"github.com/spf13/afero"
 
 	"github.com/spf13/cobra"
@@ -19,7 +19,7 @@ func newSumCmd(fs afero.Fs) (*cobra.Command, error) {
 		Short:   "Print sum of arguments",
 		Long:    ``,
 		Args:    cobra.MinimumNArgs(2),
-		Example: "cli-template sum -- -1 2  ->  1",
+		Example: "imagine sum -- -1 2  ->  1",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			for _, arg := range args {
 				if _, err := strconv.Atoi(arg); err != nil {
