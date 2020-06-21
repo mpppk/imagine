@@ -2,6 +2,7 @@ package infra
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mpppk/imagine/handler"
 
@@ -26,7 +27,9 @@ func registerHandlers(e *echo.Echo, handlers *handler.Handlers) {
 
 func bodyDumpHandler(c echo.Context, reqBody, resBody []byte) {
 	fmt.Printf("Request Body: %v\n", string(reqBody))
-	fmt.Printf("Response Body: %v\n", string(resBody))
+	if !strings.Contains(c.Path(), "/static") {
+		fmt.Printf("Response Body: %v\n", string(resBody))
+	}
 }
 
 // NewServer create new echo server with handlers

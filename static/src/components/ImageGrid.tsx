@@ -36,32 +36,48 @@ const useStyles = makeStyles((theme) => ({
  * ];
  */
 
-const tileData = [
-  {
-    img: 'https://i.gyazo.com/f71cffd2e4f237030e7f6c745ce3eeeb.png',
-    title: 'everest',
-    author: 'mpppk',
-    key: 1,
-    cols: 1,
-  },
-  {
-    img: 'https://i.gyazo.com/f71cffd2e4f237030e7f6c745ce3eeeb.png',
-    title: 'everest',
-    author: 'mpppk',
-    key: 2,
-    cols: 2,
-  }
-];
+// const tileData = [
+//   {
+//     img: 'https://i.gyazo.com/f71cffd2e4f237030e7f6c745ce3eeeb.png',
+//     title: 'everest',
+//     author: 'mpppk',
+//     key: 1,
+//     cols: 1,
+//   },
+//   {
+//     img: 'https://i.gyazo.com/f71cffd2e4f237030e7f6c745ce3eeeb.png',
+//     title: 'everest',
+//     author: 'mpppk',
+//     key: 2,
+//     cols: 2,
+//   }
+// ];
 
-export function ImageGridList() {
+export interface ImageGridListProps {
+  paths: string[]
+}
+
+interface GridData {
+  imgPath: string
+  cols: number
+}
+
+const toTileData = (path: string): GridData => {
+  return {
+    imgPath: path,
+    cols: 1,
+  }
+}
+
+export function ImageGridList(props: ImageGridListProps) {
   const classes = useStyles();
 
   return (
     <div className={classes.root}>
       <GridList cellHeight={160} className={classes.gridList} cols={3}>
-        {tileData.map((tile) => (
-          <GridListTile key={tile.key} cols={tile.cols || 1}>
-            <img src={tile.img} alt={tile.title} />
+        {props.paths.map(toTileData).map((tile) => (
+          <GridListTile key={tile.imgPath} cols={tile.cols || 1}>
+            <img src={tile.imgPath} />
           </GridListTile>
         ))}
       </GridList>

@@ -37,17 +37,17 @@ function LinearProgressWithLabel(props: LinearProgressProps & { value: number })
 // tslint:disable-next-line variable-name
 export const Index: NextPage = () => {
   const handlers = useHandlers();
-  const isScanning = useSelector((s: State) => s.indexPage.scanning);
+  const state = useSelector((s: State) => s.indexPage);
   return (
     <div>
-      <ImageGridList/>
+      <ImageGridList paths={state.imagePaths}/>
       <Button variant="outlined" color="primary">
         Edit Query
       </Button>
-      <Button variant="outlined" color="primary" disabled={isScanning} onClick={handlers.handleAddDirectoryButton}>
-        {isScanning ? 'Scanning...' : 'Add Directory'}
+      <Button variant="outlined" color="primary" disabled={state.scanning} onClick={handlers.handleAddDirectoryButton}>
+        {state.scanning ? 'Scanning...' : 'Add Directory'}
       </Button>
-      {isScanning ? <LinearProgressWithLabel value={50} /> : null}
+      {state.scanning ? <LinearProgressWithLabel value={50} /> : null}
     </div>
   );
 };
