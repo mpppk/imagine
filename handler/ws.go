@@ -1,8 +1,10 @@
-package infra
+package handler
 
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/mpppk/imagine/actions"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
@@ -19,18 +21,18 @@ var (
 	}
 )
 
-func ws(c echo.Context) error {
+func (h *Handlers) WS(c echo.Context) error {
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		return err
 	}
 	defer ws.Close()
 
-	dispatch := CreateDispatch(ws)
+	dispatch := actions.CreateDispatch(ws)
+	actionHandler := actions.NewActionHandler(h.assetUseCase, dispatch)
 
 	for {
-		// Read
-		var action Action
+		var action actions.Action
 		if err := ws.ReadJSON(&action); err != nil {
 			if websocket.IsCloseError(err) {
 				c.Logger().Print("connection closed")
@@ -39,7 +41,7 @@ func ws(c echo.Context) error {
 			}
 			break
 		}
-		if err := HandleAction(action, dispatch); err != nil {
+		if err := actionHandler.Handle(action); err != nil {
 			c.Logger().Error(err)
 		}
 

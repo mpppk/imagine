@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/mpppk/imagine/domain/repository"
+
 	"github.com/mpppk/imagine/domain/model"
 	bolt "go.etcd.io/bbolt"
 )
@@ -15,7 +17,7 @@ type BBoltAsset struct {
 	Bolt *bolt.DB
 }
 
-func NewBBoltAsset(b *bolt.DB) *BBoltAsset {
+func NewBBoltAsset(b *bolt.DB) repository.Asset {
 	return &BBoltAsset{
 		Bolt: b,
 	}

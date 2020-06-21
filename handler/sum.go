@@ -9,7 +9,8 @@ import (
 
 // Handlers represent handlers of echo server
 type Handlers struct {
-	sumUseCase *usecase.Sum
+	sumUseCase   *usecase.Sum
+	assetUseCase *usecase.Asset
 }
 
 type sumRequest struct {
@@ -23,8 +24,11 @@ type sumResponse struct {
 }
 
 // New create new handlers
-func New(sumUseCase *usecase.Sum) *Handlers {
-	return &Handlers{sumUseCase: sumUseCase}
+func New(sumUseCase *usecase.Sum, assetUseCase *usecase.Asset) *Handlers {
+	return &Handlers{
+		sumUseCase:   sumUseCase,
+		assetUseCase: assetUseCase,
+	}
 }
 
 // Sum handle http request to calculate sum

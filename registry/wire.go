@@ -5,6 +5,9 @@ package registry
 //go:generate wire
 
 import (
+	bolt "go.etcd.io/bbolt"
+
+	"github.com/google/wire"
 	"github.com/labstack/echo"
 	"github.com/mpppk/imagine/domain/model"
 	"github.com/mpppk/imagine/handler"
@@ -12,13 +15,6 @@ import (
 	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/mpppk/imagine/usecase"
 )
-import "github.com/google/wire"
-
-// InitializeHandler initialize handlers with memorySumHistoryRepository
-func InitializeHandler(v []*model.SumHistory) *handler.Handlers {
-	wire.Build(handler.New, usecase.NewSum, repoimpl.NewMemorySumHistory)
-	return &handler.Handlers{}
-}
 
 // InitializeSumUseCase initialize sum use case with  memorySumHistoryRepository
 func InitializeSumUseCase(v []*model.SumHistory) *usecase.Sum {
@@ -27,11 +23,13 @@ func InitializeSumUseCase(v []*model.SumHistory) *usecase.Sum {
 }
 
 // InitializeServer initialize echo server with memorySumHistoryRepository
-func InitializeServer(v []*model.SumHistory) *echo.Echo {
+func InitializeServer(v []*model.SumHistory, b *bolt.DB) *echo.Echo {
 	wire.Build(
 		handler.New,
 		repoimpl.NewMemorySumHistory,
+		repoimpl.NewBBoltAsset,
 		usecase.NewSum,
+		usecase.NewAsset,
 		infra.NewServer,
 	)
 	return &echo.Echo{}
