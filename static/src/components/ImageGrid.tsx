@@ -41,12 +41,14 @@ const tileData = [
     img: 'https://i.gyazo.com/f71cffd2e4f237030e7f6c745ce3eeeb.png',
     title: 'everest',
     author: 'mpppk',
+    key: 1,
     cols: 1,
   },
   {
     img: 'https://i.gyazo.com/f71cffd2e4f237030e7f6c745ce3eeeb.png',
     title: 'everest',
     author: 'mpppk',
+    key: 2,
     cols: 2,
   }
 ];
@@ -58,7 +60,7 @@ export function ImageGridList() {
     <div className={classes.root}>
       <GridList cellHeight={160} className={classes.gridList} cols={3}>
         {tileData.map((tile) => (
-          <GridListTile key={tile.img} cols={tile.cols || 1}>
+          <GridListTile key={tile.key} cols={tile.cols || 1}>
             <img src={tile.img} alt={tile.title} />
           </GridListTile>
         ))}

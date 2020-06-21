@@ -9,6 +9,7 @@ require (
 	github.com/comail/colog v0.0.0-20160416085026-fba8e7b1f46c
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/google/wire v0.4.0
+	github.com/gorilla/websocket v1.4.2
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
