@@ -32,6 +32,7 @@ func bodyDumpHandler(c echo.Context, reqBody, resBody []byte) {
 // NewServer create new echo server with handlers
 func NewServer(handlers *handler.Handlers) *echo.Echo {
 	e := echo.New()
+	e.Static("/static", "/")
 	e.Validator = &customValidator{validator: validator.New()}
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: fmt.Sprintln("method=${method}, uri=${uri}, status=${status}"),

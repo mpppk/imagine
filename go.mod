@@ -10,6 +10,7 @@ require (
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/google/wire v0.4.0
 	github.com/gorilla/websocket v1.4.2
+	github.com/gotk3/gotk3 v0.4.0 // indirect
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
@@ -20,6 +21,7 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
+	github.com/sqweek/dialog v0.0.0-20200601143742-43ea34326190
 	github.com/timshannon/bolthold v0.0.0-20200603170222-fa67e4fbfbc3
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	go.etcd.io/bbolt v1.3.5

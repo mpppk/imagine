@@ -4,9 +4,8 @@ import (
 	"github.com/mpppk/imagine/cmd/option"
 	"github.com/mpppk/imagine/registry"
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
-
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func newServeCmd(fs afero.Fs) (*cobra.Command, error) {
