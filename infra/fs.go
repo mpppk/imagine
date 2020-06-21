@@ -1,7 +1,6 @@
 package infra
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -30,7 +29,6 @@ func LoadImagesFromDir(dirPath string, cap int) <-chan string {
 func isImage(filePath string) bool {
 	imageExts := []string{".png", ".jpg", ".jpeg", ".gif"}
 	ext := filepath.Ext(filePath)
-	fmt.Println("ext", ext)
 	for _, e := range imageExts {
 		if ext == e {
 			return true

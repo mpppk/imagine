@@ -63,13 +63,11 @@ func handleClickAddDirectoryButton(action Action, dispatch func(action interface
 		}
 		var paths []string
 		for p := range LoadImagesFromDir(directory, 10) {
-			fmt.Println("found path")
 			paths = append(paths, p)
 			if len(paths) >= 20 {
 				dispatch(newScanningImages(paths)) // FIXME
 			}
 		}
-		fmt.Println("finish scan")
 		if len(paths) > 0 {
 			dispatch(newScanningImages(paths)) // FIXME
 		}

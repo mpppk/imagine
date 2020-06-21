@@ -31,12 +31,19 @@ func ws(c echo.Context) error {
 	for {
 		// Read
 		var action Action
-		if ws.ReadJSON(&action) != nil {
-			c.Logger().Error(err)
+		if err := ws.ReadJSON(&action); err != nil {
+			if websocket.IsCloseError(err) {
+				c.Logger().Print("connection closed")
+			} else {
+				c.Logger().Error(err)
+			}
+			break
 		}
 		if err := HandleAction(action, dispatch); err != nil {
 			c.Logger().Error(err)
 		}
+
 		fmt.Printf("%s\n", action)
 	}
+	return nil
 }
