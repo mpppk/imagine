@@ -11,7 +11,7 @@ function wsChannel() {
       ws = new WebSocket('ws://localhost:1323/ws')
 
       ws.onopen = function (event) {
-        emitter(wsActionCreators.open(event))
+        emitter({type: 'open', event})
       }
 
       ws.onclose = function (_event) {
@@ -19,11 +19,11 @@ function wsChannel() {
       }
 
       ws.onerror = function (event) {
-        emitter(wsActionCreators.error(event))
+        emitter({type: 'error', event})
       }
 
       ws.onmessage = function (event) {
-        emitter(wsActionCreators.message(event))
+        emitter({type: 'message', event})
       }
 
       return () => {
@@ -49,7 +49,18 @@ export function* wsSaga() {
   const chan = yield call(wsChannel)
   try {
     while (true) {
-      yield put(yield take(chan))
+      const e = yield take(chan);
+      switch (e.type) {
+        case 'open':
+          yield put(wsActionCreators.open(e.event))
+          break;
+        case 'error':
+          yield put(wsActionCreators.error(e.event))
+          break;
+        case 'message':
+          yield put(wsActionCreators.message(e.event));
+          yield put(JSON.parse(e.event.data));
+      }
     }
   } finally {
     yield put(wsActionCreators.close())

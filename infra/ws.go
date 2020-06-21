@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
+	"github.com/mpppk/imagine/domain/model"
 )
 
 var (
@@ -26,18 +27,17 @@ func ws(c echo.Context) error {
 	}
 	defer ws.Close()
 
-	for {
-		// Write
-		err := ws.WriteMessage(websocket.TextMessage, []byte("Hello, Client!"))
-		if err != nil {
-			c.Logger().Error(err)
-		}
+	dispatch := model.CreateDispatch(ws)
 
+	for {
 		// Read
-		_, msg, err := ws.ReadMessage()
-		if err != nil {
+		var action model.Action
+		if ws.ReadJSON(&action) != nil {
 			c.Logger().Error(err)
 		}
-		fmt.Printf("%s\n", msg)
+		if err := model.HandleAction(action, dispatch); err != nil {
+			c.Logger().Error(err)
+		}
+		fmt.Printf("%s\n", action)
 	}
 }
