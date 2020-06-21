@@ -21,7 +21,7 @@ func (cv *customValidator) Validate(i interface{}) error {
 func registerHandlers(e *echo.Echo, handlers *handler.Handlers) {
 	e.GET("/api/sum", handlers.Sum)
 	e.GET("/api/sum-history", handlers.SumHistory)
-	e.GET("/ws", hello)
+	e.GET("/ws", ws)
 }
 
 func bodyDumpHandler(c echo.Context, reqBody, resBody []byte) {

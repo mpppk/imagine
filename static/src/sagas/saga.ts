@@ -6,11 +6,15 @@ import {
   takeEveryAction,
   watchClickSignInSubmitButton,
 } from './session';
+import {wsSaga} from "./ws";
+import {watchClickAddDirectoryButton} from "./index";
 
 export default function* rootSaga() {
   yield all([
     watchIncrementAsync(),
     watchClickSignInSubmitButton(),
     takeEveryAction(globalAsyncActionCreators.signOut.started, signOutWorker)(),
+    wsSaga(),
+    watchClickAddDirectoryButton(),
   ]);
 }

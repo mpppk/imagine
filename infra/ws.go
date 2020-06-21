@@ -12,14 +12,14 @@ var (
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
-		// Add this lines
+		// FIXME need for debug
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
 	}
 )
 
-func hello(c echo.Context) error {
+func ws(c echo.Context) error {
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		return err

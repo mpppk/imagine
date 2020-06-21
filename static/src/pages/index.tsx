@@ -1,30 +1,30 @@
 import {NextPage} from 'next';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {ImageGridList} from "../components/ImageGrid";
 import {Button} from "@material-ui/core";
+import {useActions} from "../hooks";
+import {indexActionCreators} from "../actions";
+
+const useHandlers =  () => {
+  const actionCreators = useActions(indexActionCreators);
+  return {
+    handleAddDirectoryButton: () => {
+      actionCreators.clickAddDirectoryButton();
+    }
+  };
+}
 
 // tslint:disable-next-line variable-name
 export const Index: NextPage = () => {
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:1323/ws')
-
-    ws.onopen = function () {
-      console.log('Connected')
-    }
-
-    ws.onmessage = function (evt) {
-      console.log(evt)
-    }
-
-    setInterval(function () {
-      ws.send('Hello, Server!');
-    }, 1000);
-  }, [])
+  const handlers = useHandlers();
   return (
     <div>
       <ImageGridList/>
       <Button variant="outlined" color="primary">
         Edit Query
+      </Button>
+      <Button variant="outlined" color="primary" onClick={handlers.handleAddDirectoryButton}>
+        Add Directory
       </Button>
     </div>
   );
