@@ -8,34 +8,38 @@ let ws: WebSocket | null = null;
 
 function wsChannel() {
   return eventChannel(emitter => {
-      // FIXME
-      ws = new WebSocket('ws://localhost:1323/ws')
-
-      ws.onopen = function (event) {
-        emitter({type: 'open', event})
-      }
-
-      ws.onclose = function (_event) {
-        emitter(END)
-      }
-
-      ws.onerror = function (event) {
-        emitter({type: 'error', event})
-      }
-
-      ws.onmessage = function (event) {
-        emitter({type: 'message', event})
-      }
-
+    if (!WebSocket) {
       return () => {
-        if (ws === null) {
-          return
-        }
-        ws.close();
-        ws = null;
-      }
+      };
     }
-  )
+
+    // FIXME
+    ws = new WebSocket('ws://localhost:1323/ws')
+
+    ws.onopen = function (event) {
+      emitter({type: 'open', event})
+    }
+
+    ws.onclose = function (_event) {
+      emitter(END)
+    }
+
+    ws.onerror = function (event) {
+      emitter({type: 'error', event})
+    }
+
+    ws.onmessage = function (event) {
+      emitter({type: 'message', event})
+    }
+
+    return () => {
+      if (ws === null) {
+        return
+      }
+      ws.close();
+      ws = null;
+    };
+  });
 }
 
 export function dispatchToServer(action: AnyAction): boolean {
