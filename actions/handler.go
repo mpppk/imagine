@@ -21,24 +21,30 @@ func NewActionHandler(assetUseCase *usecase.Asset, dispatch Dispatch) *Handler {
 }
 
 func (a *Handler) clickAddDirectoryButton() error {
-	go func() {
-		directory, err := dialog.Directory().Title("Load images").Browse()
-		if err != nil {
-			panic(err)
+	if err := a.dispatch(newStartDirectoryScanningAction()); err != nil {
+		return err
+	}
+	directory, err := dialog.Directory().Title("Load images").Browse()
+	if err != nil {
+		return err
+	}
+	var paths []string
+	for p := range util.LoadImagesFromDir(directory, 10) {
+		if err := a.assetUseCase.AddImage(p); err != nil {
+			return err
 		}
-		var paths []string
-		for p := range util.LoadImagesFromDir(directory, 10) {
-			paths = append(paths, p)
-			if len(paths) >= 20 {
-				a.dispatch(newScanningImages(paths)) // FIXME
+		paths = append(paths, p)
+		if len(paths) >= 20 {
+			if err := a.dispatch(newScanningImages(paths)); err != nil {
+				return err
 			}
 		}
-		if len(paths) > 0 {
-			a.dispatch(newScanningImages(paths)) // FIXME
+	}
+	if len(paths) > 0 {
+		if err := a.dispatch(newScanningImages(paths)); err != nil {
+			return err
 		}
-	}()
-	//ok := dialog.Message("%s", "Do you want to continue?").Title("Are you sure?").YesNo()
-	a.dispatch(newStartDirectoryScanningAction())
+	}
 	return nil
 }
 
