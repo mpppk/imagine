@@ -6,8 +6,10 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blang/semver/v4 v4.0.0
 	github.com/comail/colog v0.0.0-20160416085026-fba8e7b1f46c
+	github.com/gen2brain/dlgs v0.0.0-20200211102745-b9c2664df42f
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/google/wire v0.4.0
+	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/gotk3/gotk3 v0.4.0 // indirect
 	github.com/labstack/echo v3.3.10+incompatible
