@@ -1,5 +1,5 @@
 import { reducerWithInitialState } from 'typescript-fsa-reducers';
-import { globalAsyncActionCreators } from '../actions/global';
+import {globalActionCreators} from '../actions/global';
 import { User } from '../models/models';
 
 export const globalInitialState = {
@@ -8,27 +8,12 @@ export const globalInitialState = {
   waitingSignIn: false,
   currentWorkSpace: 'a',
   // currentWorkSpace: null as string | null,
-  workspaces: ['a', 'b', 'c'] as string[]
+  workspaces: ['a', 'b', 'c'] as string[], // FIXME
+  isLoadingWorkSpaces: false
 };
 
 export type GlobalState = typeof globalInitialState;
 export const global = reducerWithInitialState(globalInitialState)
-  .case(globalAsyncActionCreators.signIn.started, (state) => {
-    return { ...state, waitingSignIn: true };
+  .case(globalActionCreators.selectNewWorkSpace, (state,workspace) => {
+    return { ...state, currentWorkSpace: workspace };
   })
-  .case(globalAsyncActionCreators.signIn.done, (state, payload) => {
-    return {
-      ...state,
-      jwt: payload.result.jwt,
-      user: payload.result.user,
-      waitingSignIn: false,
-    };
-  })
-  .case(globalAsyncActionCreators.signOut.done, (state) => {
-    return {
-      ...state,
-      jwt: null,
-      user: null,
-      waitingSignIn: false,
-    };
-  });

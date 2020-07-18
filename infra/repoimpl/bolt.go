@@ -23,31 +23,50 @@ func newBoltRepository(b *bolt.DB) *boltRepository {
 		bolt: b,
 	}
 }
-func (b *boltRepository) bucket(tx *bolt.Tx) *bolt.Bucket {
-	return tx.Bucket([]byte(assetBucketName))
+
+func (b *boltRepository) bucket(bucketNames []string, tx *bolt.Tx) *bolt.Bucket {
+	var bucket *bolt.Bucket = nil
+	for _, bucketName := range bucketNames {
+		bucket = tx.Bucket([]byte(bucketName))
+	}
+	return bucket
 }
 
-func (b *boltRepository) bucketFunc(f func(bucket *bolt.Bucket) error) error {
+func (b *boltRepository) hasBucket(bucketNames []string, tx *bolt.Tx) bool {
+	var bucket *bolt.Bucket = nil
+	for _, bucketName := range bucketNames {
+		bucket = tx.Bucket([]byte(bucketName))
+		if bucket == nil {
+			return false
+		}
+	}
+	return true
+}
+
+func (b *boltRepository) bucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
 	return b.bolt.Update(func(tx *bolt.Tx) error {
-		return f(b.bucket(tx))
+		return f(b.bucket(bucketNames, tx))
 	})
 }
 
-func (b *boltRepository) loBucketFunc(f func(bucket *bolt.Bucket) error) error {
+func (b *boltRepository) loBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
 	return b.bolt.View(func(tx *bolt.Tx) error {
-		return f(b.bucket(tx))
+		return f(b.bucket(bucketNames, tx))
 	})
 }
 
-func (b *boltRepository) createBucketIfNotExist() error {
+func (b *boltRepository) createBucketIfNotExist(bucketNames []string) error {
 	return b.bolt.Update(func(tx *bolt.Tx) error {
-		if bucket := tx.Bucket([]byte(assetBucketName)); bucket != nil {
-			return nil
+		var bucket *bolt.Bucket = nil
+		for _, bucketName := range bucketNames {
+			bucket = tx.Bucket([]byte(bucketName))
+			if bucket == nil {
+				if _, err := tx.CreateBucket([]byte(bucketName)); err != nil {
+					return fmt.Errorf("failed to create bucket: %s", err)
+				}
+			}
 		}
-		_, err := tx.CreateBucket([]byte(assetBucketName))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
+
 		return nil
 	})
 }

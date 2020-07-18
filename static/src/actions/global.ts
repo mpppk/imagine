@@ -18,6 +18,7 @@ interface SignInError {
 }
 
 export const globalActionCreators = {
+  selectNewWorkSpace: globalActionCreatorFactory<string>('SELECT_NEW_WORKSPACE'),
   clickSignInSubmitButton: globalActionCreatorFactory<SignInRequest>(
     'CLICK_SIGN_IN_SUBMIT_BUTTON'
   ),

@@ -3,6 +3,10 @@ package action
 import (
 	"fmt"
 
+	"github.com/mitchellh/mapstructure"
+
+	"github.com/mpppk/imagine/domain/model"
+
 	"github.com/mpppk/imagine/usecase"
 
 	"github.com/gen2brain/dlgs"
@@ -10,28 +14,39 @@ import (
 	fsa "github.com/mpppk/lorca-fsa"
 )
 
-func newStartDirectoryScanningAction() *fsa.Action {
+func newStartDirectoryScanningAction(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type: ServerStartDirectoryScanningType,
+		Type:    ServerStartDirectoryScanningType,
+		Payload: newWSPayload(wsName),
 	}
 }
 
-func newFinishDirectoryScanningAction() *fsa.Action {
+func newFinishDirectoryScanningAction(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type: ServerFinishDirectoryScanningType,
+		Type:    ServerFinishDirectoryScanningType,
+		Payload: newWSPayload(wsName),
 	}
 }
 
-func newCancelDirectoryScanningAction() *fsa.Action {
+func newCancelDirectoryScanningAction(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type: ServerCancelDirectoryScanningType,
+		Type:    ServerCancelDirectoryScanningType,
+		Payload: newWSPayload(wsName),
 	}
 }
 
-func newScanningImages(paths []string) *fsa.Action {
+type ScanningImagesPayload struct {
+	*WSPayload
+	paths []string
+}
+
+func newScanningImages(wsName model.WSName, paths []string) *fsa.Action {
 	return &fsa.Action{
-		Type:    ServerScanningImagesType,
-		Payload: paths,
+		Type: ServerScanningImagesType,
+		Payload: &ScanningImagesPayload{
+			WSPayload: newWSPayload(wsName),
+			paths:     paths,
+		},
 	}
 }
 
@@ -44,9 +59,12 @@ func NewReadDirectoryScanHandler(assetUseCase *usecase.Asset) *DirectoryScanHand
 }
 
 func (d *DirectoryScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	fmt.Println(action)
+	var payload WSPayload
+	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
+		return fmt.Errorf("failed to decode payload: %w", err)
+	}
 
-	if err := dispatch(newStartDirectoryScanningAction()); err != nil {
+	if err := dispatch(newStartDirectoryScanningAction(payload.WorkSpaceName)); err != nil {
 		return err
 	}
 
@@ -56,26 +74,26 @@ func (d *DirectoryScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) err
 	}
 
 	if !selected {
-		return dispatch(newCancelDirectoryScanningAction())
+		return dispatch(newCancelDirectoryScanningAction(payload.WorkSpaceName))
 	}
 
 	var paths []string
 	for p := range util.LoadImagesFromDir(directory, 10) {
-		if err := d.assetUseCase.AddImage(p); err != nil {
+		if err := d.assetUseCase.AddImage(payload.WorkSpaceName, p); err != nil {
 			return err
 		}
 		paths = append(paths, p)
 		if len(paths) >= 20 {
-			if err := dispatch(newScanningImages(paths)); err != nil {
+			if err := dispatch(newScanningImages(payload.WorkSpaceName, paths)); err != nil {
 				return err
 			}
 		}
 	}
 	if len(paths) > 0 {
-		if err := dispatch(newScanningImages(paths)); err != nil {
+		if err := dispatch(newScanningImages(payload.WorkSpaceName, paths)); err != nil {
 			return err
 		}
 	}
 
-	return dispatch(newFinishDirectoryScanningAction())
+	return dispatch(newFinishDirectoryScanningAction(payload.WorkSpaceName))
 }

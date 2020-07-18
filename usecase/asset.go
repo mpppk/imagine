@@ -18,12 +18,12 @@ func NewAsset(assetRepository repository.Asset) *Asset {
 	}
 }
 
-func (a *Asset) AddImage(filePath string) error {
+func (a *Asset) AddImage(ws model.WSName, filePath string) error {
 	// FIXME
-	if err := a.assetRepository.Init(); err != nil {
+	if err := a.assetRepository.Init(ws); err != nil {
 		return err
 	}
-	return a.assetRepository.Add(newAssetFromFilePath(filePath))
+	return a.assetRepository.Add(ws, newAssetFromFilePath(filePath))
 }
 
 func newAssetFromFilePath(filePath string) *model.Asset {

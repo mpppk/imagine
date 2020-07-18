@@ -1,6 +1,9 @@
 package action
 
-import fsa "github.com/mpppk/lorca-fsa"
+import (
+	"github.com/mpppk/imagine/domain/model"
+	fsa "github.com/mpppk/lorca-fsa"
+)
 
 const (
 	IndexPrefix                               = "INDEX/"
@@ -14,3 +17,11 @@ const (
 	ServerFinishDirectoryScanningType fsa.Type = ServerPrefix + "FINISH_DIRECTORY_SCANNING"
 	ServerScanningImagesType          fsa.Type = ServerPrefix + "SCANNING_IMAGES"
 )
+
+type WSPayload struct {
+	WorkSpaceName model.WSName `json:"workSpaceName"`
+}
+
+func newWSPayload(name model.WSName) *WSPayload {
+	return &WSPayload{WorkSpaceName: name}
+}

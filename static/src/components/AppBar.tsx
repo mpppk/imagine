@@ -10,8 +10,9 @@ import {useState} from 'react';
 import MyDrawer from './drawer/Drawer';
 import Button from "@material-ui/core/Button";
 import {SwitchWorkSpaceDialog} from "./SwitchWorkSpaceDialog";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {State} from "../reducers/reducer";
+import {globalActionCreators} from "../actions/global";
 
 const useStyles = makeStyles((theme: Theme) => ({
   menuButton: {
@@ -33,6 +34,7 @@ export function MyAppBar() {
   const [isWorkSpaceDialogOpen, setWorkSpaceDialogOpen] = useState(false);
   const currentWorkSpace = useSelector((s: State) => s.global.currentWorkSpace)
   const workspaces = useSelector((s: State) => s.global.workspaces)
+  const dispatch = useDispatch();
 
   const handleClickOpenSwitchWorkSpaceDialogButton = () => {
     setWorkSpaceDialogOpen(true)
@@ -43,7 +45,7 @@ export function MyAppBar() {
   }
 
   const handleSelectWorkSpace = (ws: string) => {
-    console.log('select', ws)
+    dispatch(globalActionCreators.selectNewWorkSpace(ws));
   }
 
   return (

@@ -18,6 +18,10 @@ type BBoltAsset struct {
 	pathRepository *pathRepository
 }
 
+func createBucketNames(ws model.WSName) []string {
+	return []string{string(ws), assetBucketName}
+}
+
 func NewBBoltAsset(b *bolt.DB) repository.Asset {
 	return &BBoltAsset{
 		base:           newBoltRepository(b),
@@ -25,16 +29,16 @@ func NewBBoltAsset(b *bolt.DB) repository.Asset {
 	}
 }
 
-func (b *BBoltAsset) Init() error {
-	return b.base.createBucketIfNotExist()
+func (b *BBoltAsset) Init(ws model.WSName) error {
+	return b.base.createBucketIfNotExist(createBucketNames(ws))
 }
 
-func (b *BBoltAsset) Close() error {
+func (b *BBoltAsset) Close(ws model.WSName) error {
 	return b.base.close()
 }
 
-func (b *BBoltAsset) Add(asset *model.Asset) error {
-	return b.base.bucketFunc(func(bucket *bolt.Bucket) error {
+func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) error {
+	return b.base.bucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
 		id, err := bucket.NextSequence()
 		if err != nil {
 			return err
@@ -48,8 +52,8 @@ func (b *BBoltAsset) Add(asset *model.Asset) error {
 	})
 }
 
-func (b *BBoltAsset) Get(id model.AssetID) (asset *model.Asset, err error) {
-	err = b.base.loBucketFunc(func(bucket *bolt.Bucket) error {
+func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error) {
+	err = b.base.loBucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
 		data := bucket.Get(b.itob(id))
 		if data == nil {
 			return fmt.Errorf("a does not exist: %v", id)
@@ -64,8 +68,8 @@ func (b *BBoltAsset) Get(id model.AssetID) (asset *model.Asset, err error) {
 	return
 }
 
-func (b *BBoltAsset) Update(asset *model.Asset) error {
-	return b.base.bucketFunc(func(bucket *bolt.Bucket) error {
+func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
+	return b.base.bucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
 		s, err := json.Marshal(asset)
 		if err != nil {
 			return fmt.Errorf("failed to marshal asset to json: %w", err)
@@ -74,7 +78,7 @@ func (b *BBoltAsset) Update(asset *model.Asset) error {
 	})
 }
 
-func (b *BBoltAsset) ListByAsync(f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error) {
+func (b *BBoltAsset) ListByAsync(ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error) {
 	c := make(chan *model.Asset, cap)
 	eachF := func(asset *model.Asset) error {
 		if f(asset) {
@@ -82,30 +86,30 @@ func (b *BBoltAsset) ListByAsync(f func(asset *model.Asset) bool, cap int) (asse
 		}
 		return nil
 	}
-	if err := b.ForEach(eachF); err != nil {
+	if err := b.ForEach(ws, eachF); err != nil {
 		return nil, fmt.Errorf("failed to list assets: %w", err)
 	}
 	return c, nil
 }
 
-func (b *BBoltAsset) ListBy(f func(asset *model.Asset) bool) (assets []*model.Asset, err error) {
+func (b *BBoltAsset) ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset, err error) {
 	eachF := func(asset *model.Asset) error {
 		if f(asset) {
 			assets = append(assets, asset)
 		}
 		return nil
 	}
-	if err := b.ForEach(eachF); err != nil {
+	if err := b.ForEach(ws, eachF); err != nil {
 		return nil, fmt.Errorf("failed to list assets: %w", err)
 	}
 	return
 }
 
-func (b *BBoltAsset) ListByTags(tags []model.Tag) (assets []*model.Asset, err error) {
+func (b *BBoltAsset) ListByTags(ws model.WSName, tags []model.Tag) (assets []*model.Asset, err error) {
 	if len(tags) == 0 {
 		return nil, errors.New("no tags given to ListByTags")
 	}
-	return b.ListBy(func(asset *model.Asset) bool {
+	return b.ListBy(ws, func(asset *model.Asset) bool {
 		m := map[model.Tag]struct{}{}
 		for _, t := range asset.Tags {
 			m[t] = struct{}{}
@@ -119,8 +123,8 @@ func (b *BBoltAsset) ListByTags(tags []model.Tag) (assets []*model.Asset, err er
 	})
 }
 
-func (b *BBoltAsset) ForEach(f func(asset *model.Asset) error) error {
-	return b.base.loBucketFunc(func(bucket *bolt.Bucket) error {
+func (b *BBoltAsset) ForEach(ws model.WSName, f func(asset *model.Asset) error) error {
+	return b.base.loBucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
 		return bucket.ForEach(func(k, v []byte) error {
 			var asset model.Asset
 			if err := json.Unmarshal(v, &asset); err != nil {

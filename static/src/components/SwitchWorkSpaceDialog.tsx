@@ -35,7 +35,9 @@ export const SwitchWorkSpaceDialog: React.FC<SwitchWorkSpaceDialogProps> = (prop
     setWorkSpace(event.target.value as string)
   }
   const handleClickSwitchButton = () => {
-    props.onSelectWorkSpace(workspace)
+    if (workspace !== props.currentWorkSpace) {
+      props.onSelectWorkSpace(workspace)
+    }
     props.onClose()
   }
 
@@ -49,7 +51,7 @@ export const SwitchWorkSpaceDialog: React.FC<SwitchWorkSpaceDialogProps> = (prop
           onChange={handleChangeSelect}
           value={workspace}
         >
-          {props.workspaces.map(ws => <MenuItem value={ws}>{ws}</MenuItem>)}
+          {props.workspaces.map(ws => <MenuItem value={ws} key={ws}>{ws}</MenuItem>)}
         </Select>
       </FormControl>
       </DialogContent>
