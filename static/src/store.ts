@@ -1,8 +1,9 @@
 import { Context, createWrapper, MakeStore } from 'next-redux-wrapper';
-import { applyMiddleware, createStore, Middleware } from 'redux';
+import {applyMiddleware, createStore, Middleware} from 'redux';
 import createSagaMiddleware from 'redux-saga';
 import { initialState, reducer, State } from './reducers/reducer';
 import rootSaga from './sagas/saga';
+import {makeLorcaMiddleware, setupServerActionHandler} from "./lib";
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -18,7 +19,7 @@ const makeStore: MakeStore<State> = (_context: Context) => {
   const store = createStore(
     reducer,
     initialState,
-    bindMiddleware([sagaMiddleware])
+    bindMiddleware([sagaMiddleware, makeLorcaMiddleware()])
   );
 
   (store as any).runSagaTask = () => {
@@ -26,6 +27,7 @@ const makeStore: MakeStore<State> = (_context: Context) => {
   };
 
   (store as any).runSagaTask(); // FIXME Add type
+  setupServerActionHandler(store);
   return store;
 }
 
