@@ -27,20 +27,20 @@ func NewBBoltGlobal(b *bolt.DB) repository.Global {
 	}
 }
 
-func (b *BBoltGlobal) Init() error {
-	return b.base.createBucketIfNotExist(globalBucketNames)
-}
-
-func (b *BBoltGlobal) Close() error {
-	return b.base.close()
-}
-
 func (b *BBoltGlobal) loGlobalBucketFunc(f func(bucket *bolt.Bucket) error) error {
 	return b.base.loBucketFunc(globalBucketNames, f)
 }
 
+func (b *BBoltGlobal) globalBucketFunc(f func(bucket *bolt.Bucket) error) error {
+	return b.base.bucketFunc(globalBucketNames, f)
+}
+
 func (b *BBoltGlobal) getWorkSpacesFromBucket(bucket *bolt.Bucket) (workspaces []*model.WorkSpace, err error) {
-	err = json.Unmarshal(bucket.Get(workSpacesKey), &workspaces)
+	workSpacesBytes := bucket.Get(workSpacesKey)
+	if workSpacesBytes == nil {
+		return nil, nil
+	}
+	err = json.Unmarshal(workSpacesBytes, &workspaces)
 	return
 }
 
@@ -53,7 +53,7 @@ func (b *BBoltGlobal) setWorkSpaces(bucket *bolt.Bucket, workspaces []*model.Wor
 }
 
 func (b *BBoltGlobal) updateWorkSpaces(f func(workspaces []*model.WorkSpace) ([]*model.WorkSpace, error)) error {
-	return b.loGlobalBucketFunc(func(bucket *bolt.Bucket) error {
+	return b.globalBucketFunc(func(bucket *bolt.Bucket) error {
 		workspaces, err := b.getWorkSpacesFromBucket(bucket)
 		if err != nil {
 			return err
@@ -67,7 +67,7 @@ func (b *BBoltGlobal) updateWorkSpaces(f func(workspaces []*model.WorkSpace) ([]
 }
 
 func (b *BBoltGlobal) ListWorkSpace() (workspaces []*model.WorkSpace, err error) {
-	err = b.loGlobalBucketFunc(func(bucket *bolt.Bucket) error {
+	err = b.globalBucketFunc(func(bucket *bolt.Bucket) error {
 		workspaces, err = b.getWorkSpacesFromBucket(bucket)
 		return err
 	})

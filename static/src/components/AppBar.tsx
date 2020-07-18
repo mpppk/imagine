@@ -1,4 +1,5 @@
 import AppBar from '@material-ui/core/AppBar/AppBar';
+import Button from "@material-ui/core/Button";
 import IconButton from '@material-ui/core/IconButton/IconButton';
 import {Theme} from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar/Toolbar';
@@ -7,12 +8,12 @@ import MenuIcon from '@material-ui/icons/Menu';
 import {makeStyles} from '@material-ui/styles';
 import * as React from 'react';
 import {useState} from 'react';
-import MyDrawer from './drawer/Drawer';
-import Button from "@material-ui/core/Button";
-import {SwitchWorkSpaceDialog} from "./SwitchWorkSpaceDialog";
 import {useDispatch, useSelector} from "react-redux";
-import {State} from "../reducers/reducer";
 import {globalActionCreators} from "../actions/global";
+import {State} from "../reducers/reducer";
+import MyDrawer from './drawer/Drawer';
+import {SwitchWorkSpaceDialog} from "./SwitchWorkSpaceDialog";
+import {WorkSpace} from "../models/models";
 
 const useStyles = makeStyles((theme: Theme) => ({
   menuButton: {
@@ -34,6 +35,7 @@ export function MyAppBar() {
   const [isWorkSpaceDialogOpen, setWorkSpaceDialogOpen] = useState(false);
   const currentWorkSpace = useSelector((s: State) => s.global.currentWorkSpace)
   const workspaces = useSelector((s: State) => s.global.workspaces)
+  const isLoadingWorkSpaces = useSelector((s: State) => s.global.isLoadingWorkSpaces)
   const dispatch = useDispatch();
 
   const handleClickOpenSwitchWorkSpaceDialogButton = () => {
@@ -44,7 +46,7 @@ export function MyAppBar() {
     setWorkSpaceDialogOpen(false)
   }
 
-  const handleSelectWorkSpace = (ws: string) => {
+  const handleSelectWorkSpace = (ws: WorkSpace) => {
     dispatch(globalActionCreators.selectNewWorkSpace(ws));
   }
 
@@ -67,15 +69,16 @@ export function MyAppBar() {
             <MenuIcon/>
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            {currentWorkSpace === null ? 'no workspace' : currentWorkSpace}
+            {currentWorkSpace === null ? 'loading workspace...' : currentWorkSpace.name}
           </Typography>
-          <Button color="inherit" onClick={handleClickOpenSwitchWorkSpaceDialogButton}>
+          <Button color="inherit" disabled={isLoadingWorkSpaces}
+                  onClick={handleClickOpenSwitchWorkSpaceDialogButton}>
             Switch WorkSpace
           </Button>
         </Toolbar>
       </AppBar>
       <SwitchWorkSpaceDialog
-        workspaces={workspaces}
+        workspaces={workspaces === null ? [] : workspaces}
         open={isWorkSpaceDialogOpen}
         onClose={handleCloseSwitchWorkSpaceDialog}
         currentWorkSpace={currentWorkSpace}

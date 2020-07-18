@@ -1,5 +1,5 @@
 import actionCreatorFactory from 'typescript-fsa';
-import { User } from '../models/models';
+import {User, WorkSpace} from '../models/models';
 
 const globalActionCreatorFactory = actionCreatorFactory('GLOBAL');
 
@@ -18,10 +18,11 @@ interface SignInError {
 }
 
 export const globalActionCreators = {
-  selectNewWorkSpace: globalActionCreatorFactory<string>('SELECT_NEW_WORKSPACE'),
   clickSignInSubmitButton: globalActionCreatorFactory<SignInRequest>(
     'CLICK_SIGN_IN_SUBMIT_BUTTON'
   ),
+  requestWorkSpaces: globalActionCreatorFactory<void>('REQUEST_WORKSPACES'),
+  selectNewWorkSpace: globalActionCreatorFactory<WorkSpace>('SELECT_NEW_WORKSPACE'),
 };
 
 export const globalAsyncActionCreators = {

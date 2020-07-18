@@ -20,3 +20,7 @@ export interface JWT {
   claim: JWTClaim;
   signature: string;
 }
+
+export interface WorkSpace {
+  name: string
+}

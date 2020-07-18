@@ -30,7 +30,8 @@ func NewBBoltAsset(b *bolt.DB) repository.Asset {
 }
 
 func (b *BBoltAsset) Init(ws model.WSName) error {
-	return b.base.createBucketIfNotExist(createBucketNames(ws))
+	return nil
+	//return b.base.createBucketIfNotExist(createBucketNames(ws))
 }
 
 func (b *BBoltAsset) Close(ws model.WSName) error {

@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 
 	bolt "go.etcd.io/bbolt"
@@ -24,51 +25,46 @@ func newBoltRepository(b *bolt.DB) *boltRepository {
 	}
 }
 
-func (b *boltRepository) bucket(bucketNames []string, tx *bolt.Tx) *bolt.Bucket {
-	var bucket *bolt.Bucket = nil
-	for _, bucketName := range bucketNames {
-		bucket = tx.Bucket([]byte(bucketName))
+// bucket gets or creates buckets
+func (b *boltRepository) bucket(bucketNames []string, tx *bolt.Tx) (*bolt.Bucket, error) {
+	if len(bucketNames) == 0 {
+		return nil, errors.New("empty bucket name is provided")
 	}
-	return bucket
-}
 
-func (b *boltRepository) hasBucket(bucketNames []string, tx *bolt.Tx) bool {
-	var bucket *bolt.Bucket = nil
-	for _, bucketName := range bucketNames {
-		bucket = tx.Bucket([]byte(bucketName))
-		if bucket == nil {
-			return false
+	bucket, err := tx.CreateBucketIfNotExists([]byte(bucketNames[0]))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create bucket(name: %s): %w", bucketNames[0], err)
+	}
+
+	if len(bucketNames) == 1 {
+		return bucket, nil
+	}
+
+	for _, bucketName := range bucketNames[1:] {
+		b, err := bucket.CreateBucketIfNotExists([]byte(bucketName))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create bucket(name: %s): %w", bucketName, err)
 		}
+		bucket = b
 	}
-	return true
+	return bucket, nil
 }
 
+func (b *boltRepository) internalBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) func(tx *bolt.Tx) error {
+	return func(tx *bolt.Tx) error {
+		bucket, err := b.bucket(bucketNames, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get bucket from %v: %w", bucketNames, err)
+		}
+		return f(bucket)
+	}
+}
 func (b *boltRepository) bucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
-	return b.bolt.Update(func(tx *bolt.Tx) error {
-		return f(b.bucket(bucketNames, tx))
-	})
+	return b.bolt.Update(b.internalBucketFunc(bucketNames, f))
 }
 
 func (b *boltRepository) loBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
-	return b.bolt.View(func(tx *bolt.Tx) error {
-		return f(b.bucket(bucketNames, tx))
-	})
-}
-
-func (b *boltRepository) createBucketIfNotExist(bucketNames []string) error {
-	return b.bolt.Update(func(tx *bolt.Tx) error {
-		var bucket *bolt.Bucket = nil
-		for _, bucketName := range bucketNames {
-			bucket = tx.Bucket([]byte(bucketName))
-			if bucket == nil {
-				if _, err := tx.CreateBucket([]byte(bucketName)); err != nil {
-					return fmt.Errorf("failed to create bucket: %s", err)
-				}
-			}
-		}
-
-		return nil
-	})
+	return b.bolt.View(b.internalBucketFunc(bucketNames, f))
 }
 
 func (b *boltRepository) close() error {

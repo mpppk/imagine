@@ -11,11 +11,17 @@ const (
 )
 
 const (
+	GlobalPrefix                     = "GLOBAL/"
+	GlobalRequestWorkSpaces fsa.Type = GlobalPrefix + "REQUEST_WORKSPACES"
+)
+
+const (
 	ServerPrefix                               = "SERVER/"
 	ServerStartDirectoryScanningType  fsa.Type = ServerPrefix + "START_DIRECTORY_SCANNING"
 	ServerCancelDirectoryScanningType fsa.Type = ServerPrefix + "CANCEL_DIRECTORY_SCANNING"
 	ServerFinishDirectoryScanningType fsa.Type = ServerPrefix + "FINISH_DIRECTORY_SCANNING"
 	ServerScanningImagesType          fsa.Type = ServerPrefix + "SCANNING_IMAGES"
+	ServerScanWorkSpaces              fsa.Type = ServerPrefix + "SCAN_WORKSPACES"
 )
 
 type WSPayload struct {
