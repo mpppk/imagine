@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/mpppk/imagine/action"
+	"go.etcd.io/bbolt"
 
+	"github.com/mpppk/imagine/registry"
 	"github.com/mpppk/imagine/util"
 
 	"github.com/mpppk/imagine/cmd/option"
@@ -46,7 +47,12 @@ func NewRootCmd(fs afero.Fs) (*cobra.Command, error) {
 			//}
 			devMode := true
 
-			handlers := action.NewHandlers()
+			db, err := bbolt.Open("test.db", 0600, nil)
+			if err != nil {
+				return fmt.Errorf("failed to open DB: %w", err)
+			}
+
+			handlers := registry.NewHandlers(db)
 
 			config := &fsa.LorcaConfig{
 				AppName:          "imagine",

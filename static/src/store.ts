@@ -3,7 +3,7 @@ import {applyMiddleware, createStore, Middleware} from 'redux';
 import createSagaMiddleware from 'redux-saga';
 import { initialState, reducer, State } from './reducers/reducer';
 import rootSaga from './sagas/saga';
-import {makeLorcaMiddleware, setupServerActionHandler} from "./lib";
+import {makeLorcaMiddleware, setupServerActionHandler} from './lib';
 
 const sagaMiddleware = createSagaMiddleware();
 

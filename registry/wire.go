@@ -6,13 +6,13 @@ package registry
 
 import (
 	"github.com/google/wire"
-	"github.com/mpppk/imagine/domain/model"
+	"github.com/mpppk/imagine/action"
 	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/mpppk/imagine/usecase"
+	"go.etcd.io/bbolt"
 )
 
-// InitializeSumUseCase initialize sum use case with  memorySumHistoryRepository
-func InitializeSumUseCase(v []*model.SumHistory) *usecase.Sum {
-	wire.Build(repoimpl.NewMemorySumHistory, usecase.NewSum)
-	return &usecase.Sum{}
+func InitializeDirectoryScanHandler(b *bbolt.DB) *action.DirectoryScanHandler {
+	wire.Build(usecase.NewAsset, repoimpl.NewBBoltAsset, action.NewReadDirectoryScanHandler)
+	return &action.DirectoryScanHandler{}
 }
