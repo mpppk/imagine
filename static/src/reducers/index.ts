@@ -12,14 +12,21 @@ const startScan = (state: IndexState) => {
   return {...state, scanning: true};
 };
 
-// const finishScan = (state: IndexState) => {
-//   return { ...state, scanning: false};
-// };
+const finishOrCancelScan = (state: IndexState) => {
+  return {...state, scanning: false};
+};
 
 export const indexPage = reducerWithInitialState(indexInitialState)
   .case(serverActionCreators.startDirectoryScanning, (state) => {
     return startScan(state);
-  }).case(serverActionCreators.scanningImages, (state, payload) => {
+  })
+  .case(serverActionCreators.cancelDirectoryScanning, (state) => {
+    return finishOrCancelScan(state);
+  })
+  .case(serverActionCreators.finishDirectoryScanning, (state) => {
+    return finishOrCancelScan(state);
+  })
+  .case(serverActionCreators.scanningImages, (state, payload) => {
     const newPaths = payload.map(p => `http://localhost:1323/static${p}`)
     return {...state, imagePaths: [...state.imagePaths, ...newPaths]};
   });

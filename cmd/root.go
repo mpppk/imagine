@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gen2brain/dlgs"
+	"github.com/mpppk/imagine/action"
 
 	"github.com/mpppk/imagine/util"
 
@@ -21,62 +21,6 @@ import (
 )
 
 var cfgFile string
-
-func newStartDirectoryScanningAction() *fsa.Action {
-	return &fsa.Action{
-		Type: "SERVER/START_DIRECTORY_SCANNING",
-	}
-}
-
-func newScanningImages(paths []string) *fsa.Action {
-	return &fsa.Action{
-		Type:    "SERVER/SCANNING_IMAGES",
-		Payload: paths,
-	}
-}
-
-func readDirRequestHandler(action *fsa.Action, dispatch fsa.Dispatch) error {
-	fmt.Println(action)
-
-	if err := dispatch(newStartDirectoryScanningAction()); err != nil {
-		return err
-	}
-
-	directory, selected, err := dlgs.File("Select file", "", true)
-	if err != nil {
-		panic(err)
-	}
-
-	if !selected {
-		return dispatch(&fsa.Action{
-			Type: "SERVER/CANCEL_DIRECTORY_SCANNING",
-		})
-	}
-
-	var paths []string
-	for p := range util.LoadImagesFromDir(directory, 10) {
-		//if err := a.assetUseCase.AddImage(p); err != nil {
-		//	return err
-		//}
-		paths = append(paths, p)
-		if len(paths) >= 20 {
-			fmt.Println(paths)
-			if err := dispatch(newScanningImages(paths)); err != nil {
-				return err
-			}
-		}
-	}
-	if len(paths) > 0 {
-		fmt.Println(paths)
-		if err := dispatch(newScanningImages(paths)); err != nil {
-			return err
-		}
-	}
-
-	return dispatch(&fsa.Action{
-		Type: "SERVER/FINISH_DIRECTORY_SCANNING",
-	})
-}
 
 // NewRootCmd generate root cmd
 func NewRootCmd(fs afero.Fs) (*cobra.Command, error) {
@@ -102,8 +46,7 @@ func NewRootCmd(fs afero.Fs) (*cobra.Command, error) {
 			//}
 			devMode := true
 
-			handlers := fsa.NewHandlers()
-			handlers.Handle("INDEX/CLICK_ADD_DIRECTORY_BUTTON", fsa.HandlerFunc(readDirRequestHandler))
+			handlers := action.NewHandlers()
 
 			config := &fsa.LorcaConfig{
 				AppName:          "imagine",
