@@ -1,16 +1,17 @@
 import AppBar from '@material-ui/core/AppBar/AppBar';
 import IconButton from '@material-ui/core/IconButton/IconButton';
-import { Theme } from '@material-ui/core/styles';
+import {Theme} from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar/Toolbar';
 import Typography from '@material-ui/core/Typography/Typography';
 import MenuIcon from '@material-ui/icons/Menu';
-import { makeStyles } from '@material-ui/styles';
+import {makeStyles} from '@material-ui/styles';
 import * as React from 'react';
-import { useState } from 'react';
-import { User } from '../models/models';
+import {useState} from 'react';
 import MyDrawer from './drawer/Drawer';
-import SignInButton from './LoginButton';
-import ProfileButton from './ProfileButton';
+import Button from "@material-ui/core/Button";
+import {SwitchWorkSpaceDialog} from "./SwitchWorkSpaceDialog";
+import {useSelector} from "react-redux";
+import {State} from "../reducers/reducer";
 
 const useStyles = makeStyles((theme: Theme) => ({
   menuButton: {
@@ -21,19 +22,29 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   title: {
     flexGrow: 1
-  }
+  },
 }));
 
-interface IMyAppBarProps {
-  user: User | null;
-  onClickLogout: () => void;
-}
-
 // tslint:disable-next-line variable-name
-export function MyAppBar(props: IMyAppBarProps) {
+export function MyAppBar() {
   const classes = useStyles(undefined);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const handleDrawer = (open: boolean) => () => setDrawerOpen(open);
+  const [isWorkSpaceDialogOpen, setWorkSpaceDialogOpen] = useState(false);
+  const currentWorkSpace = useSelector((s: State) => s.global.currentWorkSpace)
+  const workspaces = useSelector((s: State) => s.global.workspaces)
+
+  const handleClickOpenSwitchWorkSpaceDialogButton = () => {
+    setWorkSpaceDialogOpen(true)
+  }
+
+  const handleCloseSwitchWorkSpaceDialog = () => {
+    setWorkSpaceDialogOpen(false)
+  }
+
+  const handleSelectWorkSpace = (ws: string) => {
+    console.log('select', ws)
+  }
 
   return (
     <div className={classes.root}>
@@ -51,21 +62,23 @@ export function MyAppBar(props: IMyAppBarProps) {
             aria-label="menu"
             onClick={handleDrawer(true)}
           >
-            <MenuIcon />
+            <MenuIcon/>
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            Frontend boilerplate
+            {currentWorkSpace === null ? 'no workspace' : currentWorkSpace}
           </Typography>
-          {props.user ? (
-            <ProfileButton
-              user={props.user}
-              onClickLogout={props.onClickLogout}
-            />
-          ) : (
-            <SignInButton />
-          )}
+          <Button color="inherit" onClick={handleClickOpenSwitchWorkSpaceDialogButton}>
+            Switch WorkSpace
+          </Button>
         </Toolbar>
       </AppBar>
+      <SwitchWorkSpaceDialog
+        workspaces={workspaces}
+        open={isWorkSpaceDialogOpen}
+        onClose={handleCloseSwitchWorkSpaceDialog}
+        currentWorkSpace={currentWorkSpace}
+        onSelectWorkSpace={handleSelectWorkSpace}
+      />
     </div>
   );
 }

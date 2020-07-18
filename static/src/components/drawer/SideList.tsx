@@ -36,6 +36,14 @@ const SideList: React.FunctionComponent = () => {
             <ListItemText primary={'About'} />
           </ListItem>
         </Link>
+        <Link href={'/explorer'}>
+          <ListItem button={true} key={'Explorer'}>
+            <ListItemIcon>
+              <InfoIcon />
+            </ListItemIcon>
+            <ListItemText primary={'Explorer'} />
+          </ListItem>
+        </Link>
       </List>
     </div>
   );

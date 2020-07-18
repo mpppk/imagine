@@ -6,6 +6,9 @@ export const globalInitialState = {
   jwt: null as string | null, // FIXME
   user: null as User | null,
   waitingSignIn: false,
+  currentWorkSpace: 'a',
+  // currentWorkSpace: null as string | null,
+  workspaces: ['a', 'b', 'c'] as string[]
 };
 
 export type GlobalState = typeof globalInitialState;
