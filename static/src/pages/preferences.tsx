@@ -1,7 +1,39 @@
+import {Theme} from "@material-ui/core";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import List from "@material-ui/core/List";
+import {makeStyles} from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
 import {NextPage} from 'next';
 import React, {useState} from 'react';
 import {DragDropContext, Draggable, Droppable, resetServerContext} from "react-beautiful-dnd";
-import {ListItem} from "@material-ui/core";
+
+const useStyles = makeStyles((theme: Theme) => {
+  return {
+    draggingItem: {
+      background: "lightgreen",
+      margin: `0 0 ${theme.spacing(1)}px 0`,
+      padding: theme.spacing(2),
+      userSelect: "none",
+    },
+    draggingList: {
+      background: "lightblue",
+      padding: theme.spacing(1),
+      width: 250
+    },
+    item: {
+      // background: "gray",
+      margin: `0 0 ${theme.spacing(1)}px 0`,
+      padding: theme.spacing(2),
+      userSelect: "none",
+    },
+    list: {
+      // background: "lightgray",
+      padding: theme.spacing(1),
+      width: 250
+    },
+  }
+});
 
 interface Item {
   id: string
@@ -19,34 +51,14 @@ const reorder = (list: any, startIndex: number, endIndex: number) => {
 
 // fake data generator
 const generateItems = (count: number) =>
-  Array.from({ length: count }, (_, k) => k).map(k => ({
+  Array.from({length: count}, (_, k) => k).map(k => ({
+    content: `item ${k}`,
     id: `item-${k}`,
-    content: `item ${k}`
   } as Item));
 
-const grid = 8;
-
-const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
-  // some basic styles to make the items look a bit nicer
-  userSelect: "none",
-  padding: grid * 2,
-  margin: `0 0 ${grid}px 0`,
-
-  // change background colour if dragging
-  background: isDragging ? "lightgreen" : "grey",
-
-  // styles we need to apply on draggables
-  ...draggableStyle
-});
-
-const getListStyle = (isDraggingOver: boolean) => ({
-  background: isDraggingOver ? "lightblue" : "lightgrey",
-  padding: grid,
-  width: 250
-});
-
 // tslint:disable-next-line variable-name
-export const EditQuery: NextPage = () => {
+export const Preferences: NextPage = () => {
+  const classes = useStyles();
   const [items, setItems] = useState(generateItems(10));
   const onDragEnd = (result: any) => {
     // dropped outside the list
@@ -64,36 +76,41 @@ export const EditQuery: NextPage = () => {
   }
   return (
     <div>
+      Tags
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="droppable">
           {(provided, snapshot) => (
-            <div
+            <List
               {...provided.droppableProps}
               ref={provided.innerRef}
-              style={getListStyle(snapshot.isDraggingOver)}
+              component="nav"
+              className={snapshot.isDraggingOver ? classes.draggingList : classes.list}
             >
               {items.map((item, index) => (
                 <Draggable key={item.id} draggableId={item.id} index={index}>
                   {(provided, snapshot) => (
-                    <ListItem
+                    <Card
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      style={getItemStyle(
-                        snapshot.isDragging,
-                        provided.draggableProps.style
-                      )}
+                      className={snapshot.isDragging ? classes.draggingItem : classes.item}
+                      style={{...provided.draggableProps.style}}
                     >
-                      {item.content}
-                    </ListItem>
+                      <CardContent>
+                        <Typography color="textSecondary" gutterBottom={true}>
+                          Word of the Day
+                        </Typography>
+                      </CardContent>
+                    </Card>
                   )}
                 </Draggable>
               ))}
               {provided.placeholder}
-            </div>
+            </List>
           )}
         </Droppable>
-      </DragDropContext></div>
+      </DragDropContext>
+    </div>
   );
 };
 
@@ -102,4 +119,4 @@ export async function getServerSideProps() {
   return {props: {}}
 }
 
-export default EditQuery;
+export default Preferences;
