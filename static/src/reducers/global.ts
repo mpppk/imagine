@@ -1,14 +1,11 @@
 import { reducerWithInitialState } from 'typescript-fsa-reducers';
 import {globalActionCreators} from '../actions/global';
 import {serverActionCreators} from "../actions/server";
-import {User, WorkSpace} from '../models/models';
+import {WorkSpace} from '../models/models';
 
 export const globalInitialState = {
   currentWorkSpace: null as WorkSpace | null,
   isLoadingWorkSpaces: true,
-  jwt: null as string | null, // FIXME
-  user: null as User | null,
-  waitingSignIn: false,
   workspaces: null as WorkSpace[] | null,
 };
 

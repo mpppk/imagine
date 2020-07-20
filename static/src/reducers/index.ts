@@ -2,8 +2,8 @@ import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import {serverActionCreators} from "../actions/server";
 
 export const indexInitialState = {
-  scanning: false,
   imagePaths: [] as string[],
+  scanning: false,
 };
 
 export type IndexState = typeof indexInitialState;

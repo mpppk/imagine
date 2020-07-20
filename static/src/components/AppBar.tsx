@@ -10,10 +10,10 @@ import * as React from 'react';
 import {useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {globalActionCreators} from "../actions/global";
+import {WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import MyDrawer from './drawer/Drawer';
 import {SwitchWorkSpaceDialog} from "./SwitchWorkSpaceDialog";
-import {WorkSpace} from "../models/models";
 
 const useStyles = makeStyles((theme: Theme) => ({
   menuButton: {
