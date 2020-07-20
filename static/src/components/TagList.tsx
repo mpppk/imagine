@@ -7,7 +7,7 @@ import {makeStyles} from "@material-ui/core/styles";
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
-import React from "react";
+import React, {useState} from "react";
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
 import {Tag} from "../models/models";
 
@@ -59,9 +59,51 @@ export interface TagListProps {
   onClickAddButton: (tags: Tag[]) => void
 }
 
+interface TagListItemProps {
+  tag: Tag
+  index: number
+  onClickEditButton: (tag: Tag, index: number) => void
+}
+
+// tslint:disable-next-line:variable-name
+export const TagListItem: React.FC<TagListItemProps> = (props) => {
+  const classes = useStyles()
+  const tag = props.tag;
+
+  const generateHandleClickEditButton = (t: Tag, index: number) => () => {
+    props.onClickEditButton(t, index)
+  }
+
+  return (<Draggable key={tag.name} draggableId={tag.name} index={props.index}>
+    {(provided2, snapshot2) => (
+      <Paper
+        ref={provided2.innerRef}
+        {...provided2.draggableProps}
+        {...provided2.dragHandleProps}
+        className={snapshot2.isDragging ? classes.draggingItem : classes.item}
+        style={{...provided2.draggableProps.style}}
+      >
+        {tag.name}
+        <IconButton aria-label="delete" className={classes.itemButton}>
+          <DeleteIcon/>
+        </IconButton>
+        <IconButton
+          aria-label="edit"
+          className={classes.itemButton}
+          onClick={generateHandleClickEditButton(tag, props.index)}
+        >
+          <EditIcon/>
+        </IconButton>
+      </Paper>
+    )}
+  </Draggable>)
+}
+
 // tslint:disable-next-line:variable-name
 export const TagList: React.FC<TagListProps> = (props) => {
   const classes = useStyles();
+  const [editItemIndex, setEditItemIndex] = useState(null as number | null);
+
   const onDragEnd = (result: any) => {
     // dropped outside the list
     if (!result.destination) {
@@ -80,6 +122,11 @@ export const TagList: React.FC<TagListProps> = (props) => {
     props.onClickAddButton(props.tags);
   }
 
+  const handleClickItemEditButton = (tag: Tag, index: number) => {
+    console.log('handle edit', tag, editItemIndex);
+    setEditItemIndex(index);
+  }
+
   return (
     <div>
       <DragDropContext onDragEnd={onDragEnd}>
@@ -92,25 +139,8 @@ export const TagList: React.FC<TagListProps> = (props) => {
               className={snapshot.isDraggingOver ? classes.draggingList : classes.list}
             >
               {props.tags.map((tag, index) => (
-                <Draggable key={tag.name} draggableId={tag.name} index={index}>
-                  {(provided2, snapshot2) => (
-                    <Paper
-                      ref={provided2.innerRef}
-                      {...provided2.draggableProps}
-                      {...provided2.dragHandleProps}
-                      className={snapshot2.isDragging ? classes.draggingItem : classes.item}
-                      style={{...provided2.draggableProps.style}}
-                    >
-                      {tag.name}
-                      <IconButton aria-label="delete" className={classes.itemButton}>
-                        <DeleteIcon/>
-                      </IconButton>
-                      <IconButton aria-label="edit" className={classes.itemButton}>
-                        <EditIcon/>
-                      </IconButton>
-                    </Paper>
-                  )}
-                </Draggable>
+                <TagListItem key={tag.name} tag={tag} index={index}
+                             onClickEditButton={handleClickItemEditButton}/>
               ))}
               {provided.placeholder}
               <Button
