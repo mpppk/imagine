@@ -37,7 +37,7 @@ func newCancelDirectoryScanningAction(wsName model.WSName) *fsa.Action {
 
 type ScanningImagesPayload struct {
 	*WSPayload
-	paths []string
+	Paths []string `json:"paths"`
 }
 
 func newScanningImages(wsName model.WSName, paths []string) *fsa.Action {
@@ -45,7 +45,7 @@ func newScanningImages(wsName model.WSName, paths []string) *fsa.Action {
 		Type: ServerScanningImagesType,
 		Payload: &ScanningImagesPayload{
 			WSPayload: newWSPayload(wsName),
-			paths:     paths,
+			Paths:     paths,
 		},
 	}
 }
