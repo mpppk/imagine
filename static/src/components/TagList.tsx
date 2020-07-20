@@ -56,6 +56,7 @@ const useStyles = makeStyles((theme: Theme) => {
 export interface TagListProps {
   tags: Tag[]
   onChangeOrder: (tags: Tag[]) => void
+  onClickAddButton: (tags: Tag[]) => void
 }
 
 // tslint:disable-next-line:variable-name
@@ -75,9 +76,12 @@ export const TagList: React.FC<TagListProps> = (props) => {
 
     props.onChangeOrder(newTags)
   }
+  const handleClickAddButton = () => {
+    props.onClickAddButton(props.tags);
+  }
+
   return (
     <div>
-      Tags
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="droppable">
           {(provided, snapshot) => (
@@ -109,7 +113,14 @@ export const TagList: React.FC<TagListProps> = (props) => {
                 </Draggable>
               ))}
               {provided.placeholder}
-              <Button variant="outlined" color="primary" className={classes.addButton}><AddIcon/></Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                className={classes.addButton}
+                onClick={handleClickAddButton}
+              >
+                <AddIcon/>
+              </Button>
             </List>
           )}
         </Droppable>
