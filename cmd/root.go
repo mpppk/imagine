@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/comail/colog"
+
 	"go.etcd.io/bbolt"
 
 	"github.com/mpppk/imagine/registry"
@@ -54,6 +56,8 @@ func NewRootCmd(fs afero.Fs) (*cobra.Command, error) {
 
 			handlers := registry.NewHandlers(db)
 
+			logger := colog.NewCoLog(os.Stdout, "", 0).NewLogger()
+
 			config := &fsa.LorcaConfig{
 				AppName:          "imagine",
 				Url:              "http://localhost:3000",
@@ -61,6 +65,7 @@ func NewRootCmd(fs afero.Fs) (*cobra.Command, error) {
 				Height:           720,
 				EnableExtensions: devMode,
 				Handlers:         handlers,
+				Logger:           logger,
 			}
 
 			ui, err := fsa.Start(config)
