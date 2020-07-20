@@ -47,7 +47,7 @@ export const SwitchWorkSpaceDialog: React.FC<SwitchWorkSpaceDialogProps> = (prop
     }
   }
   const handleClickSwitchButton = () => {
-    if (workspace !== props.currentWorkSpace) {
+    if (workspace !== props.currentWorkSpace && workspace !== null) {
       props.onSelectWorkSpace(workspace)
     }
     props.onClose()
