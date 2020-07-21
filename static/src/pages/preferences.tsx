@@ -7,18 +7,23 @@ import {Tag} from "../models/models";
 // fake data generator
 const generateTags = (count: number) =>
   Array.from({length: count}, (_, k) => k).map(k => ({
+    id: k,
     name: `item-${k}`,
   } as Tag));
 
 // tslint:disable-next-line variable-name
 export const Preferences: NextPage = () => {
-  const [tags, setTags] = useState(generateTags(10));
-  const handleChangeOrder = (newTags: Tag[]) => {
+  const [tags, setTags] = useState(generateTags(5));
+  const handleChangeTags = (newTags: Tag[]) => {
+    setTags(newTags)
+  }
+
+  const handleClickAddItemButton = (newTags: Tag[]) => {
     setTags(newTags)
   }
 
   return (
-    <TagList tags={tags} onChangeOrder={handleChangeOrder}/>
+    <TagList tags={tags} onChange={handleChangeTags} onClickAddButton={handleClickAddItemButton}/>
   );
 };
 

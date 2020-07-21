@@ -4,12 +4,15 @@ import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
 import Paper from "@material-ui/core/Paper";
 import {makeStyles} from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import AddIcon from '@material-ui/icons/Add';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import React, {useState} from "react";
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
 import {Tag} from "../models/models";
+import {immutableSplice} from "../util";
 
 // a little function to help us with reordering the result
 const reorder = (list: Tag[], startIndex: number, endIndex: number) => {
@@ -24,6 +27,10 @@ const useStyles = makeStyles((theme: Theme) => {
   return {
     addButton: {
       width: 250 - theme.spacing(2)
+    },
+    checkCircleButton: {
+      bottom: theme.spacing(1),
+      float: "right",
     },
     draggingItem: {
       background: "lightgray",
@@ -46,6 +53,9 @@ const useStyles = makeStyles((theme: Theme) => {
       bottom: theme.spacing(2),
       float: "right",
     },
+    labelNameForm: {
+      width: 100,
+    },
     list: {
       padding: theme.spacing(1),
       width: 250
@@ -55,14 +65,60 @@ const useStyles = makeStyles((theme: Theme) => {
 
 export interface TagListProps {
   tags: Tag[]
-  onChangeOrder: (tags: Tag[]) => void
   onClickAddButton: (tags: Tag[]) => void
+  onChange: (tags: Tag[]) => void
 }
 
 interface TagListItemProps {
   tag: Tag
   index: number
-  onClickEditButton: (tag: Tag, index: number) => void
+  onClickEditButton: (tag: Tag) => void
+}
+
+interface EditingTagListItemProps {
+  tag: Tag
+  index: number
+  onFinishEdit: (tag: Tag) => void
+}
+
+// tslint:disable-next-line:variable-name
+export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => {
+  const classes = useStyles()
+  const tag = props.tag;
+  const [currentTagName, setCurrentTagName] = useState(tag.name);
+
+  const genClickCheckButtonHandler = () => {
+    props.onFinishEdit({...tag, name: currentTagName})
+  }
+
+  const handleUpdateTagNameForm = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentTagName(e.target.value);
+  }
+
+  return (<Draggable key={tag.name} draggableId={tag.name} index={props.index}>
+    {(provided2, snapshot2) => (
+      <Paper
+        ref={provided2.innerRef}
+        {...provided2.draggableProps}
+        {...provided2.dragHandleProps}
+        className={snapshot2.isDragging ? classes.draggingItem : classes.item}
+        style={{...provided2.draggableProps.style}}
+      >
+        <TextField
+          className={classes.labelNameForm}
+          onChange={handleUpdateTagNameForm}
+          value={currentTagName}
+        />
+        <IconButton
+          onClick={genClickCheckButtonHandler}
+          aria-label="update-tag"
+          className={classes.checkCircleButton}
+        >
+          <CheckCircleIcon/>
+        </IconButton>
+      </Paper>
+    )}
+  </Draggable>)
 }
 
 // tslint:disable-next-line:variable-name
@@ -70,8 +126,8 @@ export const TagListItem: React.FC<TagListItemProps> = (props) => {
   const classes = useStyles()
   const tag = props.tag;
 
-  const generateHandleClickEditButton = (t: Tag, index: number) => () => {
-    props.onClickEditButton(t, index)
+  const generateHandleClickEditButton = (t: Tag) => () => {
+    props.onClickEditButton(t)
   }
 
   return (<Draggable key={tag.name} draggableId={tag.name} index={props.index}>
@@ -90,7 +146,7 @@ export const TagListItem: React.FC<TagListItemProps> = (props) => {
         <IconButton
           aria-label="edit"
           className={classes.itemButton}
-          onClick={generateHandleClickEditButton(tag, props.index)}
+          onClick={generateHandleClickEditButton(tag)}
         >
           <EditIcon/>
         </IconButton>
@@ -102,7 +158,7 @@ export const TagListItem: React.FC<TagListItemProps> = (props) => {
 // tslint:disable-next-line:variable-name
 export const TagList: React.FC<TagListProps> = (props) => {
   const classes = useStyles();
-  const [editItemIndex, setEditItemIndex] = useState(null as number | null);
+  const [editTagName, setEditTagName] = useState(null as string | null);
 
   const onDragEnd = (result: any) => {
     // dropped outside the list
@@ -116,15 +172,21 @@ export const TagList: React.FC<TagListProps> = (props) => {
       result.destination.index
     );
 
-    props.onChangeOrder(newTags)
+    props.onChange(newTags)
   }
   const handleClickAddButton = () => {
     props.onClickAddButton(props.tags);
   }
 
-  const handleClickItemEditButton = (tag: Tag, index: number) => {
-    console.log('handle edit', tag, editItemIndex);
-    setEditItemIndex(index);
+  const handleClickItemEditButton = (tag: Tag) => {
+    setEditTagName(tag.name);
+  }
+
+  const genFinishItemEditHandler = (tag: Tag) => {
+    const index = props.tags.findIndex((t) => t.id === tag.id);
+    const newTags = immutableSplice(props.tags, index, 1, tag);
+    props.onChange(newTags);
+    setEditTagName(null)
   }
 
   return (
@@ -139,7 +201,9 @@ export const TagList: React.FC<TagListProps> = (props) => {
               className={snapshot.isDraggingOver ? classes.draggingList : classes.list}
             >
               {props.tags.map((tag, index) => (
-                <TagListItem key={tag.name} tag={tag} index={index}
+                editTagName === tag.name ?
+                  <EditingTagListItem key={tag.id} tag={tag} index={index} onFinishEdit={genFinishItemEditHandler}/> :
+                  <TagListItem key={tag.id} tag={tag} index={index}
                              onClickEditButton={handleClickItemEditButton}/>
               ))}
               {provided.placeholder}

@@ -3,5 +3,6 @@ export interface WorkSpace {
 }
 
 export interface Tag {
+  id: number
   name: string
 }
