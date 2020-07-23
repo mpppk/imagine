@@ -86,7 +86,6 @@ export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => 
   const classes = useStyles()
   const tag = props.tag;
   const [currentTagName, setCurrentTagName] = useState(tag.name);
-
   const genClickCheckButtonHandler = () => {
     props.onFinishEdit({...tag, name: currentTagName})
   }
@@ -111,6 +110,7 @@ export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => 
         style={{...provided2.draggableProps.style}}
       >
         <TextField
+          autoFocus={true}
           className={classes.labelNameForm}
           onChange={handleUpdateTagNameForm}
           onKeyPress={handleKeyPressForm}
@@ -211,7 +211,7 @@ export const TagList: React.FC<TagListProps> = (props) => {
                 editTagName === tag.name ?
                   <EditingTagListItem key={tag.id} tag={tag} index={index} onFinishEdit={genFinishItemEditHandler}/> :
                   <TagListItem key={tag.id} tag={tag} index={index}
-                             onClickEditButton={handleClickItemEditButton}/>
+                               onClickEditButton={handleClickItemEditButton}/>
               ))}
               {provided.placeholder}
               <Button
