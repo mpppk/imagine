@@ -9,8 +9,9 @@ import AddIcon from '@material-ui/icons/Add';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
-import React, {useState} from "react";
+import React from "react";
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
+import {useForm} from "react-hook-form";
 import {Tag} from "../models/models";
 import {immutableSplice} from "../util";
 
@@ -90,22 +91,13 @@ interface EditingTagListItemProps {
 export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => {
   const classes = useStyles()
   const tag = props.tag;
-  const [currentTagName, setCurrentTagName] = useState(tag.name);
-  const genClickCheckButtonHandler = () => {
-    props.onFinishEdit({...tag, name: currentTagName})
+  const { handleSubmit, register, errors } = useForm();
+
+  const handleSubmitTagName = (data: any) => {
+    props.onFinishEdit({...tag, name: data.tagName})
   }
 
-  const handleUpdateTagNameForm = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentTagName(e.target.value);
-  }
-
-  const handleKeyPressForm = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      props.onFinishEdit({...tag, name: currentTagName})
-    }
-  }
-
-  return (<Draggable key={tag.name} draggableId={tag.name} index={props.index}>
+  return (<Draggable key={tag.id} draggableId={tag.id.toString()} index={props.index}>
     {(provided2, snapshot2) => (
       <Paper
         ref={provided2.innerRef}
@@ -114,20 +106,25 @@ export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => 
         className={snapshot2.isDragging ? classes.draggingItem : classes.item}
         style={{...provided2.draggableProps.style}}
       >
-        <TextField
-          autoFocus={true}
-          className={classes.labelNameForm}
-          onChange={handleUpdateTagNameForm}
-          onKeyPress={handleKeyPressForm}
-          value={currentTagName}
-        />
-        <IconButton
-          onClick={genClickCheckButtonHandler}
-          aria-label="update-tag"
-          className={classes.checkCircleButton}
-        >
-          <CheckCircleIcon/>
-        </IconButton>
+        <form onSubmit={handleSubmit(handleSubmitTagName)}>
+          <TextField
+            label={'tag name'}
+            error={errors.tagName !== undefined}
+            helperText={errors.tagName?.type}
+            name='tagName'
+            inputRef={register({required: true})}
+            autoFocus={true}
+            className={classes.labelNameForm}
+            defaultValue={props.tag.name}
+          />
+          <IconButton
+            type="submit"
+            aria-label="update-tag"
+            className={classes.checkCircleButton}
+          >
+            <CheckCircleIcon/>
+          </IconButton>
+        </form>
       </Paper>
     )}
   </Draggable>)
