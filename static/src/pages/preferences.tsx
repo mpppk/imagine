@@ -21,7 +21,7 @@ export const Preferences: NextPage = () => {
   }
 
   const handleClickAddItemButton = () => {
-    setTags([...tags, {id: maxId, name: ''}])
+    setTags([{id: maxId, name: ''}, ...tags])
     setEditTagId(maxId);
     setMaxId(maxId + 1);
   }

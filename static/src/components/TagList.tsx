@@ -226,6 +226,14 @@ export const TagList: React.FC<TagListProps> = (props) => {
               component="nav"
               className={snapshot.isDraggingOver ? classes.draggingList : classes.list}
             >
+              <Button
+                variant="outlined"
+                color="primary"
+                className={classes.addButton}
+                onClick={handleClickAddButton}
+              >
+                <AddIcon/>
+              </Button>
               {props.tags.map((tag, index) => (
                 props.editTagId === tag.id ?
                   <EditingTagListItem key={tag.id} tag={tag} index={index} onFinishEdit={genFinishItemEditHandler}/> :
@@ -238,14 +246,6 @@ export const TagList: React.FC<TagListProps> = (props) => {
                   />
               ))}
               {provided.placeholder}
-              <Button
-                variant="outlined"
-                color="primary"
-                className={classes.addButton}
-                onClick={handleClickAddButton}
-              >
-                <AddIcon/>
-              </Button>
             </List>
           )}
         </Droppable>
