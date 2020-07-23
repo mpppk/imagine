@@ -85,6 +85,7 @@ interface EditingTagListItemProps {
   tag: Tag
   index: number
   onFinishEdit: (tag: Tag) => void
+  errorMessage?: string
 }
 
 // tslint:disable-next-line:variable-name
@@ -99,7 +100,8 @@ export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => 
   }
 
   const handleChangeTagName = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentTagName(e.target.value);
+    const tagName = e.target.value;
+    setCurrentTagName(tagName);
   }
 
   return (<Draggable key={tag.id} draggableId={tag.id.toString()} index={props.index}>
@@ -122,8 +124,8 @@ export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => 
             value={currentTagName}
             defaultValue={currentTagName}
             autoFocus={true}
-            error={errors.tagName!!}
-            helperText={errors.tagName?.type}
+            error={errors.tagName!! || props.errorMessage !== undefined}
+            helperText={errors.tagName?.type ?? props.errorMessage}
             onChange={handleChangeTagName}
           />
           <IconButton
@@ -184,6 +186,7 @@ export const TagListItem: React.FC<TagListItemProps> = (props) => {
 // tslint:disable-next-line:variable-name
 export const TagList: React.FC<TagListProps> = (props) => {
   const classes = useStyles();
+  const [tagNameDuplicatedError, setTagNameDuplicatedError] = useState(false)
 
   const onDragEnd = (result: any) => {
     // dropped outside the list
@@ -215,6 +218,17 @@ export const TagList: React.FC<TagListProps> = (props) => {
   }
 
   const genFinishItemEditHandler = (tag: Tag) => {
+    const tagNameSet = props.tags.reduce((m, t) => {
+      if (tag.id !== t.id) {
+        m.add(t.name);
+      }
+      return m;
+    }, new Set<string>())
+    const isDupName = tagNameSet.has(tag.name)
+    setTagNameDuplicatedError(isDupName);
+    if (isDupName) {
+      return
+    }
     const index = props.tags.findIndex((t) => t.id === tag.id);
     const newTags = immutableSplice(props.tags, index, 1, tag);
     props.onUpdate(newTags);
@@ -242,7 +256,13 @@ export const TagList: React.FC<TagListProps> = (props) => {
               </Button>
               {props.tags.map((tag, index) => (
                 props.editTagId === tag.id ?
-                  <EditingTagListItem key={tag.id} tag={tag} index={index} onFinishEdit={genFinishItemEditHandler}/> :
+                  <EditingTagListItem
+                    key={tag.id}
+                    tag={tag}
+                    errorMessage={tagNameDuplicatedError ? 'name duplicated' : undefined}
+                    index={index}
+                    onFinishEdit={genFinishItemEditHandler}
+                  /> :
                   <TagListItem
                     key={tag.id}
                     tag={tag}
