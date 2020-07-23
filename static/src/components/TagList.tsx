@@ -95,6 +95,12 @@ export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => 
     setCurrentTagName(e.target.value);
   }
 
+  const handleKeyPressForm = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      props.onFinishEdit({...tag, name: currentTagName})
+    }
+  }
+
   return (<Draggable key={tag.name} draggableId={tag.name} index={props.index}>
     {(provided2, snapshot2) => (
       <Paper
@@ -107,6 +113,7 @@ export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => 
         <TextField
           className={classes.labelNameForm}
           onChange={handleUpdateTagNameForm}
+          onKeyPress={handleKeyPressForm}
           value={currentTagName}
         />
         <IconButton
