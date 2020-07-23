@@ -1,118 +1,31 @@
 import {Theme} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
-import Paper from "@material-ui/core/Paper";
 import {makeStyles} from "@material-ui/core/styles";
 import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
 import React, {useState} from "react";
-import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
+import {DragDropContext, Droppable} from "react-beautiful-dnd";
 import {Tag} from "../models/models";
 import {immutableSplice, reorder} from "../util";
 import {EditingTagListItem} from "./TagList/EditingTagListItem";
+import {TagListItem} from "./TagList/TagListItem";
 
 const useStyles = makeStyles((theme: Theme) => {
   return {
     addButton: {
       width: 250 - theme.spacing(2)
     },
-    checkCircleButton: {
-      bottom: theme.spacing(1),
-      float: "right",
-    },
-    disabledItem: {
-      color: 'gray',
-      margin: `0 0 ${theme.spacing(1)}px 0`,
-      padding: theme.spacing(2),
-      position: "relative",
-      userSelect: "none",
-    },
-    draggingItem: {
-      background: "lightgray",
-      margin: `0 0 ${theme.spacing(1)}px 0`,
-      padding: theme.spacing(2),
-      userSelect: "none",
-    },
     draggingList: {
       background: "lightgray",
       padding: theme.spacing(1),
       width: 250
     },
-    item: {
-      margin: `0 0 ${theme.spacing(1)}px 0`,
-      padding: theme.spacing(2),
-      position: "relative",
-      userSelect: "none",
-    },
-    itemButton: {
-      bottom: theme.spacing(2),
-      float: "right",
-    },
     list: {
       padding: theme.spacing(1),
       width: 250
     },
-    tagNameTextField: {
-      width: 100,
-    },
   }
 });
-
-interface TagListItemProps {
-  tag: Tag
-  index: number
-  disabled?: boolean
-  onClickEditButton: (tag: Tag) => void
-  onClickDeleteButton: (tag: Tag) => void
-}
-
-// tslint:disable-next-line:variable-name
-export const TagListItem: React.FC<TagListItemProps> = (props) => {
-  const classes = useStyles()
-  const tag = props.tag;
-
-  const genClickEditButtonHandler = (t: Tag) => () => {
-    props.onClickEditButton(t)
-  }
-
-  const genClickDeleteButtonHandler = (t: Tag) => () => {
-    props.onClickDeleteButton(t)
-  }
-
-  const paperClassName = props.disabled ? classes.disabledItem : classes.item;
-
-  return (<Draggable key={tag.name} draggableId={tag.name} index={props.index} isDragDisabled={props.disabled}>
-    {(provided2, snapshot2) => (
-      <Paper
-        ref={provided2.innerRef}
-        {...provided2.draggableProps}
-        {...provided2.dragHandleProps}
-        className={snapshot2.isDragging ? classes.draggingItem : paperClassName}
-        style={{...provided2.draggableProps.style}}
-      >
-        {tag.name}
-        <IconButton
-          disabled={props.disabled}
-          aria-label="delete"
-          className={classes.itemButton}
-          onClick={genClickDeleteButtonHandler(tag)}
-        >
-          <DeleteIcon/>
-        </IconButton>
-        <IconButton
-          disabled={props.disabled}
-          aria-label="edit"
-          className={classes.itemButton}
-          onClick={genClickEditButtonHandler(tag)}
-        >
-          <EditIcon/>
-        </IconButton>
-      </Paper>
-    )}
-  </Draggable>)
-}
 
 export interface TagListProps {
   tags: Tag[]
