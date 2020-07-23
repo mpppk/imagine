@@ -9,9 +9,9 @@ import AddIcon from '@material-ui/icons/Add';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
-import React from "react";
+import React, {useState} from "react";
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
-import {useForm} from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 import {Tag} from "../models/models";
 import {immutableSplice} from "../util";
 
@@ -54,12 +54,12 @@ const useStyles = makeStyles((theme: Theme) => {
       bottom: theme.spacing(2),
       float: "right",
     },
-    labelNameForm: {
-      width: 100,
-    },
     list: {
       padding: theme.spacing(1),
       width: 250
+    },
+    tagNameTextField: {
+      width: 100,
     },
   }
 });
@@ -91,10 +91,15 @@ interface EditingTagListItemProps {
 export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => {
   const classes = useStyles()
   const tag = props.tag;
-  const { handleSubmit, register, errors } = useForm();
+  const [currentTagName, setCurrentTagName] = useState(tag.name);
+  const {handleSubmit, control, errors} = useForm();
 
   const handleSubmitTagName = (data: any) => {
     props.onFinishEdit({...tag, name: data.tagName})
+  }
+
+  const handleChangeTagName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentTagName(e.target.value);
   }
 
   return (<Draggable key={tag.id} draggableId={tag.id.toString()} index={props.index}>
@@ -107,15 +112,19 @@ export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => 
         style={{...provided2.draggableProps.style}}
       >
         <form onSubmit={handleSubmit(handleSubmitTagName)}>
-          <TextField
-            label={'tag name'}
-            error={errors.tagName !== undefined}
-            helperText={errors.tagName?.type}
-            name='tagName'
-            inputRef={register({required: true})}
+          <Controller
+            as={TextField}
+            name="tagName"
+            rules={{required: true}}
+            control={control}
+
+            className={classes.tagNameTextField}
+            value={currentTagName}
+            defaultValue={currentTagName}
             autoFocus={true}
-            className={classes.labelNameForm}
-            defaultValue={props.tag.name}
+            error={errors.tagName!!}
+            helperText={errors.tagName?.type}
+            onChange={handleChangeTagName}
           />
           <IconButton
             type="submit"
