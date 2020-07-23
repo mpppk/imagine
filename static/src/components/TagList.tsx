@@ -33,6 +33,13 @@ const useStyles = makeStyles((theme: Theme) => {
       bottom: theme.spacing(1),
       float: "right",
     },
+    disabledItem: {
+      color: 'gray',
+      margin: `0 0 ${theme.spacing(1)}px 0`,
+      padding: theme.spacing(2),
+      position: "relative",
+      userSelect: "none",
+    },
     draggingItem: {
       background: "lightgray",
       margin: `0 0 ${theme.spacing(1)}px 0`,
@@ -64,23 +71,6 @@ const useStyles = makeStyles((theme: Theme) => {
   }
 });
 
-export interface TagListProps {
-  tags: Tag[]
-  editTagId?: number
-  onClickAddButton: (tags: Tag[]) => void
-  onClickEditButton: (tag: Tag) => void
-  onClickDeleteButton?: (tag: Tag) => void
-  onUpdate: (tags: Tag[]) => void
-  onRename?: (tag: Tag) => void
-}
-
-interface TagListItemProps {
-  tag: Tag
-  index: number
-  onClickEditButton: (tag: Tag) => void
-  onClickDeleteButton: (tag: Tag) => void
-}
-
 interface EditingTagListItemProps {
   tag: Tag
   index: number
@@ -104,7 +94,7 @@ export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => 
     setCurrentTagName(tagName);
   }
 
-  return (<Draggable key={tag.id} draggableId={tag.id.toString()} index={props.index}>
+  return (<Draggable key={tag.id} draggableId={tag.id.toString()} index={props.index} isDragDisabled={true}>
     {(provided2, snapshot2) => (
       <Paper
         ref={provided2.innerRef}
@@ -141,6 +131,14 @@ export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => 
   </Draggable>)
 }
 
+interface TagListItemProps {
+  tag: Tag
+  index: number
+  disabled?: boolean
+  onClickEditButton: (tag: Tag) => void
+  onClickDeleteButton: (tag: Tag) => void
+}
+
 // tslint:disable-next-line:variable-name
 export const TagListItem: React.FC<TagListItemProps> = (props) => {
   const classes = useStyles()
@@ -154,17 +152,20 @@ export const TagListItem: React.FC<TagListItemProps> = (props) => {
     props.onClickDeleteButton(t)
   }
 
-  return (<Draggable key={tag.name} draggableId={tag.name} index={props.index}>
+  const paperClassName = props.disabled ? classes.disabledItem : classes.item;
+
+  return (<Draggable key={tag.name} draggableId={tag.name} index={props.index} isDragDisabled={props.disabled}>
     {(provided2, snapshot2) => (
       <Paper
         ref={provided2.innerRef}
         {...provided2.draggableProps}
         {...provided2.dragHandleProps}
-        className={snapshot2.isDragging ? classes.draggingItem : classes.item}
+        className={snapshot2.isDragging ? classes.draggingItem : paperClassName}
         style={{...provided2.draggableProps.style}}
       >
         {tag.name}
         <IconButton
+          disabled={props.disabled}
           aria-label="delete"
           className={classes.itemButton}
           onClick={genClickDeleteButtonHandler(tag)}
@@ -172,6 +173,7 @@ export const TagListItem: React.FC<TagListItemProps> = (props) => {
           <DeleteIcon/>
         </IconButton>
         <IconButton
+          disabled={props.disabled}
           aria-label="edit"
           className={classes.itemButton}
           onClick={genClickEditButtonHandler(tag)}
@@ -181,6 +183,16 @@ export const TagListItem: React.FC<TagListItemProps> = (props) => {
       </Paper>
     )}
   </Draggable>)
+}
+
+export interface TagListProps {
+  tags: Tag[]
+  editTagId?: number
+  onClickAddButton: (tags: Tag[]) => void
+  onClickEditButton: (tag: Tag) => void
+  onClickDeleteButton?: (tag: Tag) => void
+  onUpdate: (tags: Tag[]) => void
+  onRename?: (tag: Tag) => void
 }
 
 // tslint:disable-next-line:variable-name
@@ -238,7 +250,7 @@ export const TagList: React.FC<TagListProps> = (props) => {
   return (
     <div>
       <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="droppable">
+        <Droppable droppableId="droppable" isDropDisabled={!!props.editTagId}>
           {(provided, snapshot) => (
             <List
               {...provided.droppableProps}
@@ -249,6 +261,7 @@ export const TagList: React.FC<TagListProps> = (props) => {
               <Button
                 variant="outlined"
                 color="primary"
+                disabled={!!props.editTagId}
                 className={classes.addButton}
                 onClick={handleClickAddButton}
               >
@@ -264,6 +277,7 @@ export const TagList: React.FC<TagListProps> = (props) => {
                     onFinishEdit={genFinishItemEditHandler}
                   /> :
                   <TagListItem
+                    disabled={!!props.editTagId}
                     key={tag.id}
                     tag={tag}
                     index={index}
