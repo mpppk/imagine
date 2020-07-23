@@ -15,3 +15,13 @@ export const reorder = (list: Tag[], startIndex: number, endIndex: number) => {
   return result;
 };
 
+export const isDupNamedTag = (tags: Tag[], newTag: Tag) => {
+  const tagNameSet = tags.reduce((m, t) => {
+    if (newTag.id !== t.id) {
+      m.add(t.name);
+    }
+    return m;
+  }, new Set<string>());
+  return tagNameSet.has(newTag.name);
+}
+

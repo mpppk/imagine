@@ -3,10 +3,10 @@ import Button from "@material-ui/core/Button";
 import List from "@material-ui/core/List";
 import {makeStyles} from "@material-ui/core/styles";
 import AddIcon from '@material-ui/icons/Add';
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import {DragDropContext, Droppable} from "react-beautiful-dnd";
 import {Tag} from "../models/models";
-import {immutableSplice, reorder} from "../util";
+import {immutableSplice, isDupNamedTag, reorder} from "../util";
 import {EditingTagListItem} from "./TagList/EditingTagListItem";
 import {TagListItem} from "./TagList/TagListItem";
 
@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme: Theme) => {
   }
 });
 
-export interface TagListProps {
+interface Props {
   tags: Tag[]
   editTagId?: number
   onClickAddButton: (tags: Tag[]) => void
@@ -37,61 +37,82 @@ export interface TagListProps {
   onRename?: (tag: Tag) => void
 }
 
-// tslint:disable-next-line:variable-name
-export const TagList: React.FC<TagListProps> = (props) => {
-  const classes = useStyles();
+const useLocalState = () => {
   const [tagNameDuplicatedError, setTagNameDuplicatedError] = useState(false)
+  return {
+    // tslint:disable-next-line:object-literal-sort-keys
+    tagNameDuplicatedError, setTagNameDuplicatedError,
+  }
+}
 
-  const onDragEnd = (result: any) => {
-    // dropped outside the list
-    if (!result.destination) {
-      return;
+type LocalState = ReturnType<typeof useLocalState>;
+
+const useHandlers = (props: Props, localState: LocalState) => {
+  return useMemo(() => {
+    return {
+      clickAddButton: () => {
+        props.onClickAddButton(props.tags);
+      },
+
+      clickItemEditButton: (tag: Tag) => {
+        props.onClickEditButton(tag);
+      },
+
+      clickItemDeleteButton: (tag: Tag) => {
+        const index = props.tags.findIndex((t) => t.id === tag.id);
+        const newTags = immutableSplice(props.tags, index, 1);
+        props.onUpdate(newTags);
+        props.onClickDeleteButton?.(tag);
+      },
+
+      dragEnd: (result: any) => {
+        // dropped outside the list
+        if (!result.destination) {
+          return;
+        }
+
+        const newTags = reorder(
+          props.tags,
+          result.source.index,
+          result.destination.index
+        );
+
+        props.onUpdate(newTags)
+      },
+
+      finishItemEdit: (tag: Tag) => {
+        const isDupName = isDupNamedTag(props.tags, tag);
+        localState.setTagNameDuplicatedError(isDupName);
+        if (isDupName) {
+          return
+        }
+        const index = props.tags.findIndex((t) => t.id === tag.id);
+        const newTags = immutableSplice(props.tags, index, 1, tag);
+        props.onUpdate(newTags);
+        props.onRename?.(tag);
+      },
     }
+  }, [props, localState]);
+}
 
-    const newTags = reorder(
-      props.tags,
-      result.source.index,
-      result.destination.index
-    );
-
-    props.onUpdate(newTags)
-  }
-  const handleClickAddButton = () => {
-    props.onClickAddButton(props.tags);
-  }
-
-  const handleClickItemEditButton = (tag: Tag) => {
-    props.onClickEditButton(tag);
-  }
-
-  const handleClickItemDeleteButton = (tag: Tag) => {
-    const index = props.tags.findIndex((t) => t.id === tag.id);
-    const newTags = immutableSplice(props.tags, index, 1);
-    props.onUpdate(newTags);
-    props.onClickDeleteButton?.(tag);
-  }
-
-  const genFinishItemEditHandler = (tag: Tag) => {
-    const tagNameSet = props.tags.reduce((m, t) => {
-      if (tag.id !== t.id) {
-        m.add(t.name);
-      }
-      return m;
-    }, new Set<string>())
-    const isDupName = tagNameSet.has(tag.name)
-    setTagNameDuplicatedError(isDupName);
-    if (isDupName) {
-      return
+const useViewState = (localState: LocalState) => {
+  return useMemo(() => {
+    return {
+      editingTagErrorMessage: localState.tagNameDuplicatedError ? 'name duplicated' : undefined,
     }
-    const index = props.tags.findIndex((t) => t.id === tag.id);
-    const newTags = immutableSplice(props.tags, index, 1, tag);
-    props.onUpdate(newTags);
-    props.onRename?.(tag);
-  }
+  }, [localState]);
+}
+
+// tslint:disable-next-line:variable-name
+export const TagList: React.FC<Props> = (props) => {
+  const classes = useStyles();
+  const localState = useLocalState();
+  const viewState = useViewState(localState);
+  const handlers = useHandlers(props, localState);
 
   return (
     <div>
-      <DragDropContext onDragEnd={onDragEnd}>
+      <DragDropContext onDragEnd={handlers.dragEnd}>
         <Droppable droppableId="droppable" isDropDisabled={!!props.editTagId}>
           {(provided, snapshot) => (
             <List
@@ -105,7 +126,7 @@ export const TagList: React.FC<TagListProps> = (props) => {
                 color="primary"
                 disabled={!!props.editTagId}
                 className={classes.addButton}
-                onClick={handleClickAddButton}
+                onClick={handlers.clickAddButton}
               >
                 <AddIcon/>
               </Button>
@@ -114,17 +135,17 @@ export const TagList: React.FC<TagListProps> = (props) => {
                   <EditingTagListItem
                     key={tag.id}
                     tag={tag}
-                    errorMessage={tagNameDuplicatedError ? 'name duplicated' : undefined}
+                    errorMessage={viewState.editingTagErrorMessage}
                     index={index}
-                    onFinishEdit={genFinishItemEditHandler}
+                    onFinishEdit={handlers.finishItemEdit}
                   /> :
                   <TagListItem
                     disabled={!!props.editTagId}
                     key={tag.id}
                     tag={tag}
                     index={index}
-                    onClickEditButton={handleClickItemEditButton}
-                    onClickDeleteButton={handleClickItemDeleteButton}
+                    onClickEditButton={handlers.clickItemEditButton}
+                    onClickDeleteButton={handlers.clickItemDeleteButton}
                   />
               ))}
               {provided.placeholder}

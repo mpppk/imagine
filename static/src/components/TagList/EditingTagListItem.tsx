@@ -48,10 +48,7 @@ const useHandlers = (props: Props, localState: LocalState) => {
   }, [props, localState])
 }
 
-interface LocalState {
-  currentTagName: string
-  setCurrentTagName: (currentTagName: string) => void
-}
+type LocalState = ReturnType<typeof useLocalState>;
 
 const useViewState = (props: Props, state: LocalState, errors: FieldErrors) => {
   const classes = useStyles()
