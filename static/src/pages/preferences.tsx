@@ -14,20 +14,37 @@ const generateTags = (count: number) =>
 // tslint:disable-next-line variable-name
 export const Preferences: NextPage = () => {
   const [tags, setTags] = useState(generateTags(5));
+  const [maxId, setMaxId] = useState(6);
+  const [editTagId, setEditTagId] = useState(null as number | null);
   const handleChangeTags = (newTags: Tag[]) => {
     setTags(newTags)
   }
 
-  const handleClickAddItemButton = (newTags: Tag[]) => {
-    setTags(newTags)
+  const handleClickAddItemButton = () => {
+    setTags([...tags, {id: maxId, name: ''}])
+    setEditTagId(maxId);
+    setMaxId(maxId + 1);
+  }
+
+  const handleClickEditButton = (tag: Tag) => {
+    setEditTagId(tag.id);
+  }
+
+  const handleRename = ()  => {
+    setEditTagId(null)
   }
 
   return (
-    <TagList tags={tags} onChange={handleChangeTags} onClickAddButton={handleClickAddItemButton}/>
+    <TagList
+      tags={tags}
+      editTagId={editTagId ?? undefined}
+      onUpdate={handleChangeTags}
+      onClickAddButton={handleClickAddItemButton}
+      onClickEditButton={handleClickEditButton}
+      onRename={handleRename}
+    />
   );
 };
-
-
 
 export async function getServerSideProps() {
   resetServerContext()

@@ -65,14 +65,19 @@ const useStyles = makeStyles((theme: Theme) => {
 
 export interface TagListProps {
   tags: Tag[]
+  editTagId?: number
   onClickAddButton: (tags: Tag[]) => void
-  onChange: (tags: Tag[]) => void
+  onClickEditButton: (tag: Tag) => void
+  onClickDeleteButton?: (tag: Tag) => void
+  onUpdate: (tags: Tag[]) => void
+  onRename?: (tag: Tag) => void
 }
 
 interface TagListItemProps {
   tag: Tag
   index: number
   onClickEditButton: (tag: Tag) => void
+  onClickDeleteButton: (tag: Tag) => void
 }
 
 interface EditingTagListItemProps {
@@ -133,8 +138,12 @@ export const TagListItem: React.FC<TagListItemProps> = (props) => {
   const classes = useStyles()
   const tag = props.tag;
 
-  const generateHandleClickEditButton = (t: Tag) => () => {
+  const genClickEditButtonHandler = (t: Tag) => () => {
     props.onClickEditButton(t)
+  }
+
+  const genClickDeleteButtonHandler = (t: Tag) => () => {
+    props.onClickDeleteButton(t)
   }
 
   return (<Draggable key={tag.name} draggableId={tag.name} index={props.index}>
@@ -147,13 +156,17 @@ export const TagListItem: React.FC<TagListItemProps> = (props) => {
         style={{...provided2.draggableProps.style}}
       >
         {tag.name}
-        <IconButton aria-label="delete" className={classes.itemButton}>
+        <IconButton
+          aria-label="delete"
+          className={classes.itemButton}
+          onClick={genClickDeleteButtonHandler(tag)}
+        >
           <DeleteIcon/>
         </IconButton>
         <IconButton
           aria-label="edit"
           className={classes.itemButton}
-          onClick={generateHandleClickEditButton(tag)}
+          onClick={genClickEditButtonHandler(tag)}
         >
           <EditIcon/>
         </IconButton>
@@ -165,7 +178,6 @@ export const TagListItem: React.FC<TagListItemProps> = (props) => {
 // tslint:disable-next-line:variable-name
 export const TagList: React.FC<TagListProps> = (props) => {
   const classes = useStyles();
-  const [editTagName, setEditTagName] = useState(null as string | null);
 
   const onDragEnd = (result: any) => {
     // dropped outside the list
@@ -179,21 +191,28 @@ export const TagList: React.FC<TagListProps> = (props) => {
       result.destination.index
     );
 
-    props.onChange(newTags)
+    props.onUpdate(newTags)
   }
   const handleClickAddButton = () => {
     props.onClickAddButton(props.tags);
   }
 
   const handleClickItemEditButton = (tag: Tag) => {
-    setEditTagName(tag.name);
+    props.onClickEditButton(tag);
+  }
+
+  const handleClickItemDeleteButton = (tag: Tag) => {
+    const index = props.tags.findIndex((t) => t.id === tag.id);
+    const newTags = immutableSplice(props.tags, index, 1);
+    props.onUpdate(newTags);
+    props.onClickDeleteButton?.(tag);
   }
 
   const genFinishItemEditHandler = (tag: Tag) => {
     const index = props.tags.findIndex((t) => t.id === tag.id);
     const newTags = immutableSplice(props.tags, index, 1, tag);
-    props.onChange(newTags);
-    setEditTagName(null)
+    props.onUpdate(newTags);
+    props.onRename?.(tag);
   }
 
   return (
@@ -208,10 +227,15 @@ export const TagList: React.FC<TagListProps> = (props) => {
               className={snapshot.isDraggingOver ? classes.draggingList : classes.list}
             >
               {props.tags.map((tag, index) => (
-                editTagName === tag.name ?
+                props.editTagId === tag.id ?
                   <EditingTagListItem key={tag.id} tag={tag} index={index} onFinishEdit={genFinishItemEditHandler}/> :
-                  <TagListItem key={tag.id} tag={tag} index={index}
-                               onClickEditButton={handleClickItemEditButton}/>
+                  <TagListItem
+                    key={tag.id}
+                    tag={tag}
+                    index={index}
+                    onClickEditButton={handleClickItemEditButton}
+                    onClickDeleteButton={handleClickItemDeleteButton}
+                  />
               ))}
               {provided.placeholder}
               <Button
