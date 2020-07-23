@@ -4,25 +4,14 @@ import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
 import Paper from "@material-ui/core/Paper";
 import {makeStyles} from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
 import AddIcon from '@material-ui/icons/Add';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import React, {useState} from "react";
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
-import {Controller, useForm} from "react-hook-form";
 import {Tag} from "../models/models";
-import {immutableSplice} from "../util";
-
-// a little function to help us with reordering the result
-const reorder = (list: Tag[], startIndex: number, endIndex: number) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-
-  return result;
-};
+import {immutableSplice, reorder} from "../util";
+import {EditingTagListItem} from "./TagList/EditingTagListItem";
 
 const useStyles = makeStyles((theme: Theme) => {
   return {
@@ -70,66 +59,6 @@ const useStyles = makeStyles((theme: Theme) => {
     },
   }
 });
-
-interface EditingTagListItemProps {
-  tag: Tag
-  index: number
-  onFinishEdit: (tag: Tag) => void
-  errorMessage?: string
-}
-
-// tslint:disable-next-line:variable-name
-export const EditingTagListItem: React.FC<EditingTagListItemProps> = (props) => {
-  const classes = useStyles()
-  const tag = props.tag;
-  const [currentTagName, setCurrentTagName] = useState(tag.name);
-  const {handleSubmit, control, errors} = useForm();
-
-  const handleSubmitTagName = (data: any) => {
-    props.onFinishEdit({...tag, name: data.tagName})
-  }
-
-  const handleChangeTagName = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const tagName = e.target.value;
-    setCurrentTagName(tagName);
-  }
-
-  return (<Draggable key={tag.id} draggableId={tag.id.toString()} index={props.index} isDragDisabled={true}>
-    {(provided2, snapshot2) => (
-      <Paper
-        ref={provided2.innerRef}
-        {...provided2.draggableProps}
-        {...provided2.dragHandleProps}
-        className={snapshot2.isDragging ? classes.draggingItem : classes.item}
-        style={{...provided2.draggableProps.style}}
-      >
-        <form onSubmit={handleSubmit(handleSubmitTagName)}>
-          <Controller
-            as={TextField}
-            name="tagName"
-            rules={{required: true}}
-            control={control}
-
-            className={classes.tagNameTextField}
-            value={currentTagName}
-            defaultValue={currentTagName}
-            autoFocus={true}
-            error={errors.tagName!! || props.errorMessage !== undefined}
-            helperText={errors.tagName?.type ?? props.errorMessage}
-            onChange={handleChangeTagName}
-          />
-          <IconButton
-            type="submit"
-            aria-label="update-tag"
-            className={classes.checkCircleButton}
-          >
-            <CheckCircleIcon/>
-          </IconButton>
-        </form>
-      </Paper>
-    )}
-  </Draggable>)
-}
 
 interface TagListItemProps {
   tag: Tag
