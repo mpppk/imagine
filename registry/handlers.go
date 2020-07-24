@@ -2,7 +2,7 @@ package registry
 
 import (
 	"github.com/mpppk/imagine/action"
-	fsa "github.com/mpppk/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 	"go.etcd.io/bbolt"
 )
 

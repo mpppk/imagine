@@ -11,7 +11,7 @@ import (
 
 	"github.com/gen2brain/dlgs"
 	"github.com/mpppk/imagine/util"
-	fsa "github.com/mpppk/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
 func newStartDirectoryScanningAction(wsName model.WSName) *fsa.Action {
