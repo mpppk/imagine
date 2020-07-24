@@ -8,7 +8,7 @@ import (
 
 	"github.com/mpppk/imagine/domain/model"
 
-	fsa "github.com/mpppk/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
 const defaultWorkSpaceName = "default-workspace"

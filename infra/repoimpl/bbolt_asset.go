@@ -54,7 +54,8 @@ func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) error {
 }
 
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error) {
-	err = b.base.loBucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
+	// FIXME: convert to read only
+	err = b.base.bucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
 		data := bucket.Get(b.itob(id))
 		if data == nil {
 			return fmt.Errorf("a does not exist: %v", id)
@@ -125,7 +126,8 @@ func (b *BBoltAsset) ListByTags(ws model.WSName, tags []model.Tag) (assets []*mo
 }
 
 func (b *BBoltAsset) ForEach(ws model.WSName, f func(asset *model.Asset) error) error {
-	return b.base.loBucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
+	// FIXME: convert to read only
+	return b.base.bucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
 		return bucket.ForEach(func(k, v []byte) error {
 			var asset model.Asset
 			if err := json.Unmarshal(v, &asset); err != nil {

@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/mpppk/imagine/domain/repository"
+
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/mpppk/imagine/infra/repoimpl"
@@ -14,6 +16,7 @@ import (
 
 func TestBBoltAsset_SearchByTags(t *testing.T) {
 	fileName := "testfile.db"
+	var wsName model.WSName = "workspace-for-test"
 	tagA, tagB, tagC := model.Tag("a"), model.Tag("b"), model.Tag("c")
 	assets := []*model.Asset{
 		{
@@ -82,15 +85,15 @@ func TestBBoltAsset_SearchByTags(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := newRepository(t, fileName)
-			defer teardown(t, fileName, repo.Bolt)
+			repo, db := newRepository(t, wsName, fileName)
+			defer teardown(t, fileName, db)
 			for _, asset := range assets {
-				if err := repo.Add(asset); err != nil {
+				if err := repo.Add(wsName, asset); err != nil {
 					t.Errorf("failed to add asset:%v, error:%v", asset, err)
 				}
 			}
 
-			got, err := repo.ListByTags(tt.args.tags)
+			got, err := repo.ListByTags(wsName, tt.args.tags)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SearchByTags() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -104,6 +107,7 @@ func TestBBoltAsset_SearchByTags(t *testing.T) {
 
 func TestBBoltAsset_Update(t *testing.T) {
 	fileName := "testfile.db"
+	var wsName model.WSName = "workspace-for-test"
 	tagA := model.Tag("a")
 	newAsset := &model.Asset{
 		ID:   0,
@@ -127,13 +131,13 @@ func TestBBoltAsset_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := newRepository(t, fileName)
-			defer teardown(t, fileName, repo.Bolt)
+			repo, db := newRepository(t, wsName, fileName)
+			defer teardown(t, fileName, db)
 
-			if err := repo.Update(tt.args.asset); (err != nil) != tt.wantErr {
+			if err := repo.Update(wsName, tt.args.asset); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			got, err := repo.Get(tt.args.asset.ID)
+			got, err := repo.Get(wsName, tt.args.asset.ID)
 			if err != nil {
 				t.Errorf("failed to get asset: %v: %v", newAsset.ID, err)
 			}
@@ -144,7 +148,7 @@ func TestBBoltAsset_Update(t *testing.T) {
 	}
 }
 
-func newRepository(t *testing.T, fileName string) *repoimpl.BBoltAsset {
+func newRepository(t *testing.T, wsName model.WSName, fileName string) (repository.Asset, *bolt.DB) {
 	t.Helper()
 	db, err := bolt.Open(fileName, 0600, nil)
 	if err != nil {
@@ -156,18 +160,18 @@ func newRepository(t *testing.T, fileName string) *repoimpl.BBoltAsset {
 		t.Errorf("failed to create BBoltAsset: %v", err)
 	}
 
-	if err := repo.Init(); err != nil {
+	if err := repo.Init(wsName); err != nil {
 		t.Errorf("failed to create BBoltAsset: %v", err)
 	}
-	return repo
+	return repo, db
 }
 
 func teardown(t *testing.T, fileName string, db *bolt.DB) {
 	t.Helper()
-	if err := os.Remove(fileName); err != nil {
-		t.Errorf("failed to remove test file: %v", err)
-	}
 	if err := db.Close(); err != nil {
 		t.Errorf("failed to close db: %v", err)
+	}
+	if err := os.Remove(fileName); err != nil {
+		t.Errorf("failed to remove test file: %v", err)
 	}
 }

@@ -11,16 +11,16 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.2
-	github.com/mpppk/lorca-fsa v0.0.0-00010101000000-000000000000
+	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20200724162616-6b63b3d329cb
 	github.com/rhysd/go-github-selfupdate v1.2.2
 	github.com/spf13/afero v1.3.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	go.etcd.io/bbolt v1.3.5
-	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d // indirect
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
 )
 
-replace github.com/zserge/lorca => ../lorca-fsa/lorca
+// replace github.com/zserge/lorca => ../lorca-fsa/lorca
 
-replace github.com/mpppk/lorca-fsa => ../lorca-fsa/lorca-fsa
+// replace github.com/mpppk/lorca-fsa => ../lorca-fsa/lorca-fsa
