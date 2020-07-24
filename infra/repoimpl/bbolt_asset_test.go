@@ -168,10 +168,10 @@ func newRepository(t *testing.T, wsName model.WSName, fileName string) (reposito
 
 func teardown(t *testing.T, fileName string, db *bolt.DB) {
 	t.Helper()
-	if err := os.Remove(fileName); err != nil {
-		t.Errorf("failed to remove test file: %v", err)
-	}
 	if err := db.Close(); err != nil {
 		t.Errorf("failed to close db: %v", err)
+	}
+	if err := os.Remove(fileName); err != nil {
+		t.Errorf("failed to remove test file: %v", err)
 	}
 }
