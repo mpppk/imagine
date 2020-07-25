@@ -10,7 +10,7 @@ require (
 	github.com/google/wire v0.4.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mitchellh/mapstructure v1.3.2
+	github.com/mitchellh/mapstructure v1.3.3
 	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20200724162616-6b63b3d329cb
 	github.com/rhysd/go-github-selfupdate v1.2.2
 	github.com/spf13/afero v1.3.2
