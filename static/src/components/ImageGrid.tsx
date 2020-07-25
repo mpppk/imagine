@@ -7,6 +7,9 @@ const useStyles = makeStyles((theme) => ({
   gridList: {
     height: '100%',
   },
+  gridListTile: {
+    cursor: 'pointer',
+  },
   root: {
     backgroundColor: theme.palette.background.paper,
     display: 'flex',
@@ -16,8 +19,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export interface ImageGridListProps {
+interface Props {
   paths: string[]
+  onClickImage: (path: string) => void
 }
 
 interface GridData {
@@ -32,14 +36,23 @@ const toTileData = (path: string): GridData => {
   }
 }
 
-export function ImageGridList(props: ImageGridListProps) {
+export function ImageGridList(props: Props) {
   const classes = useStyles();
+
+  const genClickImageHandler = (imgPath: string) => () => {
+    props.onClickImage(imgPath);
+  };
 
   return (
     <div className={classes.root}>
-      <GridList cellHeight={160} className={classes.gridList} cols={1}>
+      <GridList cellHeight={200} className={classes.gridList} cols={1}>
         {props.paths.map(toTileData).map((tile) => (
-          <GridListTile key={tile.imgPath} cols={tile.cols || 1}>
+          <GridListTile
+            key={tile.imgPath}
+            cols={tile.cols || 1}
+            onClick={genClickImageHandler(tile.imgPath)}
+            className={classes.gridListTile}
+          >
             <img src={tile.imgPath} />
           </GridListTile>
         ))}
