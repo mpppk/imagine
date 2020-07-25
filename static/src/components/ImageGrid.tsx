@@ -1,57 +1,21 @@
-import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
+import { makeStyles } from '@material-ui/core/styles';
+import React from 'react';
 
 const useStyles = makeStyles((theme) => ({
+  gridList: {
+    height: '100%',
+    width: 240,
+  },
   root: {
+    backgroundColor: theme.palette.background.paper,
     display: 'flex',
     flexWrap: 'wrap',
     justifyContent: 'space-around',
     overflow: 'hidden',
-    backgroundColor: theme.palette.background.paper,
-  },
-  gridList: {
-    width: 500,
-    height: 450,
   },
 }));
-
-/**
- * The example data is structured as follows:
- *
- * import image from 'path/to/image.jpg';
- * [etc...]
- *
- * const tileData = [
- *   {
- *     img: image,
- *     title: 'Image',
- *     author: 'author',
- *     cols: 2,
- *   },
- *   {
- *     [etc...]
- *   },
- * ];
- */
-
-// const tileData = [
-//   {
-//     img: 'https://i.gyazo.com/f71cffd2e4f237030e7f6c745ce3eeeb.png',
-//     title: 'everest',
-//     author: 'mpppk',
-//     key: 1,
-//     cols: 1,
-//   },
-//   {
-//     img: 'https://i.gyazo.com/f71cffd2e4f237030e7f6c745ce3eeeb.png',
-//     title: 'everest',
-//     author: 'mpppk',
-//     key: 2,
-//     cols: 2,
-//   }
-// ];
 
 export interface ImageGridListProps {
   paths: string[]
@@ -64,8 +28,8 @@ interface GridData {
 
 const toTileData = (path: string): GridData => {
   return {
-    imgPath: path,
     cols: 1,
+    imgPath: path,
   }
 }
 
@@ -74,7 +38,7 @@ export function ImageGridList(props: ImageGridListProps) {
 
   return (
     <div className={classes.root}>
-      <GridList cellHeight={160} className={classes.gridList} cols={3}>
+      <GridList cellHeight={160} className={classes.gridList} cols={1}>
         {props.paths.map(toTileData).map((tile) => (
           <GridListTile key={tile.imgPath} cols={tile.cols || 1}>
             <img src={tile.imgPath} />

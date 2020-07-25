@@ -16,11 +16,11 @@ import MyDrawer from './drawer/Drawer';
 import {SwitchWorkSpaceDialog} from "./SwitchWorkSpaceDialog";
 
 const useStyles = makeStyles((theme: Theme) => ({
+  appBar: {
+    zIndex: theme.zIndex.drawer + 1,
+  },
   menuButton: {
     marginRight: theme.spacing(2)
-  },
-  root: {
-    flexGrow: 1
   },
   title: {
     flexGrow: 1
@@ -51,8 +51,8 @@ export function MyAppBar() {
   }
 
   return (
-    <div className={classes.root}>
-      <AppBar position="static">
+    <>
+      <AppBar position="fixed" className={classes.appBar}>
         <MyDrawer
           open={isDrawerOpen}
           onClose={handleDrawer(false)}
@@ -84,6 +84,6 @@ export function MyAppBar() {
         currentWorkSpace={currentWorkSpace}
         onSelectWorkSpace={handleSelectWorkSpace}
       />
-    </div>
+    </>
   );
 }
