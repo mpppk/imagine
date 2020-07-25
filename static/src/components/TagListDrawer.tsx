@@ -5,14 +5,19 @@ import React from 'react';
 import {Tag} from "../models/models";
 import {TagList} from "./TagList";
 
+const drawerWidth = 240;
+
 const useStyles = makeStyles(() => {
   return {
     drawer: {
       flexShrink: 0,
-      width: 240,
+      width: drawerWidth,
     },
     drawerContainer: {
       overflow: 'auto',
+    },
+    drawerPaper: {
+      width: drawerWidth,
     },
   }
 });
@@ -31,7 +36,15 @@ interface TagListDrawerProps {
 export const TagListDrawer: React.FunctionComponent<TagListDrawerProps> = props => {
   const classes = useStyles();
   return (
-    <Drawer open={true} variant="persistent" anchor="right" className={classes.drawer}>
+    <Drawer
+      open={true}
+      variant="persistent"
+      anchor="right"
+      className={classes.drawer}
+      classes={{
+        paper: classes.drawerPaper,
+      }}
+    >
       <Toolbar/>
       <div className={classes.drawerContainer}>
         <TagList

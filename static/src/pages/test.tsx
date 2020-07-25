@@ -108,14 +108,6 @@ export default function Test() {
   return (
     <div className={classes.root}>
       <ImageListDrawer imagePaths={globalState.imagePaths}/>
-      <TagListDrawer
-        tags={localState.tags}
-        editTagId={localState.editTagId ?? undefined}
-        onClickAddButton={handlers.clickAddTagButton}
-        onClickEditButton={handlers.clickEditTagButton}
-        // onUpdate={handlers.updateTags}
-        onRename={handlers.renameTag}
-      />
       <main className={classes.content}>
         <Toolbar/>
         <Typography paragraph={true}>
@@ -147,6 +139,13 @@ export default function Test() {
           {globalState.isScanningDirectories ? 'Scanning...' : 'Add Directory'}
         </Button>
       </main>
+      <TagListDrawer
+        tags={localState.tags}
+        editTagId={localState.editTagId ?? undefined}
+        onClickAddButton={handlers.clickAddTagButton}
+        onClickEditButton={handlers.clickEditTagButton}
+        onRename={handlers.renameTag}
+      />
     </div>
   );
 }

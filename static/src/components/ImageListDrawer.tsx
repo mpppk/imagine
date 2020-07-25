@@ -4,14 +4,19 @@ import Toolbar from "@material-ui/core/Toolbar";
 import React from 'react';
 import {ImageGridList} from "./ImageGrid";
 
+const drawerWidth = 240;
+
 const useStyles = makeStyles(() => {
   return {
     drawer: {
       flexShrink: 0,
-      width: 240,
+      width: drawerWidth,
     },
     drawerContainer: {
       overflow: 'auto',
+    },
+    drawerPaper: {
+      width: drawerWidth,
     },
   }
 });
@@ -24,7 +29,13 @@ interface ImageListDrawerProps {
 export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = props => {
   const classes = useStyles();
   return (
-    <Drawer open={true} variant="persistent" anchor="left" className={classes.drawer}>
+    <Drawer
+      open={true}
+      variant="persistent"
+      anchor="left"
+      className={classes.drawer}
+      classes={{paper: classes.drawerPaper}}
+    >
       <Toolbar />
       <div className={classes.drawerContainer}>
         <ImageGridList paths={props.imagePaths}/>
