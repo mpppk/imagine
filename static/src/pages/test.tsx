@@ -41,6 +41,9 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     clickEditTagButton: (tag: Tag) => {
       setLocalState({...localState, editTagId: tag.id});
     },
+    clickImage: (selectedImgPath: string) => {
+      setLocalState({...localState, selectedImgPath})
+    },
     renameTag: (tag: Tag) => {
       const targetTagIndex = localState.tags.findIndex((t) => t.id === tag.id);
       if (targetTagIndex === -1) {
@@ -74,6 +77,7 @@ interface LocalState {
   tags: Tag[]
   maxId: number
   editTagId: number | null
+  selectedImgPath: string | null
 }
 
 // fake data generator
@@ -87,6 +91,7 @@ const generateInitialLocalState = (tagNum: number): LocalState => {
   return {
     editTagId: null,
     maxId: tagNum+1,
+    selectedImgPath: null,
     tags: generateTags(tagNum),
   }
 };
@@ -107,9 +112,17 @@ export default function Test() {
 
   return (
     <div className={classes.root}>
-      <ImageListDrawer imagePaths={globalState.imagePaths}/>
+      <ImageListDrawer
+        imagePaths={globalState.imagePaths}
+        onClickImage={handlers.clickImage}
+      />
       <main className={classes.content}>
         <Toolbar/>
+        {localState.selectedImgPath === null ? null : <img
+          src={localState.selectedImgPath}
+          alt={localState.selectedImgPath}
+          width='100%'
+        />}
         <Typography paragraph={true}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
           ut labore et dolore magna aliqua. Rhoncus dolor purus non enim praesent elementum
@@ -121,17 +134,6 @@ export default function Test() {
           imperdiet massa tincidunt. Cras tincidunt lobortis feugiat vivamus at augue. At augue eget
           arcu dictum varius duis at consectetur lorem. Velit sed ullamcorper morbi tincidunt. Lorem
           donec massa sapien faucibus et molestie ac.
-        </Typography>
-        <Typography paragraph={true}>
-          Consequat mauris nunc congue nisi vitae suscipit. Fringilla est ullamcorper eget nulla
-          facilisi etiam dignissim diam. Pulvinar elementum integer enim neque volutpat ac
-          tincidunt. Ornare suspendisse sed nisi lacus sed viverra tellus. Purus sit amet volutpat
-          consequat mauris. Elementum eu facilisis sed odio morbi. Euismod lacinia at quis risus sed
-          vulputate odio. Morbi tincidunt ornare massa eget egestas purus viverra accumsan in. In
-          hendrerit gravida rutrum quisque non tellus orci ac. Pellentesque nec nam aliquam sem et
-          tortor. Habitant morbi tristique senectus et. Adipiscing elit duis tristique sollicitudin
-          nibh sit. Ornare aenean euismod elementum nisi quis eleifend. Commodo viverra maecenas
-          accumsan lacus vel facilisis. Nulla posuere sollicitudin aliquam ultrices sagittis orci a.
         </Typography>
         <Button variant="outlined" color="primary"
                 disabled={globalState.isScanningDirectories || globalState.isLoadingWorkSpace}

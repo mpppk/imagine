@@ -23,6 +23,7 @@ const useStyles = makeStyles(() => {
 
 interface ImageListDrawerProps {
   imagePaths: string[]
+  onClickImage: (path: string) => void
 }
 
 // tslint:disable-next-line variable-name
@@ -38,7 +39,10 @@ export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = pr
     >
       <Toolbar />
       <div className={classes.drawerContainer}>
-        <ImageGridList paths={props.imagePaths}/>
+        <ImageGridList
+          paths={props.imagePaths}
+          onClickImage={props.onClickImage}
+        />
       </div>
     </Drawer>
   );
