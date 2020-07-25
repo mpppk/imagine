@@ -6,7 +6,6 @@ import React from 'react';
 const useStyles = makeStyles((theme) => ({
   gridList: {
     height: '100%',
-    width: 240,
   },
   root: {
     backgroundColor: theme.palette.background.paper,

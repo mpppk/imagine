@@ -28,7 +28,7 @@ const useStyles = makeStyles((theme: Theme) => {
 const useHandlers = () => {
   const actionCreators = useActions(indexActionCreators);
   return {
-    handleAddDirectoryButton: (ws: WorkSpace) => {
+    addDirectoryButton: (ws: WorkSpace) => {
       actionCreators.clickAddDirectoryButton({workSpaceName: ws.name});
     }
   };
@@ -76,7 +76,7 @@ export const Index: NextPage = () => {
       console.warn('workspace is not selected, but AddDirectoryButton is clicked')
       return
     }
-    handlers.handleAddDirectoryButton(globalState.currentWorkSpace)
+    handlers.addDirectoryButton(globalState.currentWorkSpace)
   }
   return (
     <div className={classes.root}>
