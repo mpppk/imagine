@@ -1,6 +1,8 @@
-import {Button, LinearProgressProps} from "@material-ui/core";
+import {Button, LinearProgressProps, Theme} from "@material-ui/core";
 import Box from "@material-ui/core/Box";
+import Grid from "@material-ui/core/Grid";
 import LinearProgress from "@material-ui/core/LinearProgress";
+import {makeStyles} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import {NextPage} from 'next';
 import React from 'react';
@@ -11,7 +13,19 @@ import {useActions} from "../hooks";
 import {WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 
-const useHandlers =  () => {
+const useStyles = makeStyles((theme: Theme) => {
+  return {
+    content: {
+      flexGrow: 1,
+      padding: theme.spacing(3),
+    },
+    root: {
+      display: 'flex',
+    },
+  }
+});
+
+const useHandlers = () => {
   const actionCreators = useActions(indexActionCreators);
   return {
     handleAddDirectoryButton: (ws: WorkSpace) => {
@@ -51,6 +65,7 @@ function LinearProgressWithLabel(props: LinearProgressProps & { value: number })
 
 // tslint:disable-next-line variable-name
 export const Index: NextPage = () => {
+  const classes = useStyles();
   const handlers = useHandlers();
   const globalState = useSelector(selector)
   // const state = useSelector((s: State) => s.indexPage);
@@ -64,17 +79,23 @@ export const Index: NextPage = () => {
     handlers.handleAddDirectoryButton(globalState.currentWorkSpace)
   }
   return (
-    <div>
-      <ImageGridList paths={globalState.imagePaths}/>
-      <Button variant="outlined" color="primary" disabled={globalState.isLoadingWorkSpace}>
-        Edit Query
-      </Button>
-      <Button variant="outlined" color="primary"
-              disabled={globalState.isScanningDirectories || globalState.isLoadingWorkSpace}
-              onClick={handleClickAddDirectoryButton}>
-        {globalState.isScanningDirectories ? 'Scanning...' : 'Add Directory'}
-      </Button>
-      {globalState.isScanningDirectories ? <LinearProgressWithLabel value={50} /> : null}
+    <div className={classes.root}>
+      <div className={classes.content}>
+        <Grid container={true} spacing={3}>
+          <Grid item={true} xs={3}>
+            <ImageGridList paths={globalState.imagePaths}/>
+          </Grid>
+        </Grid>
+        <Button variant="outlined" color="primary" disabled={globalState.isLoadingWorkSpace}>
+          Edit Query
+        </Button>
+        <Button variant="outlined" color="primary"
+                disabled={globalState.isScanningDirectories || globalState.isLoadingWorkSpace}
+                onClick={handleClickAddDirectoryButton}>
+          {globalState.isScanningDirectories ? 'Scanning...' : 'Add Directory'}
+        </Button>
+        {globalState.isScanningDirectories ? <LinearProgressWithLabel value={50}/> : null}
+      </div>
     </div>
   );
 };
