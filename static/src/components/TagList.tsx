@@ -33,7 +33,7 @@ interface Props {
   onClickAddButton: (tags: Tag[]) => void
   onClickEditButton: (tag: Tag) => void
   onClickDeleteButton?: (tag: Tag) => void
-  onUpdate: (tags: Tag[]) => void
+  onUpdate?: (tags: Tag[]) => void
   onRename?: (tag: Tag) => void
 }
 
@@ -61,7 +61,7 @@ const useHandlers = (props: Props, localState: LocalState) => {
       clickItemDeleteButton: (tag: Tag) => {
         const index = props.tags.findIndex((t) => t.id === tag.id);
         const newTags = immutableSplice(props.tags, index, 1);
-        props.onUpdate(newTags);
+        props.onUpdate?.(newTags);
         props.onClickDeleteButton?.(tag);
       },
 
@@ -77,7 +77,7 @@ const useHandlers = (props: Props, localState: LocalState) => {
           result.destination.index
         );
 
-        props.onUpdate(newTags)
+        props.onUpdate?.(newTags);
       },
 
       finishItemEdit: (tag: Tag) => {
@@ -88,7 +88,7 @@ const useHandlers = (props: Props, localState: LocalState) => {
         }
         const index = props.tags.findIndex((t) => t.id === tag.id);
         const newTags = immutableSplice(props.tags, index, 1, tag);
-        props.onUpdate(newTags);
+        props.onUpdate?.(newTags);
         props.onRename?.(tag);
       },
     }

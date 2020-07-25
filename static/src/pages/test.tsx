@@ -1,15 +1,16 @@
 import {Button, Typography} from "@material-ui/core";
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
-import React from 'react';
+import React, {useState} from 'react';
+import {resetServerContext} from "react-beautiful-dnd";
 import {useSelector} from "react-redux";
 import {indexActionCreators} from "../actions";
 import {ImageListDrawer} from "../components/ImageListDrawer";
+import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions} from "../hooks";
-import {WorkSpace} from "../models/models";
+import {Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
-
-const drawerWidth = 240;
+import {immutableSplice} from "../util";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -17,28 +18,41 @@ const useStyles = makeStyles((theme: Theme) =>
       flexGrow: 1,
       padding: theme.spacing(3),
     },
-    drawer: {
-      flexShrink: 0,
-      width: drawerWidth,
-    },
-    drawerContainer: {
-      overflow: 'auto',
-    },
-    drawerPaper: {
-      width: drawerWidth,
-    },
     root: {
       display: 'flex',
     },
   }),
 );
 
-const useHandlers = () => {
+const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => void, _globalState: GlobalState) => {
   const actionCreators = useActions(indexActionCreators);
   return {
-    handleAddDirectoryButton: (ws: WorkSpace) => {
+    addDirectoryButton: (ws: WorkSpace) => {
       actionCreators.clickAddDirectoryButton({workSpaceName: ws.name});
-    }
+    },
+    clickAddTagButton: () => {
+      setLocalState({
+        ...localState,
+        editTagId: localState.maxId,
+        maxId: localState.maxId+1,
+        tags: [{id: localState.maxId, name: ''}, ...localState.tags],
+      });
+    },
+    clickEditTagButton: (tag: Tag) => {
+      setLocalState({...localState, editTagId: tag.id});
+    },
+    renameTag: (tag: Tag) => {
+      const targetTagIndex = localState.tags.findIndex((t) => t.id === tag.id);
+      if (targetTagIndex === -1) {
+        // tslint:disable-next-line:no-console
+        console.warn('unknown tag ID is provided', tag);
+      }
+      setLocalState({
+        ...localState,
+        editTagId: null,
+        tags: immutableSplice(localState.tags, targetTagIndex, 1, tag),
+      });
+    },
   };
 }
 
@@ -56,26 +70,54 @@ const selector = (state: State): GlobalState => ({
   isScanningDirectories: state.indexPage.scanning,
 })
 
-export default function ClippedDrawer() {
-  const classes = useStyles();
+interface LocalState {
+  tags: Tag[]
+  maxId: number
+  editTagId: number | null
+}
 
-  const handlers = useHandlers();
+// fake data generator
+const generateTags = (count: number) =>
+  Array.from({length: count}, (_, k) => k).map(k => ({
+    id: k,
+    name: `item-${k}`,
+  } as Tag));
+
+const generateInitialLocalState = (tagNum: number): LocalState => {
+  return {
+    editTagId: null,
+    maxId: tagNum+1,
+    tags: generateTags(tagNum),
+  }
+};
+
+export default function Test() {
+  const classes = useStyles();
+  const [localState, setLocalState] = useState(generateInitialLocalState(4));
   const globalState = useSelector(selector)
-  // const state = useSelector((s: State) => s.indexPage);
-  // const workspace = useSelector((s: State) => s.global.currentWorkSpace);
+  const handlers = useHandlers(localState, setLocalState, globalState);
   const handleClickAddDirectoryButton = () => {
     if (globalState.currentWorkSpace === null) {
       // tslint:disable-next-line:no-console
       console.warn('workspace is not selected, but AddDirectoryButton is clicked')
       return
     }
-    handlers.handleAddDirectoryButton(globalState.currentWorkSpace)
+    handlers.addDirectoryButton(globalState.currentWorkSpace)
   }
+
   return (
     <div className={classes.root}>
       <ImageListDrawer imagePaths={globalState.imagePaths}/>
+      <TagListDrawer
+        tags={localState.tags}
+        editTagId={localState.editTagId ?? undefined}
+        onClickAddButton={handlers.clickAddTagButton}
+        onClickEditButton={handlers.clickEditTagButton}
+        // onUpdate={handlers.updateTags}
+        onRename={handlers.renameTag}
+      />
       <main className={classes.content}>
-        <Toolbar />
+        <Toolbar/>
         <Typography paragraph={true}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
           ut labore et dolore magna aliqua. Rhoncus dolor purus non enim praesent elementum
@@ -108,3 +150,9 @@ export default function ClippedDrawer() {
     </div>
   );
 }
+
+export async function getServerSideProps() {
+  resetServerContext()
+  return {props: {}}
+}
+
