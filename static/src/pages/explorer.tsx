@@ -1,52 +1,74 @@
+import Paper from '@material-ui/core/Paper';
+import {makeStyles} from '@material-ui/core/styles';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 import * as React from 'react';
-// import MaterialTable from "material-table";
-import dynamic from "next/dynamic";
-import {Button, FormControl} from "@material-ui/core";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
-import InputLabel from "@material-ui/core/InputLabel";
-import {makeStyles} from "@material-ui/core/styles";
+import AutoSizer from 'react-virtualized-auto-sizer';
+import {FixedSizeList as List} from 'react-window';
+import {Toolbar} from "@material-ui/core";
 
-const MaterialTable = dynamic(() => import("material-table"), { ssr: false });
+const useStyles = makeStyles({
+  table: {
+    height: 500,
+    minWidth: 650,
+  },
+});
 
-const useStyles = makeStyles((theme) => ({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-  },
-  selectEmpty: {
-    marginTop: theme.spacing(2),
-  },
-}));
+// tslint:disable-next-line:variable-name
+const AssetTableRow = () => {
+  return (
+    <TableRow key={'name'}>
+      <TableCell component="th" scope="row">
+        name
+      </TableCell>
+      <TableCell align="right">{'calories'}</TableCell>
+    </TableRow>
+  );
+};
+
+// tslint:disable-next-line:variable-name
+const AssetTable = () => {
+  const classes = useStyles();
+  return (
+    <>
+      <Toolbar/>
+      <TableContainer component={Paper}>
+        <Table className={classes.table} size="small" aria-label="a dense table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Dessert (100g serving)</TableCell>
+              <TableCell align="right">Calories</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <AutoSizer>
+              {({height, width}) => (
+                <List
+                  width={width}
+                  height={height}
+                  itemCount={1000}
+                  itemSize={35}
+                >
+                  {AssetTableRow}
+                </List>
+              )}
+            </AutoSizer>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+}
 
 export default () => {
-  const classes = useStyles();
-  const [age] = React.useState('');
-
   return (
-    <div style={{ maxWidth: '100%' }}>
-      <FormControl className={classes.formControl}>
-        <InputLabel id="demo-simple-select-label">Age</InputLabel>
-        <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          value={age}
-        >
-          <MenuItem value={10}>Ten</MenuItem>
-          <MenuItem value={20}>Twenty</MenuItem>
-          <MenuItem value={30}>Thirty</MenuItem>
-        </Select>
-      </FormControl>
-      <MaterialTable
-        columns={[
-          { title: 'path', field: 'name' },
-        ]}
-        data={[{ path: 'xxx'}]}
-        title="Assets"
-      />
-      <Button variant="outlined" color="primary">
-        Load DB
-      </Button>
+    <div>
+      <AssetTable/>
     </div>
   );
 }
+
