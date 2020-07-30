@@ -29,7 +29,7 @@
     "react": "16.13.1",
     "react-beautiful-dnd": "13.0.0",
     "react-dom": "16.13.1",
-    "react-hook-form": "6.1.2",
+    "react-hook-form": "6.2.0",
     "react-redux": "7.2.1",
     "redux": "4.0.5",
     "redux-saga": "1.1.3",
