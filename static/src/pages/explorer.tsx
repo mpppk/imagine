@@ -8,13 +8,13 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import * as React from 'react';
-import {useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from "react-window";
 import InfiniteLoader from 'react-window-infinite-loader';
 import {assetActionCreators} from "../actions/asset";
 import {State} from "../reducers/reducer";
+import {useEffect} from "react";
 
 const useStyles = makeStyles({
   table: {
@@ -26,22 +26,10 @@ const useStyles = makeStyles({
 // tslint:disable-next-line:variable-name
 const AssetTable = () => {
   const classes = useStyles();
-  // const { hasNextPage, isNextPageLoading, items } = this.state;
-  const [hasNextPage, setHasNextPage] = useState(true);
-  const [isNextPageLoading, setIsNextPageLoading] = useState(false);
-  const [items, setItems] = useState([] as any[]);
   const dispatch = useDispatch();
   const globalState = useSelector((s: State) => s.global);
 
   const loadNextPage = () => {
-    setIsNextPageLoading(true);
-    setTimeout(() => {
-      setHasNextPage(items.length < 500);
-      setIsNextPageLoading(false);
-      setItems([...items].concat(
-        new Array(10).fill(true).map(() => ({name: 'xxx'}))
-      ));
-    }, 5000);
     if (globalState.currentWorkSpace !== null) {
       dispatch(assetActionCreators.requestAssets({
         requestNum: 10,
@@ -50,14 +38,23 @@ const AssetTable = () => {
     }
     return null;
   };
+
+  // Fixme use redux-saga
+  useEffect(() => {
+    const n = globalState.currentWorkSpace?.name;
+    if (n !== undefined) {
+      loadNextPage();
+    }
+  }, [globalState.currentWorkSpace]);
+
   // If there are more items to be loaded then add an extra row to hold a loading indicator.
-  const itemCount = hasNextPage ? items.length + 1 : items.length;
+  const itemCount = globalState.hasMoreAssets ? globalState.assets.length + 1 : globalState.assets.length;
 
   // Only load 1 page of items at a time.
   // Pass an empty callback to InfiniteLoader in case it asks us to load more than once.
-  const loadMoreItems = isNextPageLoading ? (() => null) : loadNextPage;
+  const loadMoreItems = globalState.isScanningAssets ? (() => null) : loadNextPage;
   // Every row is loaded except for our loading indicator row.
-  const isItemLoaded = (index: number) => !hasNextPage || index < items.length;
+  const isItemLoaded = (index: number) => !globalState.hasMoreAssets || index < globalState.assets.length;
 
   // Render an item or a loading indicator.
   // tslint:disable-next-line:variable-name
@@ -66,7 +63,7 @@ const AssetTable = () => {
     if (!isItemLoaded(index)) {
       content = "Loading...";
     } else {
-      content = items[index].name;
+      content = globalState.assets[index].path;
     }
 
     return <div style={style}>{content}</div>;

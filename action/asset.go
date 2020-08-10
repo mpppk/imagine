@@ -2,7 +2,6 @@ package action
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mpppk/imagine/domain/model"
 
@@ -32,7 +31,7 @@ type ScanningAssetsPayload struct {
 
 func newScanningAssets(wsName model.WSName, assets []*model.Asset) *fsa.Action {
 	return &fsa.Action{
-		Type: AssetScanningType,
+		Type: ServerScanningAssetsType,
 		Payload: &ScanningAssetsPayload{
 			WSPayload: newWSPayload(wsName),
 			Assets:    assets,
@@ -42,7 +41,7 @@ func newScanningAssets(wsName model.WSName, assets []*model.Asset) *fsa.Action {
 
 func newFinishAssetScanningType(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type:    AssetFinishAssetScanningType,
+		Type:    ServerFinishAssetsScanningType,
 		Payload: newWSPayload(wsName),
 	}
 }
@@ -59,7 +58,6 @@ func (d *RequestAssetsHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) err
 			return err
 		}
 		d.c = c
-		log.Println("debug: list channel is created. ws: " + payload.WorkSpaceName)
 	}
 
 	var ret []*model.Asset
