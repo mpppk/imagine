@@ -26,6 +26,14 @@ func (a *Asset) AddImage(ws model.WSName, filePath string) error {
 	return a.assetRepository.Add(ws, newAssetFromFilePath(filePath))
 }
 
+func (a *Asset) ListAsync(ws model.WSName) (<-chan *model.Asset, error) {
+	// FIXME
+	if err := a.assetRepository.Init(ws); err != nil {
+		return nil, err
+	}
+	return a.assetRepository.ListByAsync(ws, nil, 10) // FIXME
+}
+
 func newAssetFromFilePath(filePath string) *model.Asset {
 	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
 	return &model.Asset{

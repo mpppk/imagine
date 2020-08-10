@@ -11,8 +11,15 @@ const (
 )
 
 const (
-	GlobalPrefix                     = "GLOBAL/"
-	GlobalRequestWorkSpaces fsa.Type = GlobalPrefix + "REQUEST_WORKSPACES"
+	AssetPrefix                           = "ASSET/"
+	AssetRequestAssetsType       fsa.Type = AssetPrefix + "REQUEST_ASSETS"
+	AssetScanningType            fsa.Type = AssetPrefix + "SCANNING_ASSETS"
+	AssetFinishAssetScanningType fsa.Type = AssetPrefix + "FINISH_ASSETS_SCANNING"
+)
+
+const (
+	GlobalPrefix                         = "GLOBAL/"
+	GlobalRequestWorkSpacesType fsa.Type = GlobalPrefix + "REQUEST_WORKSPACES"
 )
 
 const (

@@ -9,9 +9,12 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import * as React from 'react';
 import {useState} from 'react';
+import {useDispatch, useSelector} from "react-redux";
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from "react-window";
 import InfiniteLoader from 'react-window-infinite-loader';
+import {assetActionCreators} from "../actions/asset";
+import {State} from "../reducers/reducer";
 
 const useStyles = makeStyles({
   table: {
@@ -27,6 +30,8 @@ const AssetTable = () => {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [isNextPageLoading, setIsNextPageLoading] = useState(false);
   const [items, setItems] = useState([] as any[]);
+  const dispatch = useDispatch();
+  const globalState = useSelector((s: State) => s.global);
 
   const loadNextPage = () => {
     setIsNextPageLoading(true);
@@ -36,7 +41,13 @@ const AssetTable = () => {
       setItems([...items].concat(
         new Array(10).fill(true).map(() => ({name: 'xxx'}))
       ));
-    }, 2000);
+    }, 5000);
+    if (globalState.currentWorkSpace !== null) {
+      dispatch(assetActionCreators.requestAssets({
+        requestNum: 10,
+        workSpaceName: globalState.currentWorkSpace.name,
+      }));
+    }
     return null;
   };
   // If there are more items to be loaded then add an extra row to hold a loading indicator.
