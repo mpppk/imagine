@@ -164,6 +164,8 @@ github.com/mpppk/lorca v0.1.10-0.20200724104927-1d9dcfbfccbe h1:cm8NLbf9aSHxaK/I
 github.com/mpppk/lorca v0.1.10-0.20200724104927-1d9dcfbfccbe/go.mod h1:bNZUIENmjkJOA5oO5wj5ls2g2cKFjt44dR9liaQ6WuQ=
 github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20200724162616-6b63b3d329cb h1:08TcMzLKc/1W2tf6zt7n0LqI49LyhqFajE+HsamyDuY=
 github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20200724162616-6b63b3d329cb/go.mod h1:Y6h2vE4WBIx1tVEl7iW3sECXVSSxVod+q5kSFQiYnE0=
+github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20200810083002-3184a7a553ab h1:nvicu3yyruXYkQL/iSO38hoXPBIML2vuNvHtDRUQbcA=
+github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20200810083002-3184a7a553ab/go.mod h1:8TfpaD58uGCFuzNO5qCd3ddhpGL/nicFLxG3fiAfN2Y=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/onsi/ginkgo v1.6.0 h1:Ix8l273rp3QzYgXSR+c8d1fTG7UPgYkOSELPhiY/YGw=
@@ -330,6 +332,7 @@ golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=
 golang.org/x/text v0.3.2/go.mod h1:bEr9sfX3Q8Zfm5fL9x+3itogRgK3+ptLWKqgva+5dAk=
+golang.org/x/text v0.3.3 h1:cokOdA+Jmi5PJGXLlLllQSgYigAEfHXJAERHVMaCc2k=
 golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/time v0.0.0-20181108054448-85acf8d2951c/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
 golang.org/x/time v0.0.0-20190308202827-9d24e82272b4/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
