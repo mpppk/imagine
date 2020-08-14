@@ -1,8 +1,8 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
+import {assetActionCreators} from "../actions/asset";
 import {globalActionCreators} from '../actions/global';
 import {serverActionCreators} from "../actions/server";
 import {Asset, WorkSpace} from '../models/models';
-import {assetActionCreators} from "../actions/asset";
 
 export const globalInitialState = {
   assets: [] as Asset[],

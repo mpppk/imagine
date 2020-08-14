@@ -8,13 +8,13 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import * as React from 'react';
+import {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from "react-window";
 import InfiniteLoader from 'react-window-infinite-loader';
 import {assetActionCreators} from "../actions/asset";
 import {State} from "../reducers/reducer";
-import {useEffect} from "react";
 
 const useStyles = makeStyles({
   table: {
