@@ -5,7 +5,7 @@ on: [push]
 defaults:
   run:
     shell: bash
-    working-directory: scripts
+    working-directory: static
 
 jobs:
   main:
@@ -23,6 +23,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: yarn install, build, and test
         run: |
+          ls
           yarn install
           yarn tslint
           yarn test
