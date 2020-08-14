@@ -25,3 +25,5 @@ export const isDupNamedTag = (tags: Tag[], newTag: Tag) => {
   return tagNameSet.has(newTag.name);
 }
 
+export const assetPathToUrl  =(p: string) => `http://localhost:1323/static${p}`;
+

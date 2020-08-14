@@ -54,10 +54,9 @@ func NewRootCmd(fs afero.Fs) (*cobra.Command, error) {
 				return fmt.Errorf("failed to open DB: %w", err)
 			}
 
-			handlers := registry.NewHandlers(db)
-
 			logger := colog.NewCoLog(os.Stdout, "", 0).NewLogger()
 
+			handlers := registry.NewHandlers(db)
 			config := &fsa.LorcaConfig{
 				AppName:          "imagine",
 				Url:              "http://localhost:3000",

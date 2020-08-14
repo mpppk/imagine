@@ -10,7 +10,7 @@ import {useSelector} from "react-redux";
 import {indexActionCreators} from "../actions";
 import {ImageGridList} from "../components/ImageGrid";
 import {useActions} from "../hooks";
-import {WorkSpace} from "../models/models";
+import {Asset, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 
 const useStyles = makeStyles((theme: Theme) => {
@@ -35,15 +35,15 @@ const useHandlers = () => {
 }
 
 interface GlobalState {
+  assets: Asset[]
   currentWorkSpace: WorkSpace | null
-  imagePaths: string[]
   isLoadingWorkSpace: boolean
   isScanningDirectories: boolean
 }
 
 const selector = (state: State): GlobalState => ({
+  assets: state.global.assets,
   currentWorkSpace: state.global.currentWorkSpace,
-  imagePaths: state.indexPage.imagePaths,
   isLoadingWorkSpace: state.global.isLoadingWorkSpaces,
   isScanningDirectories: state.indexPage.scanning,
 })
@@ -83,7 +83,9 @@ export const Index: NextPage = () => {
       <div className={classes.content}>
         <Grid container={true} spacing={3}>
           <Grid item={true} xs={3}>
-            <ImageGridList paths={globalState.imagePaths}/>
+            <ImageGridList
+              paths={globalState.assets.map(a => a.path)}
+             onClickImage={() => {}}/>
           </Grid>
         </Grid>
         <Button variant="outlined" color="primary" disabled={globalState.isLoadingWorkSpace}>

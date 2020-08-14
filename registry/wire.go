@@ -21,3 +21,8 @@ func InitializeRequestWorkSpacesHandler(b *bbolt.DB) *action.RequestWorkSpacesHa
 	wire.Build(repoimpl.NewBBoltGlobal, action.NewRequestWorkSpacesHandler)
 	return nil
 }
+
+func InitializeRequestAssetsHandler(b *bbolt.DB) *action.RequestAssetsHandler {
+	wire.Build(usecase.NewAsset, repoimpl.NewBBoltAsset, action.NewRequestAssetsHandler)
+	return &action.RequestAssetsHandler{}
+}

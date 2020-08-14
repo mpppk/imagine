@@ -11,8 +11,13 @@ const (
 )
 
 const (
-	GlobalPrefix                     = "GLOBAL/"
-	GlobalRequestWorkSpaces fsa.Type = GlobalPrefix + "REQUEST_WORKSPACES"
+	AssetPrefix                     = "ASSET/"
+	AssetRequestAssetsType fsa.Type = AssetPrefix + "REQUEST_ASSETS"
+)
+
+const (
+	GlobalPrefix                         = "GLOBAL/"
+	GlobalRequestWorkSpacesType fsa.Type = GlobalPrefix + "REQUEST_WORKSPACES"
 )
 
 const (
@@ -22,6 +27,8 @@ const (
 	ServerFinishDirectoryScanningType fsa.Type = ServerPrefix + "FINISH_DIRECTORY_SCANNING"
 	ServerScanningImagesType          fsa.Type = ServerPrefix + "SCANNING_IMAGES"
 	ServerScanWorkSpaces              fsa.Type = ServerPrefix + "SCAN_WORKSPACES"
+	ServerScanningAssetsType          fsa.Type = ServerPrefix + "SCANNING_ASSETS"
+	ServerFinishAssetsScanningType    fsa.Type = ServerPrefix + "FINISH_ASSETS_SCANNING"
 )
 
 type WSPayload struct {

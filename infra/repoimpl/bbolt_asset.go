@@ -82,15 +82,27 @@ func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
 
 func (b *BBoltAsset) ListByAsync(ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error) {
 	c := make(chan *model.Asset, cap)
+	ec := make(chan error, 1)
+	f2 := f
+	if f2 == nil {
+		f2 = func(asset *model.Asset) bool {
+			return true
+		}
+	}
 	eachF := func(asset *model.Asset) error {
-		if f(asset) {
+		if f2(asset) {
 			c <- asset
 		}
 		return nil
 	}
-	if err := b.ForEach(ws, eachF); err != nil {
-		return nil, fmt.Errorf("failed to list assets: %w", err)
-	}
+
+	go func() {
+		if err := b.ForEach(ws, eachF); err != nil {
+			ec <- fmt.Errorf("failed to list assets: %w", err)
+		}
+		close(c)
+		close(ec)
+	}()
 	return c, nil
 }
 
