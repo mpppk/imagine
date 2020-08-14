@@ -78,6 +78,10 @@ export const Index: NextPage = () => {
     }
     handlers.addDirectoryButton(globalState.currentWorkSpace)
   }
+
+  // tslint:disable-next-line:no-empty
+  const emptyHandler = () => {};
+
   return (
     <div className={classes.root}>
       <div className={classes.content}>
@@ -85,7 +89,7 @@ export const Index: NextPage = () => {
           <Grid item={true} xs={3}>
             <ImageGridList
               paths={globalState.assets.map(a => a.path)}
-             onClickImage={() => {}}/>
+             onClickImage={emptyHandler}/>
           </Grid>
         </Grid>
         <Button variant="outlined" color="primary" disabled={globalState.isLoadingWorkSpace}>

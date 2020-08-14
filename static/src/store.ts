@@ -1,9 +1,9 @@
 import { Context, createWrapper, MakeStore } from 'next-redux-wrapper';
 import {applyMiddleware, createStore, Middleware} from 'redux';
 import createSagaMiddleware from 'redux-saga';
+import {makeLorcaMiddleware, setupServerActionHandler} from './lib';
 import { initialState, reducer, State } from './reducers/reducer';
 import rootSaga from './sagas/saga';
-import {makeLorcaMiddleware, setupServerActionHandler} from './lib';
 
 const sagaMiddleware = createSagaMiddleware();
 
