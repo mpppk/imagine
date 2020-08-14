@@ -10,7 +10,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import {makeStyles} from "@material-ui/core/styles";
 import {getVirtualizedAssetsProps, VirtualizedAssetProps} from "../services/virtualizedAsset";
-import {OriginalAssetItemProps, VirtualizedAssetList} from "./VirtualizedAssetList";
+import {AssetListItemProps, VirtualizedAssetList} from "./VirtualizedAssetList";
 
 const useStyles = makeStyles({
   table: {
@@ -31,18 +31,16 @@ export const AssetTable = (props: Props) => {
     }
   }, [props.workspace]);
 
-  const assetInfo = getVirtualizedAssetsProps(props);
-
   // tslint:disable-next-line:variable-name
-  const Item: React.FC<OriginalAssetItemProps> = ({index, style}) => {
+  const Item: React.FC<AssetListItemProps> = ({asset, isLoaded, style}) => {
     let content;
-    if (!assetInfo.isAssetLoaded(index)) {
+    if (!isLoaded) {
       content = "Loading...";
     } else {
-      content = props.assets[index].path;
+      content = asset.path;
     }
 
-    return <div style={style as React.CSSProperties}>{content}</div>;
+    return (<div style={style as React.CSSProperties}>{content}</div>);
   };
 
   return (

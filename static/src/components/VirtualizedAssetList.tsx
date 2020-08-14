@@ -3,12 +3,17 @@ import * as React from "react";
 import {FixedSizeList, ListChildComponentProps} from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 import {getVirtualizedAssetsProps, VirtualizedAssetProps} from "../services/virtualizedAsset";
+import {Asset} from "../models/models";
 
 // export type OriginalAssetItem = React.FC<Pick<ListChildComponentProps, 'index' | 'style'>>
-export type OriginalAssetItemProps = Pick<ListChildComponentProps, 'index' | 'style'>
+export interface AssetListItemProps extends Pick<ListChildComponentProps, 'style'>{
+  asset: Asset
+  isLoaded: boolean
+}
+// export type AssetListItemProps = Pick<ListChildComponentProps, 'index' | 'style'>
 
 interface Props extends VirtualizedAssetProps {
-  children: React.FC<OriginalAssetItemProps>
+  children: React.FC<AssetListItemProps>
 }
 
 // tslint:disable-next-line:variable-name
@@ -23,7 +28,8 @@ export const VirtualizedAssetList: React.FC<Props> = (props) => {
     return (
       <Children
         style={style}
-        index={index}
+        asset={props.assets[index]}
+        isLoaded={assetInfo.isAssetLoaded(index)}
       />
     );
   };
