@@ -1,0 +1,31 @@
+name: frontend
+
+on: [push]
+
+defaults:
+  run:
+    shell: bash
+    working-directory: scripts
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: yarn install, build, and test
+        run: |
+          yarn install
+          yarn tslint
+          yarn test
+          yarn build
+        env:
+          CI: true
