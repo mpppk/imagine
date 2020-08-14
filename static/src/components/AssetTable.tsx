@@ -1,5 +1,4 @@
 import * as React from "react";
-import {useEffect} from "react";
 import {Toolbar} from "@material-ui/core";
 import TableContainer from "@material-ui/core/TableContainer";
 import Paper from "@material-ui/core/Paper";
@@ -9,7 +8,7 @@ import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import {makeStyles} from "@material-ui/core/styles";
-import {getVirtualizedAssetsProps, VirtualizedAssetProps} from "../services/virtualizedAsset";
+import {VirtualizedAssetProps} from "../services/virtualizedAsset";
 import {AssetListItemProps, VirtualizedAssetList} from "./VirtualizedAssetList";
 
 const useStyles = makeStyles({
@@ -24,12 +23,6 @@ type Props = VirtualizedAssetProps;
 // tslint:disable-next-line:variable-name
 export const AssetTable = (props: Props) => {
   const classes = useStyles();
-  // Fixme use redux-saga
-  useEffect(() => {
-    if (props.workspace !== null) {
-      props.onRequestNextPage();
-    }
-  }, [props.workspace]);
 
   // tslint:disable-next-line:variable-name
   const Item: React.FC<AssetListItemProps> = ({asset, isLoaded, style}) => {

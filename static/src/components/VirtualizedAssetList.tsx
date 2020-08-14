@@ -4,13 +4,12 @@ import {FixedSizeList, ListChildComponentProps} from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 import {getVirtualizedAssetsProps, VirtualizedAssetProps} from "../services/virtualizedAsset";
 import {Asset} from "../models/models";
+import {useEffect} from "react";
 
-// export type OriginalAssetItem = React.FC<Pick<ListChildComponentProps, 'index' | 'style'>>
 export interface AssetListItemProps extends Pick<ListChildComponentProps, 'style'>{
   asset: Asset
   isLoaded: boolean
 }
-// export type AssetListItemProps = Pick<ListChildComponentProps, 'index' | 'style'>
 
 interface Props extends VirtualizedAssetProps {
   children: React.FC<AssetListItemProps>
@@ -18,6 +17,13 @@ interface Props extends VirtualizedAssetProps {
 
 // tslint:disable-next-line:variable-name
 export const VirtualizedAssetList: React.FC<Props> = (props) => {
+  // Fixme use redux-saga
+  useEffect(() => {
+    if (props.workspace !== null) {
+      props.onRequestNextPage();
+    }
+  }, [props.workspace]);
+
   const assetInfo = getVirtualizedAssetsProps(props);
 
   // tslint:disable-next-line:variable-name
