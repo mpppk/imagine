@@ -25,8 +25,4 @@ export const indexPage = reducerWithInitialState(indexInitialState)
   })
   .case(serverActionCreators.finishDirectoryScanning, (state) => {
     return finishOrCancelScan(state);
-  })
-  .case(serverActionCreators.scanningImages, (state, payload) => {
-    const newPaths = payload.paths.map(p => `http://localhost:1323/static${p}`)
-    return {...state, imagePaths: [...state.imagePaths, ...newPaths]};
   });

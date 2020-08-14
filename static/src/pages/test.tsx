@@ -10,7 +10,7 @@ import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions} from "../hooks";
 import {Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
-import {immutableSplice} from "../util";
+import {assetPathToUrl, immutableSplice} from "../util";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -68,7 +68,7 @@ interface GlobalState {
 
 const selector = (state: State): GlobalState => ({
   currentWorkSpace: state.global.currentWorkSpace,
-  imagePaths: state.indexPage.imagePaths,
+  imagePaths: state.global.assets.map((a) => assetPathToUrl(a.path)),
   isLoadingWorkSpace: state.global.isLoadingWorkSpaces,
   isScanningDirectories: state.indexPage.scanning,
 })
