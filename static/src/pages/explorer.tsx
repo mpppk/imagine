@@ -19,9 +19,6 @@ const Explorer = () => {
     return null;
   };
 
-  const wsName = globalState.currentWorkSpace === null ?
-    null : globalState.currentWorkSpace.name;
-
   return (
     <div>
       <AssetTable
@@ -29,11 +26,10 @@ const Explorer = () => {
         onRequestNextPage={loadNextPage}
         hasMoreAssets={globalState.hasMoreAssets}
         isScanningAssets={globalState.isScanningAssets}
-        workspaceName={wsName}
+        workspace={globalState.currentWorkSpace}
       />
     </div>
   );
 }
 
 export default Explorer;
-
