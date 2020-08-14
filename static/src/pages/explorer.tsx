@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {AssetTable} from "../components/AssetTable";
+import {AssetTable} from '../components/AssetTable';
 import {useVirtualizedAsset} from "../hooks";
 
 // tslint:disable-next-line:variable-name

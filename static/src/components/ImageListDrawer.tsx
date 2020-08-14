@@ -3,6 +3,7 @@ import {makeStyles} from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import React from 'react';
 import {ImageGridList} from "./ImageGrid";
+import {VirtualizedAssetProps} from "../services/virtualizedAsset";
 
 const drawerWidth = 240;
 
@@ -21,7 +22,7 @@ const useStyles = makeStyles(() => {
   }
 });
 
-interface ImageListDrawerProps {
+interface ImageListDrawerProps extends VirtualizedAssetProps {
   imagePaths: string[]
   onClickImage: (path: string) => void
 }
@@ -40,8 +41,11 @@ export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = pr
       <Toolbar />
       <div className={classes.drawerContainer}>
         <ImageGridList
+          {...props}
           paths={props.imagePaths}
           onClickImage={props.onClickImage}
+          cellHeight={200}
+          width={drawerWidth}
         />
       </div>
     </Drawer>

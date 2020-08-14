@@ -10,6 +10,7 @@ import TableBody from "@material-ui/core/TableBody";
 import {makeStyles} from "@material-ui/core/styles";
 import {VirtualizedAssetProps} from "../services/virtualizedAsset";
 import {AssetListItemProps, VirtualizedAssetList} from "./VirtualizedAssetList";
+import AutoSizer from "react-virtualized-auto-sizer";
 
 const useStyles = makeStyles({
   table: {
@@ -62,15 +63,25 @@ export const AssetTable = (props: Props) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            <VirtualizedAssetList
-              assets={props.assets}
-              hasMoreAssets={props.hasMoreAssets}
-              isScanningAssets={props.isScanningAssets}
-              onRequestNextPage={props.onRequestNextPage}
-              workspace={props.workspace}
-            >
-              {Item}
-            </VirtualizedAssetList>
+            <AutoSizer>
+              {({height, width}) => {
+                return (
+                  <VirtualizedAssetList
+                    assets={props.assets}
+                    hasMoreAssets={props.hasMoreAssets}
+                    isScanningAssets={props.isScanningAssets}
+                    onRequestNextPage={props.onRequestNextPage}
+                    workspace={props.workspace}
+                    height={height}
+                    itemSize={35}
+                    width={width}
+                  >
+                    {Item}
+                  </VirtualizedAssetList>
+                );
+              }}
+            </AutoSizer>
+
           </TableBody>
         </Table>
       </TableContainer>

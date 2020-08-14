@@ -7,7 +7,7 @@ import {useSelector} from "react-redux";
 import {indexActionCreators} from "../actions";
 import {ImageListDrawer} from "../components/ImageListDrawer";
 import {TagListDrawer} from "../components/TagListDrawer";
-import {useActions} from "../hooks";
+import {useActions, useVirtualizedAsset} from "../hooks";
 import {Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import {assetPathToUrl, immutableSplice} from "../util";
@@ -101,6 +101,7 @@ export default function Test() {
   const [localState, setLocalState] = useState(generateInitialLocalState(4));
   const globalState = useSelector(selector)
   const handlers = useHandlers(localState, setLocalState, globalState);
+  const virtualizedAssetProps = useVirtualizedAsset();
   const handleClickAddDirectoryButton = () => {
     if (globalState.currentWorkSpace === null) {
       // tslint:disable-next-line:no-console
@@ -113,6 +114,7 @@ export default function Test() {
   return (
     <div className={classes.root}>
       <ImageListDrawer
+        {...virtualizedAssetProps}
         imagePaths={globalState.imagePaths}
         onClickImage={handlers.clickImage}
       />
