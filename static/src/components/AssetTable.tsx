@@ -8,11 +8,9 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
-import AutoSizer from "react-virtualized-auto-sizer";
-import InfiniteLoader from "react-window-infinite-loader";
-import {FixedSizeList} from "react-window";
 import {makeStyles} from "@material-ui/core/styles";
 import {getVirtualizedAssetsProps, VirtualizedAssetProps} from "../services/virtualizedAsset";
+import {OriginalAssetItemProps, VirtualizedAssetList} from "./VirtualizedAssetList";
 
 const useStyles = makeStyles({
   table: {
@@ -36,7 +34,7 @@ export const AssetTable = (props: Props) => {
   const assetInfo = getVirtualizedAssetsProps(props);
 
   // tslint:disable-next-line:variable-name
-  const Item = ({index, style}: any) => {
+  const Item: React.FC<OriginalAssetItemProps> = ({index, style}) => {
     let content;
     if (!assetInfo.isAssetLoaded(index)) {
       content = "Loading...";
@@ -44,7 +42,7 @@ export const AssetTable = (props: Props) => {
       content = props.assets[index].path;
     }
 
-    return <div style={style}>{content}</div>;
+    return <div style={style as React.CSSProperties}>{content}</div>;
   };
 
   return (
@@ -59,29 +57,15 @@ export const AssetTable = (props: Props) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            <AutoSizer>
-              {({height, width}) => (
-                <InfiniteLoader
-                  isItemLoaded={assetInfo.isAssetLoaded}
-                  itemCount={assetInfo.assetCount}
-                  loadMoreItems={assetInfo.loadMoreAssets}
-                >
-                  {({onItemsRendered, ref}) => (
-                    <FixedSizeList
-                      className="List"
-                      height={height}
-                      itemCount={assetInfo.assetCount}
-                      itemSize={30}
-                      onItemsRendered={onItemsRendered}
-                      ref={ref}
-                      width={width}
-                    >
-                      {Item}
-                    </FixedSizeList>
-                  )}
-                </InfiniteLoader>
-              )}
-            </AutoSizer>
+            <VirtualizedAssetList
+              assets={props.assets}
+              hasMoreAssets={props.hasMoreAssets}
+              isScanningAssets={props.isScanningAssets}
+              onRequestNextPage={props.onRequestNextPage}
+              workspace={props.workspace}
+            >
+              {Item}
+            </VirtualizedAssetList>
           </TableBody>
         </Table>
       </TableContainer>

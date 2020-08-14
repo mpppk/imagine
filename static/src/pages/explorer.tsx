@@ -5,7 +5,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {assetActionCreators} from "../actions/asset";
 
 // tslint:disable-next-line:variable-name
-const Explorer = () => {
+const Explorer: React.FC = () => {
   const globalState = useSelector((s: State) => s.global);
   const dispatch = useDispatch();
 
