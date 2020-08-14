@@ -1,10 +1,9 @@
-import AutoSizer from "react-virtualized-auto-sizer";
 import * as React from "react";
+import {useEffect} from "react";
 import {FixedSizeList, ListChildComponentProps} from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 import {getVirtualizedAssetsProps, VirtualizedAssetProps} from "../services/virtualizedAsset";
 import {Asset} from "../models/models";
-import {useEffect} from "react";
 
 export interface AssetListItemProps {
   style: React.CSSProperties
@@ -13,6 +12,9 @@ export interface AssetListItemProps {
 }
 
 interface Props extends VirtualizedAssetProps {
+  height: number
+  width: number
+  itemSize: number
   children: React.FC<AssetListItemProps>
 }
 
@@ -35,35 +37,31 @@ export const VirtualizedAssetList: React.FC<Props> = (props) => {
     return (
       <Children
         style={style as React.CSSProperties}
-        asset={props.assets[index]}
+        asset={props.assets![index]}
         isLoaded={assetInfo.isAssetLoaded(index)}
       />
     );
   };
 
   return (
-    <AutoSizer>
-      {({height, width}) => (
-        <InfiniteLoader
-          isItemLoaded={assetInfo.isAssetLoaded}
+    <InfiniteLoader
+      isItemLoaded={assetInfo.isAssetLoaded}
+      itemCount={assetInfo.assetCount}
+      loadMoreItems={assetInfo.loadMoreAssets}
+    >
+      {({onItemsRendered, ref}) => (
+        <FixedSizeList
+          className="List"
+          height={props.height}
           itemCount={assetInfo.assetCount}
-          loadMoreItems={assetInfo.loadMoreAssets}
+          itemSize={props.itemSize}
+          onItemsRendered={onItemsRendered}
+          ref={ref}
+          width={props.width}
         >
-          {({onItemsRendered, ref}) => (
-            <FixedSizeList
-              className="List"
-              height={height}
-              itemCount={assetInfo.assetCount}
-              itemSize={30}
-              onItemsRendered={onItemsRendered}
-              ref={ref}
-              width={width}
-            >
-              {AssetItem}
-            </FixedSizeList>
-          )}
-        </InfiniteLoader>
+          {AssetItem}
+        </FixedSizeList>
       )}
-    </AutoSizer>
+    </InfiniteLoader>
   );
 };
