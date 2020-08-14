@@ -10,7 +10,7 @@ import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
 import {Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
-import {assetPathToUrl, immutableSplice} from "../util";
+import {assetPathToUrl} from "../util";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -27,16 +27,18 @@ const useStyles = makeStyles((theme: Theme) =>
 const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => void, _globalState: GlobalState) => {
   const actionCreators = useActions(indexActionCreators);
   return {
-    addDirectoryButton: (ws: WorkSpace) => {
+    ...actionCreators,
+    clickAddDirectoryButton: (ws: WorkSpace) => {
       actionCreators.clickAddDirectoryButton({workSpaceName: ws.name});
     },
     clickAddTagButton: () => {
-      setLocalState({
-        ...localState,
-        editTagId: localState.maxId,
-        maxId: localState.maxId+1,
-        tags: [{id: localState.maxId, name: ''}, ...localState.tags],
-      });
+      const tag: Tag = {id: _globalState.tags.length +1, name: ''};
+      actionCreators.clickAddTagButton(tag);
+      setLocalState({...localState, editTagId: tag.id});
+    },
+    renameTag: (tag: Tag) => {
+      actionCreators.renameTag(tag);
+      setLocalState({...localState, editTagId: null});
     },
     clickEditTagButton: (tag: Tag) => {
       setLocalState({...localState, editTagId: tag.id});
@@ -44,23 +46,12 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     clickImage: (selectedImgPath: string) => {
       setLocalState({...localState, selectedImgPath})
     },
-    renameTag: (tag: Tag) => {
-      const targetTagIndex = localState.tags.findIndex((t) => t.id === tag.id);
-      if (targetTagIndex === -1) {
-        // tslint:disable-next-line:no-console
-        console.warn('unknown tag ID is provided', tag);
-      }
-      setLocalState({
-        ...localState,
-        editTagId: null,
-        tags: immutableSplice(localState.tags, targetTagIndex, 1, tag),
-      });
-    },
   };
 }
 
 interface GlobalState {
   currentWorkSpace: WorkSpace | null
+  tags: Tag[]
   imagePaths: string[]
   isLoadingWorkSpace: boolean
   isScanningDirectories: boolean
@@ -68,31 +59,23 @@ interface GlobalState {
 
 const selector = (state: State): GlobalState => ({
   currentWorkSpace: state.global.currentWorkSpace,
+  tags: state.global.tags,
   imagePaths: state.global.assets.map((a) => assetPathToUrl(a.path)),
   isLoadingWorkSpace: state.global.isLoadingWorkSpaces,
   isScanningDirectories: state.indexPage.scanning,
 })
 
 interface LocalState {
-  tags: Tag[]
-  maxId: number
+  // tags: Tag[]
+  // maxId: number
   editTagId: number | null
   selectedImgPath: string | null
 }
 
-// fake data generator
-const generateTags = (count: number) =>
-  Array.from({length: count}, (_, k) => k).map(k => ({
-    id: k,
-    name: `item-${k}`,
-  } as Tag));
-
-const generateInitialLocalState = (tagNum: number): LocalState => {
+const generateInitialLocalState = (): LocalState => {
   return {
     editTagId: null,
-    maxId: tagNum+1,
     selectedImgPath: null,
-    tags: generateTags(tagNum),
   }
 };
 
@@ -108,7 +91,7 @@ export default function Test() {
       console.warn('workspace is not selected, but AddDirectoryButton is clicked')
       return
     }
-    handlers.addDirectoryButton(globalState.currentWorkSpace)
+    handlers.clickAddDirectoryButton(globalState.currentWorkSpace)
   }
 
   return (
@@ -144,11 +127,12 @@ export default function Test() {
         </Button>
       </main>
       <TagListDrawer
-        tags={localState.tags}
+        tags={globalState.tags}
         editTagId={localState.editTagId ?? undefined}
         onClickAddButton={handlers.clickAddTagButton}
         onClickEditButton={handlers.clickEditTagButton}
         onRename={handlers.renameTag}
+        onUpdate={handlers.updateTags}
       />
     </div>
   );
