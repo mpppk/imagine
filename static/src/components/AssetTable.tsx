@@ -26,25 +26,39 @@ export const AssetTable = (props: Props) => {
 
   // tslint:disable-next-line:variable-name
   const Item: React.FC<AssetListItemProps> = ({asset, isLoaded, style}) => {
-    let content;
     if (!isLoaded) {
-      content = "Loading...";
-    } else {
-      content = asset.path;
+      return (<div style={style}>Loading...</div>);
     }
 
-    return (<div style={style as React.CSSProperties}>{content}</div>);
+    return (
+      <TableRow key={asset.path} style={style}>
+        <TableCell component="th" scope="row">
+          {asset.id}
+        </TableCell>
+        <TableCell component="th" scope="row">
+          {asset.name}
+        </TableCell>
+        <TableCell component="th" scope="row">
+          {asset.tags}
+        </TableCell>
+        <TableCell component="th" scope="row">
+          {asset.path}
+        </TableCell>
+      </TableRow>
+    );
   };
 
   return (
     <>
       <Toolbar/>
       <TableContainer component={Paper}>
-        <Table className={classes.table} size="small" aria-label="a dense table">
+        <Table className={classes.table} size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Dessert (100g serving)</TableCell>
-              <TableCell align="right">Calories</TableCell>
+              <TableCell>ID</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Tags</TableCell>
+              <TableCell>Path</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

@@ -6,7 +6,8 @@ import {getVirtualizedAssetsProps, VirtualizedAssetProps} from "../services/virt
 import {Asset} from "../models/models";
 import {useEffect} from "react";
 
-export interface AssetListItemProps extends Pick<ListChildComponentProps, 'style'>{
+export interface AssetListItemProps {
+  style: React.CSSProperties
   asset: Asset
   isLoaded: boolean
 }
@@ -33,7 +34,7 @@ export const VirtualizedAssetList: React.FC<Props> = (props) => {
 
     return (
       <Children
-        style={style}
+        style={style as React.CSSProperties}
         asset={props.assets[index]}
         isLoaded={assetInfo.isAssetLoaded(index)}
       />
