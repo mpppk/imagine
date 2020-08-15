@@ -2,8 +2,6 @@
 
 package registry
 
-//go:generate wire
-
 import (
 	"github.com/google/wire"
 	"github.com/mpppk/imagine/action"
@@ -12,17 +10,19 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-func InitializeDirectoryScanHandler(b *bbolt.DB) *action.DirectoryScanHandler {
-	wire.Build(usecase.NewAsset, repoimpl.NewBBoltAsset, action.NewReadDirectoryScanHandler)
-	return &action.DirectoryScanHandler{}
-}
+//go:generate wire
 
-func InitializeRequestWorkSpacesHandler(b *bbolt.DB) *action.RequestWorkSpacesHandler {
-	wire.Build(repoimpl.NewBBoltGlobal, action.NewRequestWorkSpacesHandler)
+func InitializeHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
+	wire.Build(
+		action.NewHandlerCreator,
+
+		usecase.NewAsset,
+		repoimpl.NewBBoltAsset,
+
+		usecase.NewTag,
+		repoimpl.NewBBoltTag,
+
+		repoimpl.NewBBoltGlobal,
+	)
 	return nil
-}
-
-func InitializeRequestAssetsHandler(b *bbolt.DB) *action.RequestAssetsHandler {
-	wire.Build(usecase.NewAsset, repoimpl.NewBBoltAsset, action.NewRequestAssetsHandler)
-	return &action.RequestAssetsHandler{}
 }

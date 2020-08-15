@@ -6,17 +6,9 @@ import {Asset, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
 import {immutableSplice} from "../util";
 
-// fake data generator
-const generateTags = (count: number) =>
-  Array.from({length: count}, (_, k) => k).map(k => ({
-    id: k,
-    name: `item-${k}`,
-  } as Tag));
-
 export const globalInitialState = {
   assets: [] as Asset[],
-  tags: generateTags(5) as Tag[], // FIXME
-  // maxTagId: 10,
+  tags: [] as Tag[],
   currentWorkSpace: null as WorkSpace | null,
   hasMoreAssets :true,
   isLoadingWorkSpaces: true,
@@ -24,12 +16,10 @@ export const globalInitialState = {
   workspaces: null as WorkSpace[] | null,
 };
 
-
 export type GlobalState = typeof globalInitialState;
 export const global = reducerWithInitialState(globalInitialState)
   .case(serverActionCreators.scanWorkSpaces, (state, workspaces) => {
-    const currentWorkSpace = workspaces.length > 0 ? workspaces[0] : null;
-    return {...state, workspaces, isLoadingWorkSpaces: false, currentWorkSpace};
+    return {...state, workspaces, isLoadingWorkSpaces: false};
   })
   .case(assetActionCreators.requestAssets, (state) => {
     return {...state, isScanningAssets: true}
@@ -43,20 +33,20 @@ export const global = reducerWithInitialState(globalInitialState)
   .case(globalActionCreators.selectNewWorkSpace, (state, workspace) => {
     return {...state, currentWorkSpace: workspace};
   })
-  .case(globalActionCreators.selectNewWorkSpace, (state, workspace) => {
-    return {...state, currentWorkSpace: workspace};
-  })
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {
     return {...state, tags: [tag, ...state.tags]};
   })
-  .case(indexActionCreators.renameTag, (state, tag) => {
-    const targetTagIndex = state.tags.findIndex((t) => t.id === tag.id);
+  .case(serverActionCreators.tagScan, (state, payload) => {
+    return {...state, tags: payload.tags};
+  })
+  .case(indexActionCreators.renameTag, (state, payload) => {
+    const targetTagIndex = state.tags.findIndex((t) => t.id === payload.tag.id);
     if (targetTagIndex === -1) {
       // tslint:disable-next-line:no-console
-      console.warn('unknown tag ID is provided', tag);
+      console.warn('unknown tag ID is provided', payload.tag);
     }
-    return {...state, tags: immutableSplice(state.tags, targetTagIndex, 1, tag)};
+    return {...state, tags: immutableSplice(state.tags, targetTagIndex, 1, payload.tag)};
   })
-  .case(indexActionCreators.updateTags, (state, tags) => {
-    return {...state, tags};
+  .case(indexActionCreators.updateTags, (state, payload) => {
+    return {...state, tags: payload.tags};
   })

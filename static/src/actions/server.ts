@@ -1,5 +1,5 @@
 import actionCreatorFactory from 'typescript-fsa';
-import {Asset, WorkSpace} from "../models/models";
+import {Asset, Tag, WorkSpace} from "../models/models";
 
 const serverActionCreatorFactory = actionCreatorFactory('SERVER');
 
@@ -7,13 +7,16 @@ export interface WSPayload {
   workSpaceName: string
 }
 
-
 interface ScanningImagesPayload extends WSPayload{
   paths: string[]
 }
 
 interface ScanningAssetsPayload extends WSPayload{
   assets: Asset[]
+}
+
+interface TagScanPayload extends WSPayload {
+  tags: Tag[]
 }
 
 export const serverActionCreators = {
@@ -38,4 +41,5 @@ export const serverActionCreators = {
   startDirectoryScanning: serverActionCreatorFactory<WSPayload>(
     'START_DIRECTORY_SCANNING'
   ),
+  tagScan: serverActionCreatorFactory<TagScanPayload>('TAG/SCAN')
 };

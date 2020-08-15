@@ -12,8 +12,8 @@ type BoundingBox struct {
 
 type TagID uint64
 type Tag struct {
-	ID   TagID
-	Name string
+	ID   TagID  `json:"id"`
+	Name string `json:"name"`
 }
 
 func (t *Tag) GetID() uint64 {

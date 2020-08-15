@@ -20,6 +20,10 @@ func NewBBoltTag(b *bolt.DB) repository.Tag {
 	}
 }
 
+func (b *BBoltTag) bucketFunc(ws model.WSName, f func(bucket *bolt.Bucket) error) error {
+	return b.base.bucketFunc(createTagBucketNames(ws), f)
+}
+
 func (b *BBoltTag) loBucketFunc(ws model.WSName, f func(bucket *bolt.Bucket) error) error {
 	return b.base.loBucketFunc(createTagBucketNames(ws), f)
 }
@@ -42,6 +46,10 @@ func (b *BBoltTag) Get(ws model.WSName, id model.TagID) (tag *model.Tag, err err
 		return nil, err
 	}
 	return &a, nil
+}
+
+func (b *BBoltTag) RecreateBucket(ws model.WSName) error {
+	return b.base.recreateBucket(createTagBucketNames(ws))
 }
 
 func (b *BBoltTag) Update(ws model.WSName, tag *model.Tag) error {
@@ -72,6 +80,10 @@ func (b *BBoltTag) ListByAsync(ws model.WSName, f func(tag *model.Tag) bool, cap
 		close(ec)
 	}()
 	return c, nil
+}
+
+func (b *BBoltTag) ListAll(ws model.WSName) (assets []*model.Tag, err error) {
+	return b.ListBy(ws, func(tag *model.Tag) bool { return true })
 }
 
 func (b *BBoltTag) ListBy(ws model.WSName, f func(tag *model.Tag) bool) (assets []*model.Tag, err error) {

@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => void, _globalState: GlobalState) => {
+const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => void, globalState: GlobalState) => {
   const actionCreators = useActions(indexActionCreators);
   return {
     ...actionCreators,
@@ -32,12 +32,17 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
       actionCreators.clickAddDirectoryButton({workSpaceName: ws.name});
     },
     clickAddTagButton: () => {
-      const tag: Tag = {id: _globalState.tags.length +1, name: ''};
+      const tag: Tag = {id: globalState.tags.length +1, name: ''};
       actionCreators.clickAddTagButton(tag);
       setLocalState({...localState, editTagId: tag.id});
     },
     renameTag: (tag: Tag) => {
-      actionCreators.renameTag(tag);
+      const workSpaceName = globalState.currentWorkSpace?.name!;
+      if (workSpaceName === undefined) {
+        // tslint:disable-next-line:no-console
+        console.warn('workspace is null but tag is renamed', tag);
+      }
+      actionCreators.renameTag({workSpaceName, tag});
       setLocalState({...localState, editTagId: null});
     },
     clickEditTagButton: (tag: Tag) => {
@@ -46,6 +51,14 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     clickImage: (selectedImgPath: string) => {
       setLocalState({...localState, selectedImgPath})
     },
+    updateTags: (tags: Tag[]) => {
+      const workSpaceName = globalState.currentWorkSpace?.name!;
+      if (workSpaceName === undefined) {
+        // tslint:disable-next-line:no-console
+        console.warn('workspace is null but tags are updated', tags);
+      }
+      actionCreators.updateTags({workSpaceName, tags});
+    }
   };
 }
 
