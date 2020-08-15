@@ -155,3 +155,24 @@ func (b *boltRepository) update(bucketNames []string, data boltData) error {
 		return bucket.Put(itob(data.GetID()), s)
 	})
 }
+
+func (b *boltRepository) recreateBucket(bucketNames []string) error {
+	if len(bucketNames) == 0 {
+		return fmt.Errorf("empty bucket name is given to deleteBucket")
+	}
+
+	return b.bucketFunc(bucketNames[:len(bucketNames)-1], func(bucket *bolt.Bucket) error {
+		lastBucketName := bucketNames[len(bucketNames)-1]
+		lastBucketNameBytes := []byte(lastBucketName)
+		if err := bucket.DeleteBucket(lastBucketNameBytes); err != nil {
+			return fmt.Errorf("failed to delete bucket. name: " + lastBucketName)
+		}
+		_, err := bucket.CreateBucket(lastBucketNameBytes)
+		if err != nil {
+			return fmt.Errorf("failed to recreate bucket. name: " + lastBucketName)
+		}
+		return nil
+	})
+}
+
+// TODO: 次はこれを使ってtagを滅ぼし、再度登録するsetTagsをusecaseとして実装

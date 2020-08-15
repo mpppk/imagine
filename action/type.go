@@ -8,6 +8,7 @@ import (
 const (
 	IndexPrefix                               = "INDEX/"
 	IndexClickAddDirectoryButtonType fsa.Type = IndexPrefix + "CLICK_ADD_DIRECTORY_BUTTON"
+	IndexUpdateTags                  fsa.Type = IndexPrefix + "UPDATE_TAGS"
 )
 
 const (
@@ -36,6 +37,7 @@ const (
 	ServerScanningAssetsType          fsa.Type = ServerPrefix + "SCANNING_ASSETS"
 	ServerFinishAssetsScanningType    fsa.Type = ServerPrefix + "FINISH_ASSETS_SCANNING"
 	ServerTagScanType                 fsa.Type = ServerPrefix + "TAG/SCAN"
+	ServerTagSaveType                 fsa.Type = ServerPrefix + "TAG/SAVE"
 )
 
 type WSPayload struct {

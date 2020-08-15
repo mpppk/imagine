@@ -42,3 +42,11 @@ func (h *HandlerCreator) NewRequestAssetsHandler() *RequestAssetsHandler {
 func (h *HandlerCreator) NewTagRequestHandler() *TagRequestHandler {
 	return NewTagRequestHandler(h.tagUseCase)
 }
+
+func (h *HandlerCreator) NewTagUpdateHandler() *TagUpdateHandler {
+	return NewTagUpdateHandler(h.tagUseCase)
+}
+
+func (h *HandlerCreator) NewTagUpdate() *TagUpdateHandler {
+	return NewTagUpdateHandler(h.tagUseCase)
+}
