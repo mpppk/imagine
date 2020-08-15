@@ -7,9 +7,18 @@ export interface Tag {
   name: string
 }
 
+export interface BoundingBox {
+  id: number
+  tag: Tag
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export interface Asset {
   id: number
   name: string
   path: string
-  tags: Tag[]
+  boundingBoxes: BoundingBox[]
 }

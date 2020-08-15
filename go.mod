@@ -9,6 +9,7 @@ require (
 	github.com/gen2brain/dlgs v0.0.0-20200211102745-b9c2664df42f
 	github.com/google/wire v0.4.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
+	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3
 	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20200810083002-3184a7a553ab
