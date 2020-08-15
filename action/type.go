@@ -16,6 +16,11 @@ const (
 )
 
 const (
+	TagPrefix               = "TAG/"
+	TagRequestType fsa.Type = TagPrefix + "REQUEST"
+)
+
+const (
 	GlobalPrefix                         = "GLOBAL/"
 	GlobalRequestWorkSpacesType fsa.Type = GlobalPrefix + "REQUEST_WORKSPACES"
 )
@@ -29,6 +34,7 @@ const (
 	ServerScanWorkSpaces              fsa.Type = ServerPrefix + "SCAN_WORKSPACES"
 	ServerScanningAssetsType          fsa.Type = ServerPrefix + "SCANNING_ASSETS"
 	ServerFinishAssetsScanningType    fsa.Type = ServerPrefix + "FINISH_ASSETS_SCANNING"
+	ServerTagScanType                 fsa.Type = ServerPrefix + "TAG/SCAN"
 )
 
 type WSPayload struct {

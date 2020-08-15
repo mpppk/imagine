@@ -74,6 +74,10 @@ func (b *BBoltTag) ListByAsync(ws model.WSName, f func(tag *model.Tag) bool, cap
 	return c, nil
 }
 
+func (b *BBoltTag) ListAll(ws model.WSName) (assets []*model.Tag, err error) {
+	return b.ListBy(ws, func(tag *model.Tag) bool { return true })
+}
+
 func (b *BBoltTag) ListBy(ws model.WSName, f func(tag *model.Tag) bool) (assets []*model.Tag, err error) {
 	eachF := func(tag *model.Tag) error {
 		if f(tag) {
