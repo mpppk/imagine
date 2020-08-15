@@ -40,7 +40,7 @@ export const AssetTable = (props: Props) => {
           {asset.name}
         </TableCell>
         <TableCell component="th" scope="row">
-          {asset.tags}
+          {asset.boundingBoxes}
         </TableCell>
         <TableCell component="th" scope="row">
           {asset.path}
