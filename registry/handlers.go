@@ -15,5 +15,8 @@ func NewHandlers(db *bbolt.DB) *fsa.Handlers {
 	handlers.Handle(action.GlobalRequestWorkSpacesType, actionHandlers.NewRequestWorkSpacesHandler())
 	handlers.Handle(action.AssetRequestAssetsType, actionHandlers.NewRequestAssetsHandler())
 	handlers.Handle(action.TagRequestType, actionHandlers.NewRequestAssetsHandler())
+
+	// Load tags when workspace is loaded
+	handlers.Handle(action.ServerScanWorkSpaces, actionHandlers.NewRequestAssetsHandler())
 	return handlers
 }

@@ -28,8 +28,7 @@ export const globalInitialState = {
 export type GlobalState = typeof globalInitialState;
 export const global = reducerWithInitialState(globalInitialState)
   .case(serverActionCreators.scanWorkSpaces, (state, workspaces) => {
-    const currentWorkSpace = workspaces.length > 0 ? workspaces[0] : null;
-    return {...state, workspaces, isLoadingWorkSpaces: false, currentWorkSpace};
+    return {...state, workspaces, isLoadingWorkSpaces: false};
   })
   .case(assetActionCreators.requestAssets, (state) => {
     return {...state, isScanningAssets: true}
