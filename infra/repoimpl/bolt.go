@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -25,15 +26,22 @@ func newBoltRepository(b *bolt.DB) *boltRepository {
 	}
 }
 
-// bucket gets or creates buckets
-func (b *boltRepository) bucket(bucketNames []string, tx *bolt.Tx) (*bolt.Bucket, error) {
+func (b *boltRepository) createBucketIfNotExist(bucketNames []string) error {
+	return b.bolt.Update(func(tx *bolt.Tx) error {
+		_, err := b.getOrCreateBucket(bucketNames, tx)
+		return err
+	})
+}
+
+// getOrCreateBucket gets or creates buckets
+func (b *boltRepository) getOrCreateBucket(bucketNames []string, tx *bolt.Tx) (*bolt.Bucket, error) {
 	if len(bucketNames) == 0 {
 		return nil, errors.New("empty bucket name is provided")
 	}
 
 	bucket, err := tx.CreateBucketIfNotExists([]byte(bucketNames[0]))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create bucket(name: %s): %w", bucketNames[0], err)
+		return nil, fmt.Errorf("failed to create getOrCreateBucket(name: %s): %w", bucketNames[0], err)
 	}
 
 	if len(bucketNames) == 1 {
@@ -43,7 +51,32 @@ func (b *boltRepository) bucket(bucketNames []string, tx *bolt.Tx) (*bolt.Bucket
 	for _, bucketName := range bucketNames[1:] {
 		b, err := bucket.CreateBucketIfNotExists([]byte(bucketName))
 		if err != nil {
-			return nil, fmt.Errorf("failed to create bucket(name: %s): %w", bucketName, err)
+			return nil, fmt.Errorf("failed to create getOrCreateBucket(name: %s): %w", bucketName, err)
+		}
+		bucket = b
+	}
+	return bucket, nil
+}
+
+// getBucket gets bucket
+func (b *boltRepository) getBucket(bucketNames []string, tx *bolt.Tx) (*bolt.Bucket, error) {
+	if len(bucketNames) == 0 {
+		return nil, errors.New("empty bucket name is provided")
+	}
+
+	bucket := tx.Bucket([]byte(bucketNames[0]))
+	if bucket == nil {
+		return nil, fmt.Errorf("failed to get bucket(name: %s)", bucketNames[0])
+	}
+
+	if len(bucketNames) == 1 {
+		return bucket, nil
+	}
+
+	for _, bucketName := range bucketNames[1:] {
+		b := bucket.Bucket([]byte(bucketName))
+		if b == nil {
+			return nil, fmt.Errorf("failed to get bucket(name: %s)", bucketName)
 		}
 		bucket = b
 	}
@@ -52,21 +85,73 @@ func (b *boltRepository) bucket(bucketNames []string, tx *bolt.Tx) (*bolt.Bucket
 
 func (b *boltRepository) internalBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) func(tx *bolt.Tx) error {
 	return func(tx *bolt.Tx) error {
-		bucket, err := b.bucket(bucketNames, tx)
+		bucket, err := b.getOrCreateBucket(bucketNames, tx)
 		if err != nil {
-			return fmt.Errorf("failed to get bucket from %v: %w", bucketNames, err)
+			return fmt.Errorf("failed to get or create bucket from %v: %w", bucketNames, err)
 		}
 		return f(bucket)
 	}
 }
+
+func (b *boltRepository) internalLOBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) func(tx *bolt.Tx) error {
+	return func(tx *bolt.Tx) error {
+		bucket, err := b.getBucket(bucketNames, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get getOrCreateBucket from %v: %w", bucketNames, err)
+		}
+		return f(bucket)
+	}
+}
+
 func (b *boltRepository) bucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
 	return b.bolt.Update(b.internalBucketFunc(bucketNames, f))
 }
 
 func (b *boltRepository) loBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
-	return b.bolt.View(b.internalBucketFunc(bucketNames, f))
+	return b.bolt.View(b.internalLOBucketFunc(bucketNames, f))
 }
 
 func (b *boltRepository) close() error {
 	return b.bolt.Close()
+}
+
+type boltData interface {
+	GetID() uint64
+	SetID(id uint64)
+}
+
+func (b *boltRepository) add(bucketNames []string, data boltData) error {
+	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		id, err := bucket.NextSequence()
+		if err != nil {
+			return err
+		}
+		data.SetID(id)
+		s, err := json.Marshal(data)
+		if err != nil {
+			return fmt.Errorf("failed to marshal data to json: %w", err)
+		}
+		return bucket.Put(itob(data.GetID()), s)
+	})
+}
+
+func (b *boltRepository) get(bucketNames []string, id uint64) (data []byte, err error) {
+	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		data = bucket.Get(itob(id))
+		if data == nil {
+			return fmt.Errorf("data does not exist: %v", id)
+		}
+		return nil
+	})
+	return
+}
+
+func (b *boltRepository) update(bucketNames []string, data boltData) error {
+	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		s, err := json.Marshal(data)
+		if err != nil {
+			return fmt.Errorf("failed to marshal tag to json: %w", err)
+		}
+		return bucket.Put(itob(data.GetID()), s)
+	})
 }

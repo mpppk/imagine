@@ -6,11 +6,12 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
-    "type-check": "tsc",
+    "type-check": "tsc --noEmit",
     "pretty-quick": "pretty-quick",
     "precommit": "pretty-quick --staged",
     "tslint:prettier-check": "tslint-config-prettier-check ./tslint.json",
     "tslint": "tslint -c tslint.json 'src/**/*.ts' 'src/**/*.tsx' 'test/**/*.ts'",
+    "lint": "yarn type-check && yarn tslint:prettier-check && yarn tslint",
     "export": "yarn build && next export",
     "cypress:open": "cypress open"
   },

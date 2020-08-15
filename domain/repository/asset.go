@@ -6,7 +6,6 @@ import (
 
 type Asset interface {
 	Init(ws model.WSName) error
-	Close(ws model.WSName) error
 	Add(ws model.WSName, asset *model.Asset) error
 	Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error)
 	Update(ws model.WSName, asset *model.Asset) error

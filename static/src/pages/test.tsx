@@ -81,7 +81,7 @@ const generateInitialLocalState = (): LocalState => {
 
 export default function Test() {
   const classes = useStyles();
-  const [localState, setLocalState] = useState(generateInitialLocalState(4));
+  const [localState, setLocalState] = useState(generateInitialLocalState());
   const globalState = useSelector(selector)
   const handlers = useHandlers(localState, setLocalState, globalState);
   const virtualizedAssetProps = useVirtualizedAsset();
@@ -142,4 +142,3 @@ export async function getServerSideProps() {
   resetServerContext()
   return {props: {}}
 }
-

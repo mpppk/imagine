@@ -1,10 +1,12 @@
 package repoimpl_test
 
 import (
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
 
+	"github.com/k0kubun/pp"
 	"github.com/mpppk/imagine/domain/repository"
 
 	bolt "go.etcd.io/bbolt"
@@ -14,40 +16,52 @@ import (
 	"github.com/mpppk/imagine/domain/model"
 )
 
+func createBoundingBox(id int, tagName string) *model.BoundingBox {
+	return &model.BoundingBox{
+		ID: model.BoundingBoxID(id),
+		Tag: &model.Tag{
+			ID:   model.TagID(id),
+			Name: tagName,
+		},
+	}
+}
+
 func TestBBoltAsset_SearchByTags(t *testing.T) {
-	fileName := "testfile.db"
+	fileName := "TestBBoltAsset_SearchByTags.db"
 	var wsName model.WSName = "workspace-for-test"
-	tagA, tagB, tagC := model.Tag("a"), model.Tag("b"), model.Tag("c")
+	boxA := createBoundingBox(0, "a")
+	boxB := createBoundingBox(1, "b")
+	boxC := createBoundingBox(2, "c")
 	assets := []*model.Asset{
 		{
-			ID:   0,
-			Name: "0",
-			Path: "path/to/0",
-			Tags: nil,
+			ID:            0,
+			Name:          "0",
+			Path:          "path/to/0",
+			BoundingBoxes: nil,
 		},
 		{
-			ID:   1,
-			Name: "1",
-			Path: "path/to/1",
-			Tags: []model.Tag{tagA},
+			ID:            1,
+			Name:          "1",
+			Path:          "path/to/1",
+			BoundingBoxes: []*model.BoundingBox{boxA},
 		},
 		{
-			ID:   2,
-			Name: "2",
-			Path: "path/to/2",
-			Tags: []model.Tag{tagA, tagB},
+			ID:            2,
+			Name:          "2",
+			Path:          "path/to/2",
+			BoundingBoxes: []*model.BoundingBox{boxA, boxB},
 		},
 		{
-			ID:   3,
-			Name: "3",
-			Path: "path/to/3",
-			Tags: []model.Tag{tagB},
+			ID:            3,
+			Name:          "3",
+			Path:          "path/to/3",
+			BoundingBoxes: []*model.BoundingBox{boxB},
 		},
 		{
-			ID:   4,
-			Name: "4",
-			Path: "path/to/4",
-			Tags: []model.Tag{tagC},
+			ID:            4,
+			Name:          "4",
+			Path:          "path/to/4",
+			BoundingBoxes: []*model.BoundingBox{boxC},
 		},
 	}
 	type args struct {
@@ -60,18 +74,23 @@ func TestBBoltAsset_SearchByTags(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			args:    args{tags: []model.Tag{"a"}},
+			args:    args{tags: []model.Tag{*boxA.Tag}},
 			want:    []*model.Asset{assets[1], assets[2]},
 			wantErr: false,
 		},
 		{
-			args:    args{tags: []model.Tag{"b"}},
+			args:    args{tags: []model.Tag{*boxB.Tag}},
 			want:    []*model.Asset{assets[2], assets[3]},
 			wantErr: false,
 		},
 		{
-			args:    args{tags: []model.Tag{"c"}},
+			args:    args{tags: []model.Tag{*boxC.Tag}},
 			want:    []*model.Asset{assets[4]},
+			wantErr: false,
+		},
+		{
+			args:    args{tags: []model.Tag{*boxA.Tag, *boxB.Tag}},
+			want:    []*model.Asset{assets[2]},
 			wantErr: false,
 		},
 		{
@@ -99,21 +118,85 @@ func TestBBoltAsset_SearchByTags(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SearchByTags() got = %v, want %v", got, tt.want)
+				gotMsg := "\n"
+				for i, asset := range got {
+					gotMsg += fmt.Sprint(i) + pp.Sprintln(asset)
+					//gotMsg += fmt.Sprintf("%d: %#v\n", i, asset)
+				}
+				wantMsg := "\n"
+				for i, asset := range tt.want {
+					wantMsg += fmt.Sprint(i) + pp.Sprintln(asset)
+					//wantMsg += fmt.Sprintf("%d: %#v\n", i, asset)
+				}
+				t.Errorf("SearchByTags() got = %s\nwant = %s", gotMsg, wantMsg)
 			}
 		})
 	}
 }
 
 func TestBBoltAsset_Update(t *testing.T) {
-	fileName := "testfile.db"
+	fileName := "TestBBoltAsset_Update.db"
 	var wsName model.WSName = "workspace-for-test"
-	tagA := model.Tag("a")
+	oldAsset := &model.Asset{
+		ID:            0,
+		Name:          "old",
+		Path:          "path/to/1",
+		BoundingBoxes: []*model.BoundingBox{createBoundingBox(1, "b")},
+	}
 	newAsset := &model.Asset{
-		ID:   0,
-		Name: "replaced",
-		Path: "path/to/0",
-		Tags: []model.Tag{tagA},
+		ID:            0,
+		Name:          "replaced",
+		Path:          "path/to/0",
+		BoundingBoxes: []*model.BoundingBox{createBoundingBox(0, "a")},
+	}
+	type args struct {
+		asset *model.Asset
+	}
+	tests := []struct {
+		name      string
+		args      args
+		oldAssets []*model.Asset
+		wantErr   bool
+	}{
+		{
+			oldAssets: []*model.Asset{oldAsset},
+			args:      args{asset: newAsset},
+			wantErr:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, db := newRepository(t, wsName, fileName)
+			defer teardown(t, fileName, db)
+
+			for _, asset := range tt.oldAssets {
+				if err := repo.Add(wsName, asset); (err != nil) != tt.wantErr {
+					t.Errorf("failed to add assets: %#v", asset)
+				}
+			}
+
+			if err := repo.Update(wsName, tt.args.asset); (err != nil) != tt.wantErr {
+				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			got, err := repo.Get(wsName, tt.args.asset.ID)
+			if err != nil {
+				t.Errorf("failed to get asset: %v: %v", newAsset.ID, err)
+			}
+			if !reflect.DeepEqual(got, newAsset) {
+				t.Errorf("want: %#v, got: %#v", newAsset, got)
+			}
+		})
+	}
+}
+
+func TestBBoltAsset_Add(t *testing.T) {
+	fileName := "TestBBoltAsset_Add.db"
+	var wsName model.WSName = "workspace-for-test"
+	newAsset := &model.Asset{
+		ID:            0,
+		Name:          "replaced",
+		Path:          "path/to/0",
+		BoundingBoxes: []*model.BoundingBox{createBoundingBox(0, "a")},
 	}
 	type args struct {
 		asset *model.Asset
@@ -134,7 +217,7 @@ func TestBBoltAsset_Update(t *testing.T) {
 			repo, db := newRepository(t, wsName, fileName)
 			defer teardown(t, fileName, db)
 
-			if err := repo.Update(wsName, tt.args.asset); (err != nil) != tt.wantErr {
+			if err := repo.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			got, err := repo.Get(wsName, tt.args.asset.ID)
