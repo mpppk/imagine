@@ -27,7 +27,7 @@ func createBoundingBox(id int, tagName string) *model.BoundingBox {
 }
 
 func TestBBoltAsset_SearchByTags(t *testing.T) {
-	fileName := "testfile.db"
+	fileName := "TestBBoltAsset_SearchByTags.db"
 	var wsName model.WSName = "workspace-for-test"
 	boxA := createBoundingBox(0, "a")
 	boxB := createBoundingBox(1, "b")
@@ -135,7 +135,7 @@ func TestBBoltAsset_SearchByTags(t *testing.T) {
 }
 
 func TestBBoltAsset_Update(t *testing.T) {
-	fileName := "testfile.db"
+	fileName := "TestBBoltAsset_Update.db"
 	var wsName model.WSName = "workspace-for-test"
 	oldAsset := &model.Asset{
 		ID:            0,
@@ -190,7 +190,7 @@ func TestBBoltAsset_Update(t *testing.T) {
 }
 
 func TestBBoltAsset_Add(t *testing.T) {
-	fileName := "testfile.db"
+	fileName := "TestBBoltAsset_Add.db"
 	var wsName model.WSName = "workspace-for-test"
 	newAsset := &model.Asset{
 		ID:            0,

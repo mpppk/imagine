@@ -11,15 +11,9 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-const assetBucketName = "Asset"
-
 type BBoltAsset struct {
 	base           *boltRepository
 	pathRepository *pathRepository
-}
-
-func createBucketNames(ws model.WSName) []string {
-	return []string{string(ws), assetBucketName}
 }
 
 func NewBBoltAsset(b *bolt.DB) repository.Asset {
@@ -30,54 +24,30 @@ func NewBBoltAsset(b *bolt.DB) repository.Asset {
 }
 
 func (b *BBoltAsset) Init(ws model.WSName) error {
+	if err := b.base.createBucketIfNotExist(createAssetBucketNames(ws)); err != nil {
+		return fmt.Errorf("failed to create asset bucket: %w", err)
+	}
 	return nil
-	//return b.base.createBucketIfNotExist(createBucketNames(ws))
-}
-
-func (b *BBoltAsset) Close(ws model.WSName) error {
-	return b.base.close()
 }
 
 func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) error {
-	return b.base.bucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
-		id, err := bucket.NextSequence()
-		if err != nil {
-			return err
-		}
-		asset.ID = model.AssetID(id)
-		s, err := json.Marshal(asset)
-		if err != nil {
-			return fmt.Errorf("failed to marshal asset to json: %w", err)
-		}
-		return bucket.Put(b.itob(asset.ID), s)
-	})
+	return b.base.update(createAssetBucketNames(ws), asset)
 }
 
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error) {
-	// FIXME: convert to read only
-	err = b.base.bucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
-		data := bucket.Get(b.itob(id))
-		if data == nil {
-			return fmt.Errorf("a does not exist: %v", id)
-		}
-		var a model.Asset
-		if err := json.Unmarshal(data, &a); err != nil {
-			return err
-		}
-		asset = &a
-		return nil
-	})
-	return
+	data, err := b.base.get(createAssetBucketNames(ws), uint64(id))
+	if err != nil {
+		return nil, err
+	}
+	var a model.Asset
+	if err := json.Unmarshal(data, &a); err != nil {
+		return nil, err
+	}
+	return &a, nil
 }
 
 func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
-	return b.base.bucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
-		s, err := json.Marshal(asset)
-		if err != nil {
-			return fmt.Errorf("failed to marshal asset to json: %w", err)
-		}
-		return bucket.Put(b.itob(asset.ID), s)
-	})
+	return b.base.update(createAssetBucketNames(ws), asset)
 }
 
 func (b *BBoltAsset) ListByAsync(ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error) {
@@ -138,8 +108,7 @@ func (b *BBoltAsset) ListByTags(ws model.WSName, tags []model.Tag) (assets []*mo
 }
 
 func (b *BBoltAsset) ForEach(ws model.WSName, f func(asset *model.Asset) error) error {
-	// FIXME: convert to read only
-	return b.base.bucketFunc(createBucketNames(ws), func(bucket *bolt.Bucket) error {
+	return b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
 		return bucket.ForEach(func(k, v []byte) error {
 			var asset model.Asset
 			if err := json.Unmarshal(v, &asset); err != nil {

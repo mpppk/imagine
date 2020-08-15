@@ -32,3 +32,11 @@ type Asset struct {
 	Path          string         `json:"path"`
 	BoundingBoxes []*BoundingBox `json:"boundingBoxes"`
 }
+
+func (a *Asset) GetID() uint64 {
+	return uint64(a.ID)
+}
+
+func (a *Asset) SetID(id uint64) {
+	a.ID = AssetID(id)
+}
