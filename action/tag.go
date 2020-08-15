@@ -18,16 +18,17 @@ func NewTagRequestHandler(assetUseCase *usecase.Tag) *TagRequestHandler {
 	return &TagRequestHandler{tagUseCase: assetUseCase}
 }
 
-type TagRequestPayload struct {
-	WSPayload `mapstructure:",squash"`
-}
+type TagRequestPayload = model.WorkSpace
 
 type TagScanPayload struct {
 	*WSPayload
-	Tags []*model.Tag `json:"assets"`
+	Tags []*model.Tag `json:"tags"`
 }
 
 func newTagScanAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
+	if tags == nil {
+		tags = []*model.Tag{}
+	}
 	return &fsa.Action{
 		Type: ServerTagScanType,
 		Payload: &TagScanPayload{
@@ -43,9 +44,9 @@ func (d *TagRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error 
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	tags, err := d.tagUseCase.List(payload.WorkSpaceName)
+	tags, err := d.tagUseCase.List(payload.Name)
 	if err != nil {
 		return fmt.Errorf("failed to list tags: %w", err)
 	}
-	return dispatch(newTagScanAction(payload.WorkSpaceName, tags))
+	return dispatch(newTagScanAction(payload.Name, tags))
 }

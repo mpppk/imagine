@@ -23,6 +23,7 @@ const (
 const (
 	GlobalPrefix                         = "GLOBAL/"
 	GlobalRequestWorkSpacesType fsa.Type = GlobalPrefix + "REQUEST_WORKSPACES"
+	GlobalSelectNewWorkSpace    fsa.Type = GlobalPrefix + "SELECT_NEW_WORKSPACE"
 )
 
 const (
