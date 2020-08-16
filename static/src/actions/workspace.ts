@@ -6,5 +6,6 @@ const workspaceActionCreatorFactory = actionCreatorFactory('WORKSPACE');
 export const workspaceActionCreators = {
   requestWorkSpaces: workspaceActionCreatorFactory<void>('REQUEST_WORKSPACES'),
   selectNewWorkSpace: workspaceActionCreatorFactory<WorkSpace>('SELECT_NEW_WORKSPACE'),
+  scanWorkSpaces: workspaceActionCreatorFactory<WorkSpace[]>('SCAN_WORKSPACES'),
 };
 

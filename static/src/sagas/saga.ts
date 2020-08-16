@@ -1,7 +1,6 @@
 import {all, call, put, takeEvery} from '@redux-saga/core/effects';
 import {ActionCreator} from "typescript-fsa";
 import { SagaIterator } from 'redux-saga';
-import {serverActionCreators} from "../actions/server";
 import {workspaceActionCreators} from "../actions/workspace";
 import {WorkSpace} from "../models/models";
 
@@ -11,7 +10,7 @@ const scanWorkSpacesWorker = function*(workspaces: WorkSpace[]) {
 
 export default function* rootSaga() {
   yield all([
-    takeEveryAction(serverActionCreators.scanWorkSpaces, scanWorkSpacesWorker)()
+    takeEveryAction(workspaceActionCreators.scanWorkSpaces, scanWorkSpacesWorker)()
   ]);
 }
 

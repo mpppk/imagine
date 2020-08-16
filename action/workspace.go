@@ -15,7 +15,7 @@ const defaultWorkSpaceName = "default-workspace"
 
 func newScanWorkSpacesAction(workSpaces []*model.WorkSpace) *fsa.Action {
 	return &fsa.Action{
-		Type:    ServerScanWorkSpaces,
+		Type:    WorkSpaceScanWorkSpaces,
 		Payload: workSpaces,
 	}
 }

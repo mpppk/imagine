@@ -26,6 +26,7 @@ const (
 	WorkSpacePrefix                         = "WORKSPACE/"
 	WorkSpaceRequestWorkSpacesType fsa.Type = WorkSpacePrefix + "REQUEST_WORKSPACES"
 	WorkSpaceSelectNewWorkSpace    fsa.Type = WorkSpacePrefix + "SELECT_NEW_WORKSPACE"
+	WorkSpaceScanWorkSpaces        fsa.Type = WorkSpacePrefix + "SCAN_WORKSPACES"
 )
 
 const (
@@ -37,10 +38,9 @@ const (
 )
 
 const (
-	ServerPrefix                  = "SERVER/"
-	ServerScanWorkSpaces fsa.Type = ServerPrefix + "SCAN_WORKSPACES"
-	ServerTagScanType    fsa.Type = ServerPrefix + "TAG/SCAN"
-	ServerTagSaveType    fsa.Type = ServerPrefix + "TAG/SAVE"
+	ServerPrefix               = "SERVER/"
+	ServerTagScanType fsa.Type = ServerPrefix + "TAG/SCAN"
+	ServerTagSaveType fsa.Type = ServerPrefix + "TAG/SAVE"
 )
 
 type WSPayload struct {

@@ -1,5 +1,5 @@
 import actionCreatorFactory from 'typescript-fsa';
-import {Tag, WorkSpace} from "../models/models";
+import {Tag} from "../models/models";
 
 const serverActionCreatorFactory = actionCreatorFactory('SERVER');
 
@@ -12,8 +12,5 @@ interface TagScanPayload extends WSPayload {
 }
 
 export const serverActionCreators = {
-  scanWorkSpaces: serverActionCreatorFactory<WorkSpace[]>(
-    'SCAN_WORKSPACES'
-  ),
   tagScan: serverActionCreatorFactory<TagScanPayload>('TAG/SCAN')
 };
