@@ -1,6 +1,6 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import {assetActionCreators} from "../actions/asset";
-import {globalActionCreators} from '../actions/global';
+import {workspaceActionCreators} from '../actions/workspace';
 import {serverActionCreators} from "../actions/server";
 import {Asset, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
@@ -30,7 +30,7 @@ export const global = reducerWithInitialState(globalInitialState)
   .case(serverActionCreators.finishAssetsScanning, (state) => {
     return {...state, isScanningAssets: false, hasMoreAssets: false}
   })
-  .case(globalActionCreators.selectNewWorkSpace, (state, workspace) => {
+  .case(workspaceActionCreators.selectNewWorkSpace, (state, workspace) => {
     return {...state, currentWorkSpace: workspace};
   })
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {

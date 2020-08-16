@@ -2,11 +2,11 @@ import {all, call, put, takeEvery} from '@redux-saga/core/effects';
 import {ActionCreator} from "typescript-fsa";
 import { SagaIterator } from 'redux-saga';
 import {serverActionCreators} from "../actions/server";
-import {globalActionCreators} from "../actions/global";
+import {workspaceActionCreators} from "../actions/workspace";
 import {WorkSpace} from "../models/models";
 
 const scanWorkSpacesWorker = function*(workspaces: WorkSpace[]) {
-  return yield put(globalActionCreators.selectNewWorkSpace(workspaces[0]));
+  return yield put(workspaceActionCreators.selectNewWorkSpace(workspaces[0]));
 }
 
 export default function* rootSaga() {

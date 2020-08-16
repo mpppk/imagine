@@ -4,7 +4,7 @@ import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import { AppProps } from 'next/app';
 import React, {FC, useEffect} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {globalActionCreators} from '../actions/global';
+import {workspaceActionCreators} from '../actions/workspace';
 import {MyAppBar} from '../components/AppBar';
 import { State } from '../reducers/reducer';
 import { wrapper } from '../store';
@@ -15,7 +15,7 @@ const useWorkSpaceInitializer = () => {
   const currentWorkSpace = useSelector((s:State) => s.global.currentWorkSpace)
   useEffect(() => {
     if (currentWorkSpace === null) {
-      dispatch(globalActionCreators.requestWorkSpaces())
+      dispatch(workspaceActionCreators.requestWorkSpaces())
     }
   }, [])
 }
