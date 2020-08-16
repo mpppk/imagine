@@ -40,7 +40,7 @@ func newTagScanAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 		tags = []*model.Tag{}
 	}
 	return &fsa.Action{
-		Type: ServerTagScanType,
+		Type: TagScanType,
 		Payload: &TagScanPayload{
 			WSPayload: WSPayload{WorkSpaceName: wsName},
 			Tags:      tags,
@@ -50,7 +50,7 @@ func newTagScanAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 
 func newTagSaveAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 	return &fsa.Action{
-		Type: ServerTagSaveType,
+		Type: TagSaveType,
 		Payload: &TagSavePayload{
 			WSPayload: WSPayload{WorkSpaceName: wsName},
 			Tags:      tags,

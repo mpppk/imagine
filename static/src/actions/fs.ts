@@ -1,10 +1,7 @@
 import actionCreatorFactory from 'typescript-fsa';
+import {WSPayload} from "./workspace";
 
 const fsActionCreatorFactory = actionCreatorFactory('FS');
-
-export interface WSPayload {
-  workSpaceName: string
-}
 
 interface FSScanRunningPayload extends WSPayload{
   paths: string[]

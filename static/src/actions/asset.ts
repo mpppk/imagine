@@ -1,6 +1,6 @@
 import actionCreatorFactory from 'typescript-fsa';
-import {WSPayload} from "./server";
 import {Asset} from "../models/models";
+import {WSPayload} from "./workspace";
 
 const assetActionCreatorFactory = actionCreatorFactory('ASSET');
 

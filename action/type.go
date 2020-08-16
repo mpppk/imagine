@@ -20,6 +20,8 @@ const (
 const (
 	TagPrefix               = "TAG/"
 	TagRequestType fsa.Type = TagPrefix + "REQUEST"
+	TagScanType    fsa.Type = TagPrefix + "SCAN"
+	TagSaveType    fsa.Type = TagPrefix + "SAVE"
 )
 
 const (
@@ -35,12 +37,6 @@ const (
 	FSScanStartType   fsa.Type = FSPrefix + "SCAN/START"
 	FSScanFinishType  fsa.Type = FSPrefix + "SCAN/FINISH"
 	FSScanRunningType fsa.Type = FSPrefix + "SCAN/RUNNING"
-)
-
-const (
-	ServerPrefix               = "SERVER/"
-	ServerTagScanType fsa.Type = ServerPrefix + "TAG/SCAN"
-	ServerTagSaveType fsa.Type = ServerPrefix + "TAG/SAVE"
 )
 
 type WSPayload struct {

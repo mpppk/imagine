@@ -1,6 +1,6 @@
 import actionCreatorFactory from 'typescript-fsa';
-import {WSPayload} from "./server";
 import {Tag} from "../models/models";
+import {WSPayload} from "./workspace";
 
 const indexActionCreatorFactory = actionCreatorFactory('INDEX');
 

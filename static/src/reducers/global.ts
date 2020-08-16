@@ -1,10 +1,10 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
-import {serverActionCreators} from "../actions/server";
 import {Asset, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
 import {immutableSplice} from "../util";
+import {tagActionCreators} from "../actions/tag";
 
 export const globalInitialState = {
   assets: [] as Asset[],
@@ -36,7 +36,7 @@ export const global = reducerWithInitialState(globalInitialState)
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {
     return {...state, tags: [tag, ...state.tags]};
   })
-  .case(serverActionCreators.tagScan, (state, payload) => {
+  .case(tagActionCreators.tagScan, (state, payload) => {
     return {...state, tags: payload.tags};
   })
   .case(indexActionCreators.renameTag, (state, payload) => {
