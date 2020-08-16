@@ -4,11 +4,7 @@ import {WSPayload} from "./workspace";
 
 const tagActionCreatorFactory = actionCreatorFactory('TAG');
 
-interface TagScanPayload extends WSPayload {
-  tags: Tag[]
-}
-
-interface UpdateTagsPayload extends WSPayload {
+interface TagsPayload extends WSPayload {
   tags: Tag[]
 }
 
@@ -17,8 +13,9 @@ interface TagPayload extends WSPayload {
 }
 
 export const tagActionCreators = {
-  scanResult: tagActionCreatorFactory<TagScanPayload>('SCAN/RESULT'),
-  update: tagActionCreatorFactory<UpdateTagsPayload>('UPDATE'),
+  scanResult: tagActionCreatorFactory<TagsPayload>('SCAN/RESULT'),
+  update: tagActionCreatorFactory<TagsPayload>('UPDATE'),
   rename: tagActionCreatorFactory<TagPayload>('RENAME'),
+  save: tagActionCreatorFactory<TagsPayload>('SAVE'),
 };
 
