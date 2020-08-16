@@ -11,7 +11,8 @@ type HandlerCreator struct {
 	tagUseCase       *usecase.Tag
 	globalRepository repository.Global
 	b                *bbolt.DB
-	Asset            *AssetHandlerCreator
+	Asset            *assetHandlerCreator
+	Tag              *tagHandlerCreator
 }
 
 func NewHandlerCreator(
@@ -25,7 +26,8 @@ func NewHandlerCreator(
 		tagUseCase:       tagUseCase,
 		globalRepository: globalRepository,
 		b:                b,
-		Asset:            NewAssetHandlerCreator(assetUseCase),
+		Asset:            newAssetHandlerCreator(assetUseCase),
+		Tag:              newTagHandlerCreator(tagUseCase),
 	}
 }
 
@@ -35,12 +37,4 @@ func (h *HandlerCreator) NewFSScanHandler() *fsScanHandler {
 
 func (h *HandlerCreator) NewRequestWorkSpacesHandler() *requestWorkSpacesHandler {
 	return &requestWorkSpacesHandler{globalRepository: h.globalRepository}
-}
-
-func (h *HandlerCreator) NewTagRequestHandler() *tagRequestHandler {
-	return &tagRequestHandler{tagUseCase: h.tagUseCase}
-}
-
-func (h *HandlerCreator) NewTagUpdateHandler() *tagUpdateHandler {
-	return &tagUpdateHandler{tagUseCase: h.tagUseCase}
 }

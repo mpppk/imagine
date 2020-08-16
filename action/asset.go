@@ -81,21 +81,21 @@ func (d *assetScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	return dispatch(d.assetActionCreator.scanFinish(payload.WorkSpaceName))
 }
 
-type AssetHandlerCreator struct {
+type assetHandlerCreator struct {
 	assetUseCase       *usecase.Asset
 	assetActionCreator *assetActionCreator
 }
 
-func NewAssetHandlerCreator(
+func newAssetHandlerCreator(
 	assetUseCase *usecase.Asset,
-) *AssetHandlerCreator {
-	return &AssetHandlerCreator{
+) *assetHandlerCreator {
+	return &assetHandlerCreator{
 		assetUseCase:       assetUseCase,
 		assetActionCreator: &assetActionCreator{},
 	}
 }
 
-func (h *AssetHandlerCreator) Scan() *assetScanHandler {
+func (h *assetHandlerCreator) Scan() *assetScanHandler {
 	return &assetScanHandler{
 		assetUseCase:       h.assetUseCase,
 		assetActionCreator: h.assetActionCreator,
