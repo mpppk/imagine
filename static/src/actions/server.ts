@@ -20,14 +20,8 @@ interface TagScanPayload extends WSPayload {
 }
 
 export const serverActionCreators = {
-  cancelDirectoryScanning: serverActionCreatorFactory<WSPayload>(
-    'CANCEL_DIRECTORY_SCANNING'
-  ),
   finishAssetsScanning: serverActionCreatorFactory<WSPayload>(
     'FINISH_ASSETS_SCANNING'
-  ),
-  finishDirectoryScanning: serverActionCreatorFactory<WSPayload>(
-    'FINISH_DIRECTORY_SCANNING'
   ),
   scanWorkSpaces: serverActionCreatorFactory<WorkSpace[]>(
     'SCAN_WORKSPACES'
@@ -37,9 +31,6 @@ export const serverActionCreators = {
   ),
   scanningImages: serverActionCreatorFactory<ScanningImagesPayload>(
     'SCANNING_IMAGES'
-  ),
-  startDirectoryScanning: serverActionCreatorFactory<WSPayload>(
-    'START_DIRECTORY_SCANNING'
   ),
   tagScan: serverActionCreatorFactory<TagScanPayload>('TAG/SCAN')
 };

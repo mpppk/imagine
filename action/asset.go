@@ -41,7 +41,7 @@ func newScanningAssets(wsName model.WSName, assets []*model.Asset) *fsa.Action {
 
 func newFinishAssetScanningType(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type:    ServerFinishAssetsScanningType,
+		Type:    FSScanFinishType,
 		Payload: newWSPayload(wsName),
 	}
 }

@@ -27,8 +27,8 @@ func NewHandlerCreator(
 	}
 }
 
-func (h *HandlerCreator) NewDirectoryScanHandler() *DirectoryScanHandler {
-	return NewReadDirectoryScanHandler(h.assetUseCase)
+func (h *HandlerCreator) NewDirectoryScanHandler() *FSScanHandler {
+	return NewFSScanHandler(h.assetUseCase)
 }
 
 func (h *HandlerCreator) NewRequestWorkSpacesHandler() *RequestWorkSpacesHandler {

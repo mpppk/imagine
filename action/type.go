@@ -28,16 +28,19 @@ const (
 )
 
 const (
-	ServerPrefix                               = "SERVER/"
-	ServerStartDirectoryScanningType  fsa.Type = ServerPrefix + "START_DIRECTORY_SCANNING"
-	ServerCancelDirectoryScanningType fsa.Type = ServerPrefix + "CANCEL_DIRECTORY_SCANNING"
-	ServerFinishDirectoryScanningType fsa.Type = ServerPrefix + "FINISH_DIRECTORY_SCANNING"
-	ServerScanningImagesType          fsa.Type = ServerPrefix + "SCANNING_IMAGES"
-	ServerScanWorkSpaces              fsa.Type = ServerPrefix + "SCAN_WORKSPACES"
-	ServerScanningAssetsType          fsa.Type = ServerPrefix + "SCANNING_ASSETS"
-	ServerFinishAssetsScanningType    fsa.Type = ServerPrefix + "FINISH_ASSETS_SCANNING"
-	ServerTagScanType                 fsa.Type = ServerPrefix + "TAG/SCAN"
-	ServerTagSaveType                 fsa.Type = ServerPrefix + "TAG/SAVE"
+	FSPrefix                  = "FS/"
+	FSScanCancelType fsa.Type = FSPrefix + "SCAN/CANCEL"
+	FSScanStartType  fsa.Type = FSPrefix + "SCAN/START"
+	FSScanFinishType fsa.Type = FSPrefix + "SCAN/FINISH"
+)
+
+const (
+	ServerPrefix                      = "SERVER/"
+	ServerScanningImagesType fsa.Type = ServerPrefix + "SCANNING_IMAGES"
+	ServerScanWorkSpaces     fsa.Type = ServerPrefix + "SCAN_WORKSPACES"
+	ServerScanningAssetsType fsa.Type = ServerPrefix + "SCANNING_ASSETS"
+	ServerTagScanType        fsa.Type = ServerPrefix + "TAG/SCAN"
+	ServerTagSaveType        fsa.Type = ServerPrefix + "TAG/SAVE"
 )
 
 type WSPayload struct {

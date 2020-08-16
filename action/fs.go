@@ -14,23 +14,23 @@ import (
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
-func newStartDirectoryScanningAction(wsName model.WSName) *fsa.Action {
+func newFSScanStartAction(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type:    ServerStartDirectoryScanningType,
+		Type:    FSScanStartType,
 		Payload: newWSPayload(wsName),
 	}
 }
 
-func newFinishDirectoryScanningAction(wsName model.WSName) *fsa.Action {
+func newFSScanFinishAction(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type:    ServerFinishDirectoryScanningType,
+		Type:    FSScanFinishType,
 		Payload: newWSPayload(wsName),
 	}
 }
 
-func newCancelDirectoryScanningAction(wsName model.WSName) *fsa.Action {
+func newFSScanCancelAction(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type:    ServerCancelDirectoryScanningType,
+		Type:    FSScanCancelType,
 		Payload: newWSPayload(wsName),
 	}
 }
@@ -50,21 +50,21 @@ func newScanningImages(wsName model.WSName, paths []string) *fsa.Action {
 	}
 }
 
-type DirectoryScanHandler struct {
+type FSScanHandler struct {
 	assetUseCase *usecase.Asset
 }
 
-func NewReadDirectoryScanHandler(assetUseCase *usecase.Asset) *DirectoryScanHandler {
-	return &DirectoryScanHandler{assetUseCase: assetUseCase}
+func NewFSScanHandler(assetUseCase *usecase.Asset) *FSScanHandler {
+	return &FSScanHandler{assetUseCase: assetUseCase}
 }
 
-func (d *DirectoryScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+func (d *FSScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	var payload WSPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	if err := dispatch(newStartDirectoryScanningAction(payload.WorkSpaceName)); err != nil {
+	if err := dispatch(newFSScanStartAction(payload.WorkSpaceName)); err != nil {
 		return err
 	}
 
@@ -74,7 +74,7 @@ func (d *DirectoryScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) err
 	}
 
 	if !selected {
-		return dispatch(newCancelDirectoryScanningAction(payload.WorkSpaceName))
+		return dispatch(newFSScanCancelAction(payload.WorkSpaceName))
 	}
 
 	var paths []string
@@ -95,5 +95,5 @@ func (d *DirectoryScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) err
 		}
 	}
 
-	return dispatch(newFinishDirectoryScanningAction(payload.WorkSpaceName))
+	return dispatch(newFSScanFinishAction(payload.WorkSpaceName))
 }
