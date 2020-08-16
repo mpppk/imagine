@@ -10,6 +10,12 @@ import (
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
+const (
+	assetPrefix                     = "ASSET/"
+	AssetRequestAssetsType fsa.Type = assetPrefix + "REQUEST_ASSETS"
+	AssetScanRunningType   fsa.Type = assetPrefix + "SCAN/RUNNING"
+)
+
 type RequestAssetsHandler struct {
 	c            <-chan *model.Asset
 	assetUseCase *usecase.Asset
@@ -20,12 +26,12 @@ func NewRequestAssetsHandler(assetUseCase *usecase.Asset) *RequestAssetsHandler 
 }
 
 type RequestAssetPayload struct {
-	WSPayload  `mapstructure:",squash"`
+	wsPayload  `mapstructure:",squash"`
 	RequestNum int `json:"RequestNum"`
 }
 
 type ScanningAssetsPayload struct {
-	*WSPayload
+	*wsPayload
 	Assets []*model.Asset `json:"assets"`
 }
 
@@ -33,7 +39,7 @@ func newAssetScanRunning(wsName model.WSName, assets []*model.Asset) *fsa.Action
 	return &fsa.Action{
 		Type: AssetScanRunningType,
 		Payload: &ScanningAssetsPayload{
-			WSPayload: newWSPayload(wsName),
+			wsPayload: newWSPayload(wsName),
 			Assets:    assets,
 		},
 	}

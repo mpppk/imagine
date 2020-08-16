@@ -10,6 +10,13 @@ import (
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
+const (
+	tagPrefix               = "TAG/"
+	TagRequestType fsa.Type = tagPrefix + "REQUEST"
+	TagScanType    fsa.Type = tagPrefix + "SCAN"
+	TagSaveType    fsa.Type = tagPrefix + "SAVE"
+)
+
 type TagRequestHandler struct {
 	tagUseCase *usecase.Tag
 }
@@ -21,17 +28,17 @@ func NewTagRequestHandler(tagUseCase *usecase.Tag) *TagRequestHandler {
 type TagRequestPayload = model.WorkSpace
 
 type TagScanPayload struct {
-	WSPayload `mapstructure:",squash"`
+	wsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
 type TagSavePayload struct {
-	WSPayload `mapstructure:",squash"`
+	wsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
 type TagUpdatePayload struct {
-	WSPayload `mapstructure:",squash"`
+	wsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
@@ -42,7 +49,7 @@ func newTagScanAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 	return &fsa.Action{
 		Type: TagScanType,
 		Payload: &TagScanPayload{
-			WSPayload: WSPayload{WorkSpaceName: wsName},
+			wsPayload: wsPayload{WorkSpaceName: wsName},
 			Tags:      tags,
 		},
 	}
@@ -52,7 +59,7 @@ func newTagSaveAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 	return &fsa.Action{
 		Type: TagSaveType,
 		Payload: &TagSavePayload{
-			WSPayload: WSPayload{WorkSpaceName: wsName},
+			wsPayload: wsPayload{WorkSpaceName: wsName},
 			Tags:      tags,
 		},
 	}

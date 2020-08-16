@@ -11,7 +11,22 @@ import (
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
+const (
+	workSpacePrefix                         = "WORKSPACE/"
+	WorkSpaceRequestWorkSpacesType fsa.Type = workSpacePrefix + "REQUEST_WORKSPACES"
+	WorkSpaceSelectNewWorkSpace    fsa.Type = workSpacePrefix + "SELECT_NEW_WORKSPACE"
+	WorkSpaceScanWorkSpaces        fsa.Type = workSpacePrefix + "SCAN_WORKSPACES"
+)
+
 const defaultWorkSpaceName = "default-workspace"
+
+type wsPayload struct {
+	WorkSpaceName model.WSName `json:"workSpaceName"`
+}
+
+func newWSPayload(name model.WSName) *wsPayload {
+	return &wsPayload{WorkSpaceName: name}
+}
 
 func newScanWorkSpacesAction(workSpaces []*model.WorkSpace) *fsa.Action {
 	return &fsa.Action{

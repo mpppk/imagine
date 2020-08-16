@@ -14,6 +14,14 @@ import (
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
+const (
+	fsPrefix                   = "FS/"
+	FSScanCancelType  fsa.Type = fsPrefix + "SCAN/CANCEL"
+	FSScanStartType   fsa.Type = fsPrefix + "SCAN/START"
+	FSScanFinishType  fsa.Type = fsPrefix + "SCAN/FINISH"
+	FSScanRunningType fsa.Type = fsPrefix + "SCAN/RUNNING"
+)
+
 func newFSScanStartAction(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
 		Type:    FSScanStartType,
@@ -36,7 +44,7 @@ func newFSScanCancelAction(wsName model.WSName) *fsa.Action {
 }
 
 type ScanningImagesPayload struct {
-	*WSPayload
+	*wsPayload
 	Paths []string `json:"paths"`
 }
 
@@ -44,7 +52,7 @@ func newScanningImages(wsName model.WSName, paths []string) *fsa.Action {
 	return &fsa.Action{
 		Type: FSScanRunningType,
 		Payload: &ScanningImagesPayload{
-			WSPayload: newWSPayload(wsName),
+			wsPayload: newWSPayload(wsName),
 			Paths:     paths,
 		},
 	}
@@ -59,7 +67,7 @@ func NewFSScanHandler(assetUseCase *usecase.Asset) *FSScanHandler {
 }
 
 func (d *FSScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	var payload WSPayload
+	var payload wsPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
