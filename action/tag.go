@@ -15,6 +15,7 @@ const (
 	TagRequestType fsa.Type = tagPrefix + "REQUEST"
 	TagScanType    fsa.Type = tagPrefix + "SCAN"
 	TagSaveType    fsa.Type = tagPrefix + "SAVE"
+	TagUpdateType  fsa.Type = tagPrefix + "UPDATE"
 )
 
 type tagRequestPayload = model.WorkSpace

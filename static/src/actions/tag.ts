@@ -8,7 +8,17 @@ interface TagScanPayload extends WSPayload {
   tags: Tag[]
 }
 
+interface UpdateTagsPayload extends WSPayload {
+  tags: Tag[]
+}
+
+interface TagPayload extends WSPayload {
+  tag: Tag
+}
+
 export const tagActionCreators = {
-  tagScan: tagActionCreatorFactory<TagScanPayload>('SCAN')
+  scan: tagActionCreatorFactory<TagScanPayload>('SCAN'),
+  update: tagActionCreatorFactory<UpdateTagsPayload>('UPDATE'),
+  rename: tagActionCreatorFactory<TagPayload>('RENAME'),
 };
 

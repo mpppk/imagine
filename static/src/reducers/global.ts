@@ -36,10 +36,10 @@ export const global = reducerWithInitialState(globalInitialState)
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {
     return {...state, tags: [tag, ...state.tags]};
   })
-  .case(tagActionCreators.tagScan, (state, payload) => {
+  .case(tagActionCreators.scan, (state, payload) => {
     return {...state, tags: payload.tags};
   })
-  .case(indexActionCreators.renameTag, (state, payload) => {
+  .case(tagActionCreators.rename, (state, payload) => {
     const targetTagIndex = state.tags.findIndex((t) => t.id === payload.tag.id);
     if (targetTagIndex === -1) {
       // tslint:disable-next-line:no-console
@@ -47,6 +47,6 @@ export const global = reducerWithInitialState(globalInitialState)
     }
     return {...state, tags: immutableSplice(state.tags, targetTagIndex, 1, payload.tag)};
   })
-  .case(indexActionCreators.updateTags, (state, payload) => {
+  .case(tagActionCreators.update, (state, payload) => {
     return {...state, tags: payload.tags};
   })

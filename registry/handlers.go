@@ -16,6 +16,6 @@ func NewHandlers(db *bbolt.DB) *fsa.Handlers {
 	handlers.Handle(action.AssetScanRequestType, handlerCreator.Asset.Scan())
 	handlers.Handle(action.TagRequestType, handlerCreator.Asset.Scan())
 	handlers.Handle(action.WorkSpaceSelectSpaceType, handlerCreator.Tag.Scan())
-	handlers.Handle(action.IndexUpdateTags, handlerCreator.Tag.Save())
+	handlers.Handle(action.TagUpdateType, handlerCreator.Tag.Save())
 	return handlers
 }

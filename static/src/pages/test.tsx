@@ -11,6 +11,7 @@ import {useActions, useVirtualizedAsset} from "../hooks";
 import {Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import {assetPathToUrl} from "../util";
+import {tagActionCreators} from "../actions/tag";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -25,15 +26,16 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => void, globalState: GlobalState) => {
-  const actionCreators = useActions(indexActionCreators);
+  const indexActionDispatcher = useActions(indexActionCreators);
+  const tagActionDispatcher = useActions(tagActionCreators);
   return {
-    ...actionCreators,
+    ...indexActionDispatcher,
     clickAddDirectoryButton: (ws: WorkSpace) => {
-      actionCreators.clickAddDirectoryButton({workSpaceName: ws.name});
+      indexActionDispatcher.clickAddDirectoryButton({workSpaceName: ws.name});
     },
     clickAddTagButton: () => {
       const tag: Tag = {id: globalState.tags.length +1, name: ''};
-      actionCreators.clickAddTagButton(tag);
+      indexActionDispatcher.clickAddTagButton(tag);
       setLocalState({...localState, editTagId: tag.id});
     },
     renameTag: (tag: Tag) => {
@@ -42,7 +44,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         // tslint:disable-next-line:no-console
         console.warn('workspace is null but tag is renamed', tag);
       }
-      actionCreators.renameTag({workSpaceName, tag});
+      tagActionDispatcher.rename({workSpaceName, tag});
       setLocalState({...localState, editTagId: null});
     },
     clickEditTagButton: (tag: Tag) => {
@@ -57,7 +59,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         // tslint:disable-next-line:no-console
         console.warn('workspace is null but tags are updated', tags);
       }
-      actionCreators.updateTags({workSpaceName, tags});
+      tagActionDispatcher.update({workSpaceName, tags});
     }
   };
 }
