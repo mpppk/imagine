@@ -10,56 +10,62 @@ import (
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
-type TagRequestHandler struct {
-	tagUseCase *usecase.Tag
-}
+const (
+	tagPrefix                  = "TAG/"
+	TagScanResultType fsa.Type = tagPrefix + "SCAN/RESULT"
+	TagSaveType       fsa.Type = tagPrefix + "SAVE"
+	TagUpdateType     fsa.Type = tagPrefix + "UPDATE"
+)
 
-func NewTagRequestHandler(tagUseCase *usecase.Tag) *TagRequestHandler {
-	return &TagRequestHandler{tagUseCase: tagUseCase}
-}
+type tagRequestPayload = model.WorkSpace
 
-type TagRequestPayload = model.WorkSpace
-
-type TagScanPayload struct {
-	WSPayload `mapstructure:",squash"`
+type tagScanPayload struct {
+	wsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
-type TagSavePayload struct {
-	WSPayload `mapstructure:",squash"`
+type tagSavePayload struct {
+	wsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
-type TagUpdatePayload struct {
-	WSPayload `mapstructure:",squash"`
+type tagUpdatePayload struct {
+	wsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
-func newTagScanAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
+type tagActionCreator struct{}
+
+func (t *tagActionCreator) scan(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 	if tags == nil {
 		tags = []*model.Tag{}
 	}
 	return &fsa.Action{
-		Type: ServerTagScanType,
-		Payload: &TagScanPayload{
-			WSPayload: WSPayload{WorkSpaceName: wsName},
+		Type: TagScanResultType,
+		Payload: &tagScanPayload{
+			wsPayload: wsPayload{WorkSpaceName: wsName},
 			Tags:      tags,
 		},
 	}
 }
 
-func newTagSaveAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
+func (t *tagActionCreator) save(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 	return &fsa.Action{
-		Type: ServerTagSaveType,
-		Payload: &TagSavePayload{
-			WSPayload: WSPayload{WorkSpaceName: wsName},
+		Type: TagSaveType,
+		Payload: &tagSavePayload{
+			wsPayload: wsPayload{WorkSpaceName: wsName},
 			Tags:      tags,
 		},
 	}
 }
 
-func (d *TagRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	var payload TagRequestPayload
+type tagScanHandler struct {
+	tagUseCase *usecase.Tag
+	action     *tagActionCreator
+}
+
+func (d *tagScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+	var payload tagRequestPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
@@ -68,25 +74,48 @@ func (d *TagRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error 
 	if err != nil {
 		return fmt.Errorf("failed to list tags: %w", err)
 	}
-	return dispatch(newTagScanAction(payload.Name, tags))
+	return dispatch(d.action.scan(payload.Name, tags))
 }
 
-type TagUpdateHandler struct {
+type tagSaveHandler struct {
 	tagUseCase *usecase.Tag
+	action     *tagActionCreator
 }
 
-func (d *TagUpdateHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	var payload TagUpdatePayload
+func (t *tagSaveHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+	var payload tagUpdatePayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 	fmt.Println(action)
-	if err := d.tagUseCase.SetTags(payload.WorkSpaceName, payload.Tags); err != nil {
+	if err := t.tagUseCase.SetTags(payload.WorkSpaceName, payload.Tags); err != nil {
 		return fmt.Errorf("failed to handle TagUpdate action: %w", err)
 	}
-	return dispatch(newTagSaveAction(payload.WorkSpaceName, payload.Tags))
+	return dispatch(t.action.save(payload.WorkSpaceName, payload.Tags))
 }
 
-func NewTagUpdateHandler(tagUseCase *usecase.Tag) *TagUpdateHandler {
-	return &TagUpdateHandler{tagUseCase: tagUseCase}
+type tagHandlerCreator struct {
+	tagUseCase *usecase.Tag
+	action     *tagActionCreator
+}
+
+func newTagHandlerCreator(tagUseCase *usecase.Tag) *tagHandlerCreator {
+	return &tagHandlerCreator{
+		tagUseCase: tagUseCase,
+		action:     &tagActionCreator{},
+	}
+}
+
+func (h *tagHandlerCreator) Scan() *tagScanHandler {
+	return &tagScanHandler{
+		tagUseCase: h.tagUseCase,
+		action:     h.action,
+	}
+}
+
+func (h *tagHandlerCreator) Save() *tagSaveHandler {
+	return &tagSaveHandler{
+		tagUseCase: h.tagUseCase,
+		action:     h.action,
+	}
 }

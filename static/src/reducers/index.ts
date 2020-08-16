@@ -1,8 +1,7 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
-import {serverActionCreators} from "../actions/server";
+import {fsActionCreators} from "../actions/fs";
 
 export const indexInitialState = {
-  imagePaths: [] as string[],
   scanning: false,
 };
 
@@ -17,12 +16,12 @@ const finishOrCancelScan = (state: IndexState) => {
 };
 
 export const indexPage = reducerWithInitialState(indexInitialState)
-  .case(serverActionCreators.startDirectoryScanning, (state) => {
+  .case(fsActionCreators.scanStart, (state) => {
     return startScan(state);
   })
-  .case(serverActionCreators.cancelDirectoryScanning, (state) => {
+  .case(fsActionCreators.scanCancel, (state) => {
     return finishOrCancelScan(state);
   })
-  .case(serverActionCreators.finishDirectoryScanning, (state) => {
+  .case(fsActionCreators.scanFinish, (state) => {
     return finishOrCancelScan(state);
   });

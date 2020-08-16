@@ -9,7 +9,7 @@ import {makeStyles} from '@material-ui/styles';
 import * as React from 'react';
 import {useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
-import {globalActionCreators} from "../actions/global";
+import {workspaceActionCreators} from "../actions/workspace";
 import {WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import MyDrawer from './drawer/Drawer';
@@ -47,7 +47,7 @@ export function MyAppBar() {
   }
 
   const handleSelectWorkSpace = (ws: WorkSpace) => {
-    dispatch(globalActionCreators.selectNewWorkSpace(ws));
+    dispatch(workspaceActionCreators.select(ws));
   }
 
   return (

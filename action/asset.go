@@ -10,44 +10,50 @@ import (
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
-type RequestAssetsHandler struct {
-	c            <-chan *model.Asset
-	assetUseCase *usecase.Asset
-}
+const (
+	assetPrefix                   = "ASSET/"
+	AssetScanRequestType fsa.Type = assetPrefix + "SCAN/REQUEST"
+	AssetScanRunningType fsa.Type = assetPrefix + "SCAN/RUNNING"
+	AssetScanFinishType  fsa.Type = assetPrefix + "SCAN/FINISH"
+)
 
-func NewRequestAssetsHandler(assetUseCase *usecase.Asset) *RequestAssetsHandler {
-	return &RequestAssetsHandler{assetUseCase: assetUseCase}
-}
-
-type RequestAssetPayload struct {
-	WSPayload  `mapstructure:",squash"`
+type assetScanRequestPayload struct {
+	wsPayload  `mapstructure:",squash"`
 	RequestNum int `json:"RequestNum"`
 }
 
-type ScanningAssetsPayload struct {
-	*WSPayload
+type assetScanRunningPayload struct {
+	*wsPayload
 	Assets []*model.Asset `json:"assets"`
 }
 
-func newScanningAssets(wsName model.WSName, assets []*model.Asset) *fsa.Action {
+type assetActionCreator struct{}
+
+func (a *assetActionCreator) scanRunning(wsName model.WSName, assets []*model.Asset) *fsa.Action {
 	return &fsa.Action{
-		Type: ServerScanningAssetsType,
-		Payload: &ScanningAssetsPayload{
-			WSPayload: newWSPayload(wsName),
+		Type: AssetScanRunningType,
+		Payload: &assetScanRunningPayload{
+			wsPayload: newWSPayload(wsName),
 			Assets:    assets,
 		},
 	}
 }
 
-func newFinishAssetScanningType(wsName model.WSName) *fsa.Action {
+func (a *assetActionCreator) scanFinish(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type:    ServerFinishAssetsScanningType,
+		Type:    AssetScanFinishType,
 		Payload: newWSPayload(wsName),
 	}
 }
 
-func (d *RequestAssetsHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	var payload RequestAssetPayload
+type assetScanHandler struct {
+	c                  <-chan *model.Asset
+	assetUseCase       *usecase.Asset
+	assetActionCreator *assetActionCreator
+}
+
+func (d *assetScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+	var payload assetScanRequestPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
@@ -64,13 +70,34 @@ func (d *RequestAssetsHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) err
 	for asset := range d.c {
 		ret = append(ret, asset)
 		if len(ret) >= payload.RequestNum {
-			return dispatch(newScanningAssets(payload.WorkSpaceName, ret))
+			return dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret))
 		}
 	}
 	if len(ret) > 0 {
-		if err := dispatch(newScanningAssets(payload.WorkSpaceName, ret)); err != nil {
+		if err := dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret)); err != nil {
 			return err
 		}
 	}
-	return dispatch(newFinishAssetScanningType(payload.WorkSpaceName))
+	return dispatch(d.assetActionCreator.scanFinish(payload.WorkSpaceName))
+}
+
+type assetHandlerCreator struct {
+	assetUseCase       *usecase.Asset
+	assetActionCreator *assetActionCreator
+}
+
+func newAssetHandlerCreator(
+	assetUseCase *usecase.Asset,
+) *assetHandlerCreator {
+	return &assetHandlerCreator{
+		assetUseCase:       assetUseCase,
+		assetActionCreator: &assetActionCreator{},
+	}
+}
+
+func (h *assetHandlerCreator) Scan() *assetScanHandler {
+	return &assetScanHandler{
+		assetUseCase:       h.assetUseCase,
+		assetActionCreator: h.assetActionCreator,
+	}
 }

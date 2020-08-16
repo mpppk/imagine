@@ -1,10 +1,10 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import {assetActionCreators} from "../actions/asset";
-import {globalActionCreators} from '../actions/global';
-import {serverActionCreators} from "../actions/server";
+import {workspaceActionCreators} from '../actions/workspace';
 import {Asset, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
 import {immutableSplice} from "../util";
+import {tagActionCreators} from "../actions/tag";
 
 export const globalInitialState = {
   assets: [] as Asset[],
@@ -18,28 +18,28 @@ export const globalInitialState = {
 
 export type GlobalState = typeof globalInitialState;
 export const global = reducerWithInitialState(globalInitialState)
-  .case(serverActionCreators.scanWorkSpaces, (state, workspaces) => {
+  .case(workspaceActionCreators.scanResult, (state, workspaces) => {
     return {...state, workspaces, isLoadingWorkSpaces: false};
   })
-  .case(assetActionCreators.requestAssets, (state) => {
+  .case(assetActionCreators.scanRequest, (state) => {
     return {...state, isScanningAssets: true}
   })
-  .case(serverActionCreators.scanningAssets, (state, payload) => {
+  .case(assetActionCreators.scanRunning, (state, payload) => {
     return {...state, isScanningAssets: false, assets: [...state.assets, ...payload.assets]}
   })
-  .case(serverActionCreators.finishAssetsScanning, (state) => {
+  .case(assetActionCreators.scanFinish, (state) => {
     return {...state, isScanningAssets: false, hasMoreAssets: false}
   })
-  .case(globalActionCreators.selectNewWorkSpace, (state, workspace) => {
+  .case(workspaceActionCreators.select, (state, workspace) => {
     return {...state, currentWorkSpace: workspace};
   })
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {
     return {...state, tags: [tag, ...state.tags]};
   })
-  .case(serverActionCreators.tagScan, (state, payload) => {
+  .case(tagActionCreators.scanResult, (state, payload) => {
     return {...state, tags: payload.tags};
   })
-  .case(indexActionCreators.renameTag, (state, payload) => {
+  .case(tagActionCreators.rename, (state, payload) => {
     const targetTagIndex = state.tags.findIndex((t) => t.id === payload.tag.id);
     if (targetTagIndex === -1) {
       // tslint:disable-next-line:no-console
@@ -47,6 +47,6 @@ export const global = reducerWithInitialState(globalInitialState)
     }
     return {...state, tags: immutableSplice(state.tags, targetTagIndex, 1, payload.tag)};
   })
-  .case(indexActionCreators.updateTags, (state, payload) => {
+  .case(tagActionCreators.update, (state, payload) => {
     return {...state, tags: payload.tags};
   })
