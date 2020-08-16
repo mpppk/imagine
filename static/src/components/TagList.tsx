@@ -16,7 +16,6 @@ const useStyles = makeStyles((theme: Theme) => {
       width: 250 - theme.spacing(2)
     },
     draggingList: {
-      background: "lightgray",
       padding: theme.spacing(1),
       width: 250
     },
@@ -141,6 +140,8 @@ export const TagList: React.FC<Props> = (props) => {
                   /> :
                   <TagListItem
                     disabled={!!props.editTagId}
+                    selected={index === 1}
+                    assigned={index === 0}
                     key={tag.id}
                     tag={tag}
                     index={index}
