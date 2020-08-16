@@ -11,11 +11,10 @@ import (
 )
 
 const (
-	tagPrefix               = "TAG/"
-	TagRequestType fsa.Type = tagPrefix + "REQUEST"
-	TagScanType    fsa.Type = tagPrefix + "SCAN"
-	TagSaveType    fsa.Type = tagPrefix + "SAVE"
-	TagUpdateType  fsa.Type = tagPrefix + "UPDATE"
+	tagPrefix                  = "TAG/"
+	TagScanResultType fsa.Type = tagPrefix + "SCAN/RESULT"
+	TagSaveType       fsa.Type = tagPrefix + "SAVE"
+	TagUpdateType     fsa.Type = tagPrefix + "UPDATE"
 )
 
 type tagRequestPayload = model.WorkSpace
@@ -42,7 +41,7 @@ func (t *tagActionCreator) scan(wsName model.WSName, tags []*model.Tag) *fsa.Act
 		tags = []*model.Tag{}
 	}
 	return &fsa.Action{
-		Type: TagScanType,
+		Type: TagScanResultType,
 		Payload: &tagScanPayload{
 			wsPayload: wsPayload{WorkSpaceName: wsName},
 			Tags:      tags,

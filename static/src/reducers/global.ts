@@ -36,7 +36,7 @@ export const global = reducerWithInitialState(globalInitialState)
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {
     return {...state, tags: [tag, ...state.tags]};
   })
-  .case(tagActionCreators.scan, (state, payload) => {
+  .case(tagActionCreators.scanResult, (state, payload) => {
     return {...state, tags: payload.tags};
   })
   .case(tagActionCreators.rename, (state, payload) => {
