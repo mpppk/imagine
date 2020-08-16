@@ -13,6 +13,7 @@ type HandlerCreator struct {
 	b                *bbolt.DB
 	Asset            *assetHandlerCreator
 	Tag              *tagHandlerCreator
+	FS               *fsHandlerCreator
 }
 
 func NewHandlerCreator(
@@ -28,11 +29,8 @@ func NewHandlerCreator(
 		b:                b,
 		Asset:            newAssetHandlerCreator(assetUseCase),
 		Tag:              newTagHandlerCreator(tagUseCase),
+		FS:               newFSHandlerCreator(assetUseCase),
 	}
-}
-
-func (h *HandlerCreator) NewFSScanHandler() *fsScanHandler {
-	return &fsScanHandler{assetUseCase: h.assetUseCase}
 }
 
 func (h *HandlerCreator) NewRequestWorkSpacesHandler() *requestWorkSpacesHandler {

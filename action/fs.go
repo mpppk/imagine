@@ -22,33 +22,35 @@ const (
 	FSScanRunningType fsa.Type = fsPrefix + "SCAN/RUNNING"
 )
 
-func newFSScanStartAction(wsName model.WSName) *fsa.Action {
+type ScanningImagesPayload struct {
+	*wsPayload
+	Paths []string `json:"paths"`
+}
+
+type fsActionCreator struct{}
+
+func (f *fsActionCreator) scanStart(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
 		Type:    FSScanStartType,
 		Payload: newWSPayload(wsName),
 	}
 }
 
-func newFSScanFinishAction(wsName model.WSName) *fsa.Action {
+func (f *fsActionCreator) scanFinish(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
 		Type:    FSScanFinishType,
 		Payload: newWSPayload(wsName),
 	}
 }
 
-func newFSScanCancelAction(wsName model.WSName) *fsa.Action {
+func (f *fsActionCreator) scanCancel(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
 		Type:    FSScanCancelType,
 		Payload: newWSPayload(wsName),
 	}
 }
 
-type ScanningImagesPayload struct {
-	*wsPayload
-	Paths []string `json:"paths"`
-}
-
-func newScanningImages(wsName model.WSName, paths []string) *fsa.Action {
+func (f *fsActionCreator) scanRunning(wsName model.WSName, paths []string) *fsa.Action {
 	return &fsa.Action{
 		Type: FSScanRunningType,
 		Payload: &ScanningImagesPayload{
@@ -60,15 +62,16 @@ func newScanningImages(wsName model.WSName, paths []string) *fsa.Action {
 
 type fsScanHandler struct {
 	assetUseCase *usecase.Asset
+	action       *fsActionCreator
 }
 
-func (d *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	var payload wsPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	if err := dispatch(newFSScanStartAction(payload.WorkSpaceName)); err != nil {
+	if err := dispatch(f.action.scanStart(payload.WorkSpaceName)); err != nil {
 		return err
 	}
 
@@ -78,26 +81,45 @@ func (d *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	}
 
 	if !selected {
-		return dispatch(newFSScanCancelAction(payload.WorkSpaceName))
+		return dispatch(f.action.scanCancel(payload.WorkSpaceName))
 	}
 
 	var paths []string
 	for p := range util.LoadImagesFromDir(directory, 10) {
-		if err := d.assetUseCase.AddImage(payload.WorkSpaceName, p); err != nil {
+		if err := f.assetUseCase.AddImage(payload.WorkSpaceName, p); err != nil {
 			return err
 		}
 		paths = append(paths, p)
 		if len(paths) >= 20 {
-			if err := dispatch(newScanningImages(payload.WorkSpaceName, paths)); err != nil {
+			if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
 				return err
 			}
 		}
 	}
 	if len(paths) > 0 {
-		if err := dispatch(newScanningImages(payload.WorkSpaceName, paths)); err != nil {
+		if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
 			return err
 		}
 	}
 
-	return dispatch(newFSScanFinishAction(payload.WorkSpaceName))
+	return dispatch(f.action.scanFinish(payload.WorkSpaceName))
+}
+
+type fsHandlerCreator struct {
+	assetUseCase *usecase.Asset
+	action       *fsActionCreator
+}
+
+func newFSHandlerCreator(assetUseCase *usecase.Asset) *fsHandlerCreator {
+	return &fsHandlerCreator{
+		assetUseCase: assetUseCase,
+		action:       &fsActionCreator{},
+	}
+}
+
+func (f *fsHandlerCreator) Scan() *fsScanHandler {
+	return &fsScanHandler{
+		assetUseCase: f.assetUseCase,
+		action:       f.action,
+	}
 }
