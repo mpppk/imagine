@@ -28,15 +28,16 @@ const (
 )
 
 const (
-	FSPrefix                  = "FS/"
-	FSScanCancelType fsa.Type = FSPrefix + "SCAN/CANCEL"
-	FSScanStartType  fsa.Type = FSPrefix + "SCAN/START"
-	FSScanFinishType fsa.Type = FSPrefix + "SCAN/FINISH"
+	FSPrefix                   = "FS/"
+	FSScanCancelType  fsa.Type = FSPrefix + "SCAN/CANCEL"
+	FSScanStartType   fsa.Type = FSPrefix + "SCAN/START"
+	FSScanFinishType  fsa.Type = FSPrefix + "SCAN/FINISH"
+	FSScanRunningType fsa.Type = FSPrefix + "SCAN/RUNNING"
 )
 
 const (
-	ServerPrefix                      = "SERVER/"
-	ServerScanningImagesType fsa.Type = ServerPrefix + "SCANNING_IMAGES"
+	ServerPrefix = "SERVER/"
+	//ServerScanningImagesType fsa.Type = ServerPrefix + "SCANNING_IMAGES"
 	ServerScanWorkSpaces     fsa.Type = ServerPrefix + "SCAN_WORKSPACES"
 	ServerScanningAssetsType fsa.Type = ServerPrefix + "SCANNING_ASSETS"
 	ServerTagScanType        fsa.Type = ServerPrefix + "TAG/SCAN"

@@ -42,7 +42,7 @@ type ScanningImagesPayload struct {
 
 func newScanningImages(wsName model.WSName, paths []string) *fsa.Action {
 	return &fsa.Action{
-		Type: ServerScanningImagesType,
+		Type: FSScanRunningType,
 		Payload: &ScanningImagesPayload{
 			WSPayload: newWSPayload(wsName),
 			Paths:     paths,

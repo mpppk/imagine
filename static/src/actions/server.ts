@@ -7,10 +7,6 @@ export interface WSPayload {
   workSpaceName: string
 }
 
-interface ScanningImagesPayload extends WSPayload{
-  paths: string[]
-}
-
 interface ScanningAssetsPayload extends WSPayload{
   assets: Asset[]
 }
@@ -28,9 +24,6 @@ export const serverActionCreators = {
   ),
   scanningAssets: serverActionCreatorFactory<ScanningAssetsPayload>(
     'SCANNING_ASSETS'
-  ),
-  scanningImages: serverActionCreatorFactory<ScanningImagesPayload>(
-    'SCANNING_IMAGES'
   ),
   tagScan: serverActionCreatorFactory<TagScanPayload>('TAG/SCAN')
 };
