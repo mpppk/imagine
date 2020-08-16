@@ -5,8 +5,8 @@ import {WSPayload} from "./workspace";
 const indexActionCreatorFactory = actionCreatorFactory('INDEX');
 
 export const indexActionCreators = {
-  clickAddDirectoryButton: indexActionCreatorFactory<WSPayload>('CLICK_ADD_DIRECTORY_BUTTON'),
-  clickAddTagButton: indexActionCreatorFactory<Tag>('CLICK_ADD_TAG_BUTTON'),
-  clickEditTagButton: indexActionCreatorFactory<Tag>('CLICK_EDIT_TAG_BUTTON'),
+  clickAddDirectoryButton: indexActionCreatorFactory<WSPayload>('ADD_DIRECTORY_BUTTON/CLICK'),
+  clickAddTagButton: indexActionCreatorFactory<Tag>('ADD_TAG_BUTTON/CLICK'),
+  clickEditTagButton: indexActionCreatorFactory<Tag>('EDIT_TAG_BUTTON/CLICK'),
 };
 

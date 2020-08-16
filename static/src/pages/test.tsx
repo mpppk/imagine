@@ -30,6 +30,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
   const tagActionDispatcher = useActions(tagActionCreators);
   return {
     ...indexActionDispatcher,
+    ...tagActionDispatcher,
     clickAddDirectoryButton: (ws: WorkSpace) => {
       indexActionDispatcher.clickAddDirectoryButton({workSpaceName: ws.name});
     },
