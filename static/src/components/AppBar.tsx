@@ -47,7 +47,7 @@ export function MyAppBar() {
   }
 
   const handleSelectWorkSpace = (ws: WorkSpace) => {
-    dispatch(workspaceActionCreators.selectNewWorkSpace(ws));
+    dispatch(workspaceActionCreators.select(ws));
   }
 
   return (

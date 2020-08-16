@@ -5,12 +5,12 @@ import {workspaceActionCreators} from "../actions/workspace";
 import {WorkSpace} from "../models/models";
 
 const scanWorkSpacesWorker = function*(workspaces: WorkSpace[]) {
-  return yield put(workspaceActionCreators.selectNewWorkSpace(workspaces[0]));
+  return yield put(workspaceActionCreators.select(workspaces[0]));
 }
 
 export default function* rootSaga() {
   yield all([
-    takeEveryAction(workspaceActionCreators.scanWorkSpaces, scanWorkSpacesWorker)()
+    takeEveryAction(workspaceActionCreators.scanResult, scanWorkSpacesWorker)()
   ]);
 }
 

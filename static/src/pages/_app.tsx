@@ -15,7 +15,7 @@ const useWorkSpaceInitializer = () => {
   const currentWorkSpace = useSelector((s:State) => s.global.currentWorkSpace)
   useEffect(() => {
     if (currentWorkSpace === null) {
-      dispatch(workspaceActionCreators.requestWorkSpaces())
+      dispatch(workspaceActionCreators.scanRequest())
     }
   }, [])
 }

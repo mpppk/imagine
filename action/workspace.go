@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	workSpacePrefix                         = "WORKSPACE/"
-	WorkSpaceRequestWorkSpacesType fsa.Type = workSpacePrefix + "REQUEST_WORKSPACES"
-	WorkSpaceSelectNewWorkSpace    fsa.Type = workSpacePrefix + "SELECT_NEW_WORKSPACE"
-	WorkSpaceScanWorkSpaces        fsa.Type = workSpacePrefix + "SCAN_WORKSPACES"
+	workSpacePrefix                   = "WORKSPACE/"
+	WorkSpaceScanRequestType fsa.Type = workSpacePrefix + "SCAN/REQUEST"
+	WorkSpaceSelectSpaceType fsa.Type = workSpacePrefix + "SELECT"
+	WorkSpaceScanResultType  fsa.Type = workSpacePrefix + "SCAN/RESULT"
 )
 
 const defaultWorkSpaceName = "default-workspace"
@@ -30,9 +30,9 @@ func newWSPayload(name model.WSName) *wsPayload {
 	return &wsPayload{WorkSpaceName: name}
 }
 
-func (w *workspaceActionCreator) Scan(workSpaces []*model.WorkSpace) *fsa.Action {
+func (w *workspaceActionCreator) ScanResult(workSpaces []*model.WorkSpace) *fsa.Action {
 	return &fsa.Action{
-		Type:    WorkSpaceScanWorkSpaces,
+		Type:    WorkSpaceScanResultType,
 		Payload: workSpaces,
 	}
 }
@@ -57,7 +57,7 @@ func (d *workspaceScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) err
 		workspaces = append(workspaces, defaultWorkSpace)
 	}
 
-	return dispatch(d.action.Scan(workspaces))
+	return dispatch(d.action.ScanResult(workspaces))
 }
 
 type workspaceHandlerCreator struct {

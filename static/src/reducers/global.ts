@@ -18,7 +18,7 @@ export const globalInitialState = {
 
 export type GlobalState = typeof globalInitialState;
 export const global = reducerWithInitialState(globalInitialState)
-  .case(workspaceActionCreators.scanWorkSpaces, (state, workspaces) => {
+  .case(workspaceActionCreators.scanResult, (state, workspaces) => {
     return {...state, workspaces, isLoadingWorkSpaces: false};
   })
   .case(assetActionCreators.scanRequest, (state) => {
@@ -30,7 +30,7 @@ export const global = reducerWithInitialState(globalInitialState)
   .case(assetActionCreators.scanFinish, (state) => {
     return {...state, isScanningAssets: false, hasMoreAssets: false}
   })
-  .case(workspaceActionCreators.selectNewWorkSpace, (state, workspace) => {
+  .case(workspaceActionCreators.select, (state, workspace) => {
     return {...state, currentWorkSpace: workspace};
   })
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {

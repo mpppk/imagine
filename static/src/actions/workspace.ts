@@ -8,8 +8,8 @@ export interface WSPayload {
 }
 
 export const workspaceActionCreators = {
-  requestWorkSpaces: workspaceActionCreatorFactory<void>('REQUEST_WORKSPACES'),
-  selectNewWorkSpace: workspaceActionCreatorFactory<WorkSpace>('SELECT_NEW_WORKSPACE'),
-  scanWorkSpaces: workspaceActionCreatorFactory<WorkSpace[]>('SCAN_WORKSPACES'),
+  scanRequest: workspaceActionCreatorFactory<void>('SCAN/REQUEST'),
+  select: workspaceActionCreatorFactory<WorkSpace>('SELECT'),
+  scanResult: workspaceActionCreatorFactory<WorkSpace[]>('SCAN/RESULT'),
 };
 
