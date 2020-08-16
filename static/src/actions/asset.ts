@@ -4,7 +4,7 @@ import {WSPayload} from "./workspace";
 
 const assetActionCreatorFactory = actionCreatorFactory('ASSET');
 
-interface RequestAssetsPayload extends WSPayload {
+interface AssetScanRequest extends WSPayload {
   requestNum: number
 }
 
@@ -13,7 +13,7 @@ interface ScanRunningPayload extends WSPayload{
 }
 
 export const assetActionCreators = {
-  requestAssets: assetActionCreatorFactory<RequestAssetsPayload>('REQUEST_ASSETS'),
+  scanRequest: assetActionCreatorFactory<AssetScanRequest>('SCAN/REQUEST'),
   scanRunning: assetActionCreatorFactory<ScanRunningPayload>('SCAN/RUNNING'),
   scanFinish: assetActionCreatorFactory<WSPayload>('SCAN/FINISH'),
 };

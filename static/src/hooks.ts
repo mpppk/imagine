@@ -20,7 +20,7 @@ export function useVirtualizedAsset() {
 
   const loadNextPage = () => {
     if (globalState.currentWorkSpace !== null) {
-      dispatch(assetActionCreators.requestAssets({
+      dispatch(assetActionCreators.scanRequest({
         requestNum: 10,
         workSpaceName: globalState.currentWorkSpace.name,
       }));

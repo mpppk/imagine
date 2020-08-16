@@ -21,7 +21,7 @@ export const global = reducerWithInitialState(globalInitialState)
   .case(workspaceActionCreators.scanWorkSpaces, (state, workspaces) => {
     return {...state, workspaces, isLoadingWorkSpaces: false};
   })
-  .case(assetActionCreators.requestAssets, (state) => {
+  .case(assetActionCreators.scanRequest, (state) => {
     return {...state, isScanningAssets: true}
   })
   .case(assetActionCreators.scanRunning, (state, payload) => {

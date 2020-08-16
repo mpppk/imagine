@@ -11,17 +11,13 @@ import (
 )
 
 const (
-	assetPrefix                     = "ASSET/"
-	AssetRequestAssetsType fsa.Type = assetPrefix + "REQUEST_ASSETS"
-	AssetScanRunningType   fsa.Type = assetPrefix + "SCAN/RUNNING"
+	assetPrefix                   = "ASSET/"
+	AssetScanRequestType fsa.Type = assetPrefix + "SCAN/REQUEST"
+	AssetScanRunningType fsa.Type = assetPrefix + "SCAN/RUNNING"
+	AssetScanFinishType  fsa.Type = assetPrefix + "SCAN/FINISH"
 )
 
-type requestAssetsHandler struct {
-	c            <-chan *model.Asset
-	assetUseCase *usecase.Asset
-}
-
-type requestAssetPayload struct {
+type assetScanRequestPayload struct {
 	wsPayload  `mapstructure:",squash"`
 	RequestNum int `json:"RequestNum"`
 }
@@ -31,7 +27,9 @@ type assetScanRunningPayload struct {
 	Assets []*model.Asset `json:"assets"`
 }
 
-func newAssetScanRunning(wsName model.WSName, assets []*model.Asset) *fsa.Action {
+type assetActionCreator struct{}
+
+func (a *assetActionCreator) scanRunning(wsName model.WSName, assets []*model.Asset) *fsa.Action {
 	return &fsa.Action{
 		Type: AssetScanRunningType,
 		Payload: &assetScanRunningPayload{
@@ -41,15 +39,21 @@ func newAssetScanRunning(wsName model.WSName, assets []*model.Asset) *fsa.Action
 	}
 }
 
-func newFinishAssetScanningType(wsName model.WSName) *fsa.Action {
+func (a *assetActionCreator) scanFinish(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type:    FSScanFinishType, // FIXME
+		Type:    AssetScanFinishType,
 		Payload: newWSPayload(wsName),
 	}
 }
 
+type requestAssetsHandler struct {
+	c                  <-chan *model.Asset
+	assetUseCase       *usecase.Asset
+	assetActionCreator *assetActionCreator
+}
+
 func (d *requestAssetsHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	var payload requestAssetPayload
+	var payload assetScanRequestPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
@@ -66,13 +70,13 @@ func (d *requestAssetsHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) err
 	for asset := range d.c {
 		ret = append(ret, asset)
 		if len(ret) >= payload.RequestNum {
-			return dispatch(newAssetScanRunning(payload.WorkSpaceName, ret))
+			return dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret))
 		}
 	}
 	if len(ret) > 0 {
-		if err := dispatch(newAssetScanRunning(payload.WorkSpaceName, ret)); err != nil {
+		if err := dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret)); err != nil {
 			return err
 		}
 	}
-	return dispatch(newFinishAssetScanningType(payload.WorkSpaceName))
+	return dispatch(d.assetActionCreator.scanFinish(payload.WorkSpaceName))
 }
