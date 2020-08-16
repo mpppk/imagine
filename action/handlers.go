@@ -14,6 +14,7 @@ type HandlerCreator struct {
 	Asset            *assetHandlerCreator
 	Tag              *tagHandlerCreator
 	FS               *fsHandlerCreator
+	Workspace        *workspaceHandlerCreator
 }
 
 func NewHandlerCreator(
@@ -30,9 +31,6 @@ func NewHandlerCreator(
 		Asset:            newAssetHandlerCreator(assetUseCase),
 		Tag:              newTagHandlerCreator(tagUseCase),
 		FS:               newFSHandlerCreator(assetUseCase),
+		Workspace:        newWorkspaceHandlerCreator(globalRepository),
 	}
-}
-
-func (h *HandlerCreator) NewRequestWorkSpacesHandler() *requestWorkSpacesHandler {
-	return &requestWorkSpacesHandler{globalRepository: h.globalRepository}
 }

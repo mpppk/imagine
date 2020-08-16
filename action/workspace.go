@@ -24,22 +24,25 @@ type wsPayload struct {
 	WorkSpaceName model.WSName `json:"workSpaceName"`
 }
 
+type workspaceActionCreator struct{}
+
 func newWSPayload(name model.WSName) *wsPayload {
 	return &wsPayload{WorkSpaceName: name}
 }
 
-func newScanWorkSpacesAction(workSpaces []*model.WorkSpace) *fsa.Action {
+func (w *workspaceActionCreator) Scan(workSpaces []*model.WorkSpace) *fsa.Action {
 	return &fsa.Action{
 		Type:    WorkSpaceScanWorkSpaces,
 		Payload: workSpaces,
 	}
 }
 
-type requestWorkSpacesHandler struct {
+type workspaceScanHandler struct {
 	globalRepository repository.Global
+	action           *workspaceActionCreator
 }
 
-func (d *requestWorkSpacesHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+func (d *workspaceScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	workspaces, err := d.globalRepository.ListWorkSpace()
 	if err != nil {
 		return fmt.Errorf("failed to fetch workspaces from repository: %w", err)
@@ -54,5 +57,24 @@ func (d *requestWorkSpacesHandler) Do(action *fsa.Action, dispatch fsa.Dispatch)
 		workspaces = append(workspaces, defaultWorkSpace)
 	}
 
-	return dispatch(newScanWorkSpacesAction(workspaces))
+	return dispatch(d.action.Scan(workspaces))
+}
+
+type workspaceHandlerCreator struct {
+	globalRepository repository.Global
+	action           *workspaceActionCreator
+}
+
+func newWorkspaceHandlerCreator(globalRepository repository.Global) *workspaceHandlerCreator {
+	return &workspaceHandlerCreator{
+		globalRepository: globalRepository,
+		action:           &workspaceActionCreator{},
+	}
+}
+
+func (w *workspaceHandlerCreator) Scan() *workspaceScanHandler {
+	return &workspaceScanHandler{
+		globalRepository: w.globalRepository,
+		action:           w.action,
+	}
 }
