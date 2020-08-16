@@ -47,6 +47,6 @@ export const global = reducerWithInitialState(globalInitialState)
     }
     return {...state, tags: immutableSplice(state.tags, targetTagIndex, 1, payload.tag)};
   })
-  .case(tagActionCreators.update, (state, payload) => {
+  .case(tagActionCreators.save, (state, payload) => {
     return {...state, tags: payload.tags};
   })

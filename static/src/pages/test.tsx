@@ -60,7 +60,8 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         // tslint:disable-next-line:no-console
         console.warn('workspace is null but tags are updated', tags);
       }
-      tagActionDispatcher.update({workSpaceName, tags});
+      const newTags: Tag[] = tags.map((t, i) => ({...t, index: i}))
+      tagActionDispatcher.update({workSpaceName, tags: newTags});
     }
   };
 }
@@ -82,8 +83,6 @@ const selector = (state: State): GlobalState => ({
 })
 
 interface LocalState {
-  // tags: Tag[]
-  // maxId: number
   editTagId: number | null
   selectedImgPath: string | null
 }
