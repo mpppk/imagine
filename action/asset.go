@@ -16,21 +16,17 @@ const (
 	AssetScanRunningType   fsa.Type = assetPrefix + "SCAN/RUNNING"
 )
 
-type RequestAssetsHandler struct {
+type requestAssetsHandler struct {
 	c            <-chan *model.Asset
 	assetUseCase *usecase.Asset
 }
 
-func NewRequestAssetsHandler(assetUseCase *usecase.Asset) *RequestAssetsHandler {
-	return &RequestAssetsHandler{assetUseCase: assetUseCase}
-}
-
-type RequestAssetPayload struct {
+type requestAssetPayload struct {
 	wsPayload  `mapstructure:",squash"`
 	RequestNum int `json:"RequestNum"`
 }
 
-type ScanningAssetsPayload struct {
+type assetScanRunningPayload struct {
 	*wsPayload
 	Assets []*model.Asset `json:"assets"`
 }
@@ -38,7 +34,7 @@ type ScanningAssetsPayload struct {
 func newAssetScanRunning(wsName model.WSName, assets []*model.Asset) *fsa.Action {
 	return &fsa.Action{
 		Type: AssetScanRunningType,
-		Payload: &ScanningAssetsPayload{
+		Payload: &assetScanRunningPayload{
 			wsPayload: newWSPayload(wsName),
 			Assets:    assets,
 		},
@@ -52,8 +48,8 @@ func newFinishAssetScanningType(wsName model.WSName) *fsa.Action {
 	}
 }
 
-func (d *RequestAssetsHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	var payload RequestAssetPayload
+func (d *requestAssetsHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+	var payload requestAssetPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}

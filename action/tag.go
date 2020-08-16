@@ -17,27 +17,23 @@ const (
 	TagSaveType    fsa.Type = tagPrefix + "SAVE"
 )
 
-type TagRequestHandler struct {
+type tagRequestHandler struct {
 	tagUseCase *usecase.Tag
 }
 
-func NewTagRequestHandler(tagUseCase *usecase.Tag) *TagRequestHandler {
-	return &TagRequestHandler{tagUseCase: tagUseCase}
-}
+type tagRequestPayload = model.WorkSpace
 
-type TagRequestPayload = model.WorkSpace
-
-type TagScanPayload struct {
+type tagScanPayload struct {
 	wsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
-type TagSavePayload struct {
+type tagSavePayload struct {
 	wsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
-type TagUpdatePayload struct {
+type tagUpdatePayload struct {
 	wsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
@@ -48,7 +44,7 @@ func newTagScanAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 	}
 	return &fsa.Action{
 		Type: TagScanType,
-		Payload: &TagScanPayload{
+		Payload: &tagScanPayload{
 			wsPayload: wsPayload{WorkSpaceName: wsName},
 			Tags:      tags,
 		},
@@ -58,15 +54,15 @@ func newTagScanAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 func newTagSaveAction(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 	return &fsa.Action{
 		Type: TagSaveType,
-		Payload: &TagSavePayload{
+		Payload: &tagSavePayload{
 			wsPayload: wsPayload{WorkSpaceName: wsName},
 			Tags:      tags,
 		},
 	}
 }
 
-func (d *TagRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	var payload TagRequestPayload
+func (d *tagRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+	var payload tagRequestPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
@@ -78,12 +74,12 @@ func (d *TagRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error 
 	return dispatch(newTagScanAction(payload.Name, tags))
 }
 
-type TagUpdateHandler struct {
+type tagUpdateHandler struct {
 	tagUseCase *usecase.Tag
 }
 
-func (d *TagUpdateHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	var payload TagUpdatePayload
+func (d *tagUpdateHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+	var payload tagUpdatePayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
@@ -92,8 +88,4 @@ func (d *TagUpdateHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return fmt.Errorf("failed to handle TagUpdate action: %w", err)
 	}
 	return dispatch(newTagSaveAction(payload.WorkSpaceName, payload.Tags))
-}
-
-func NewTagUpdateHandler(tagUseCase *usecase.Tag) *TagUpdateHandler {
-	return &TagUpdateHandler{tagUseCase: tagUseCase}
 }

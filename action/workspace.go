@@ -35,15 +35,11 @@ func newScanWorkSpacesAction(workSpaces []*model.WorkSpace) *fsa.Action {
 	}
 }
 
-type RequestWorkSpacesHandler struct {
+type requestWorkSpacesHandler struct {
 	globalRepository repository.Global
 }
 
-func NewRequestWorkSpacesHandler(globalRepository repository.Global) *RequestWorkSpacesHandler {
-	return &RequestWorkSpacesHandler{globalRepository: globalRepository}
-}
-
-func (d *RequestWorkSpacesHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+func (d *requestWorkSpacesHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	workspaces, err := d.globalRepository.ListWorkSpace()
 	if err != nil {
 		return fmt.Errorf("failed to fetch workspaces from repository: %w", err)

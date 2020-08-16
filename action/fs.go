@@ -58,15 +58,11 @@ func newScanningImages(wsName model.WSName, paths []string) *fsa.Action {
 	}
 }
 
-type FSScanHandler struct {
+type fsScanHandler struct {
 	assetUseCase *usecase.Asset
 }
 
-func NewFSScanHandler(assetUseCase *usecase.Asset) *FSScanHandler {
-	return &FSScanHandler{assetUseCase: assetUseCase}
-}
-
-func (d *FSScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+func (d *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	var payload wsPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)

@@ -27,26 +27,22 @@ func NewHandlerCreator(
 	}
 }
 
-func (h *HandlerCreator) NewDirectoryScanHandler() *FSScanHandler {
-	return NewFSScanHandler(h.assetUseCase)
+func (h *HandlerCreator) NewFSScanHandler() *fsScanHandler {
+	return &fsScanHandler{assetUseCase: h.assetUseCase}
 }
 
-func (h *HandlerCreator) NewRequestWorkSpacesHandler() *RequestWorkSpacesHandler {
-	return NewRequestWorkSpacesHandler(h.globalRepository)
+func (h *HandlerCreator) NewRequestWorkSpacesHandler() *requestWorkSpacesHandler {
+	return &requestWorkSpacesHandler{globalRepository: h.globalRepository}
 }
 
-func (h *HandlerCreator) NewRequestAssetsHandler() *RequestAssetsHandler {
-	return NewRequestAssetsHandler(h.assetUseCase)
+func (h *HandlerCreator) NewRequestAssetsHandler() *requestAssetsHandler {
+	return &requestAssetsHandler{assetUseCase: h.assetUseCase}
 }
 
-func (h *HandlerCreator) NewTagRequestHandler() *TagRequestHandler {
-	return NewTagRequestHandler(h.tagUseCase)
+func (h *HandlerCreator) NewTagRequestHandler() *tagRequestHandler {
+	return &tagRequestHandler{tagUseCase: h.tagUseCase}
 }
 
-func (h *HandlerCreator) NewTagUpdateHandler() *TagUpdateHandler {
-	return NewTagUpdateHandler(h.tagUseCase)
-}
-
-func (h *HandlerCreator) NewTagUpdate() *TagUpdateHandler {
-	return NewTagUpdateHandler(h.tagUseCase)
+func (h *HandlerCreator) NewTagUpdateHandler() *tagUpdateHandler {
+	return &tagUpdateHandler{tagUseCase: h.tagUseCase}
 }

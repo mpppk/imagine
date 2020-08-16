@@ -11,7 +11,7 @@ import (
 func NewHandlers(db *bbolt.DB) *fsa.Handlers {
 	actionHandlers := InitializeHandlerCreator(db)
 	handlers := fsa.NewHandlers()
-	handlers.Handle(action.IndexClickAddDirectoryButtonType, actionHandlers.NewDirectoryScanHandler())
+	handlers.Handle(action.IndexClickAddDirectoryButtonType, actionHandlers.NewFSScanHandler())
 	handlers.Handle(action.WorkSpaceRequestWorkSpacesType, actionHandlers.NewRequestWorkSpacesHandler())
 	handlers.Handle(action.AssetRequestAssetsType, actionHandlers.NewRequestAssetsHandler())
 	handlers.Handle(action.TagRequestType, actionHandlers.NewRequestAssetsHandler())
