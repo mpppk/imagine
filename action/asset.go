@@ -29,9 +29,9 @@ type ScanningAssetsPayload struct {
 	Assets []*model.Asset `json:"assets"`
 }
 
-func newScanningAssets(wsName model.WSName, assets []*model.Asset) *fsa.Action {
+func newAssetScanRunning(wsName model.WSName, assets []*model.Asset) *fsa.Action {
 	return &fsa.Action{
-		Type: ServerScanningAssetsType,
+		Type: AssetScanRunningType,
 		Payload: &ScanningAssetsPayload{
 			WSPayload: newWSPayload(wsName),
 			Assets:    assets,
@@ -41,7 +41,7 @@ func newScanningAssets(wsName model.WSName, assets []*model.Asset) *fsa.Action {
 
 func newFinishAssetScanningType(wsName model.WSName) *fsa.Action {
 	return &fsa.Action{
-		Type:    FSScanFinishType,
+		Type:    FSScanFinishType, // FIXME
 		Payload: newWSPayload(wsName),
 	}
 }
@@ -64,11 +64,11 @@ func (d *RequestAssetsHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) err
 	for asset := range d.c {
 		ret = append(ret, asset)
 		if len(ret) >= payload.RequestNum {
-			return dispatch(newScanningAssets(payload.WorkSpaceName, ret))
+			return dispatch(newAssetScanRunning(payload.WorkSpaceName, ret))
 		}
 	}
 	if len(ret) > 0 {
-		if err := dispatch(newScanningAssets(payload.WorkSpaceName, ret)); err != nil {
+		if err := dispatch(newAssetScanRunning(payload.WorkSpaceName, ret)); err != nil {
 			return err
 		}
 	}

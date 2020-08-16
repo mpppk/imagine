@@ -24,10 +24,10 @@ export const global = reducerWithInitialState(globalInitialState)
   .case(assetActionCreators.requestAssets, (state) => {
     return {...state, isScanningAssets: true}
   })
-  .case(serverActionCreators.scanningAssets, (state, payload) => {
+  .case(assetActionCreators.scanRunning, (state, payload) => {
     return {...state, isScanningAssets: false, assets: [...state.assets, ...payload.assets]}
   })
-  .case(serverActionCreators.finishAssetsScanning, (state) => {
+  .case(assetActionCreators.scanFinish, (state) => {
     return {...state, isScanningAssets: false, hasMoreAssets: false}
   })
   .case(workspaceActionCreators.selectNewWorkSpace, (state, workspace) => {

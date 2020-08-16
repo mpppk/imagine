@@ -14,6 +14,7 @@ const (
 const (
 	AssetPrefix                     = "ASSET/"
 	AssetRequestAssetsType fsa.Type = AssetPrefix + "REQUEST_ASSETS"
+	AssetScanRunningType   fsa.Type = AssetPrefix + "SCAN/RUNNING"
 )
 
 const (
@@ -36,12 +37,10 @@ const (
 )
 
 const (
-	ServerPrefix = "SERVER/"
-	//ServerScanningImagesType fsa.Type = ServerPrefix + "SCANNING_IMAGES"
-	ServerScanWorkSpaces     fsa.Type = ServerPrefix + "SCAN_WORKSPACES"
-	ServerScanningAssetsType fsa.Type = ServerPrefix + "SCANNING_ASSETS"
-	ServerTagScanType        fsa.Type = ServerPrefix + "TAG/SCAN"
-	ServerTagSaveType        fsa.Type = ServerPrefix + "TAG/SAVE"
+	ServerPrefix                  = "SERVER/"
+	ServerScanWorkSpaces fsa.Type = ServerPrefix + "SCAN_WORKSPACES"
+	ServerTagScanType    fsa.Type = ServerPrefix + "TAG/SCAN"
+	ServerTagSaveType    fsa.Type = ServerPrefix + "TAG/SAVE"
 )
 
 type WSPayload struct {
