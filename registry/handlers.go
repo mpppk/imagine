@@ -9,13 +9,13 @@ import (
 )
 
 func NewHandlers(db *bbolt.DB) *fsa.Handlers {
-	actionHandlers := InitializeHandlerCreator(db)
+	handlerCreator := InitializeHandlerCreator(db)
 	handlers := fsa.NewHandlers()
-	handlers.Handle(action.IndexClickAddDirectoryButtonType, actionHandlers.NewFSScanHandler())
-	handlers.Handle(action.WorkSpaceRequestWorkSpacesType, actionHandlers.NewRequestWorkSpacesHandler())
-	handlers.Handle(action.AssetScanRequestType, actionHandlers.NewRequestAssetsHandler())
-	handlers.Handle(action.TagRequestType, actionHandlers.NewRequestAssetsHandler())
-	handlers.Handle(action.WorkSpaceSelectNewWorkSpace, actionHandlers.NewTagRequestHandler())
-	handlers.Handle(action.IndexUpdateTags, actionHandlers.NewTagUpdateHandler())
+	handlers.Handle(action.IndexClickAddDirectoryButtonType, handlerCreator.NewFSScanHandler())
+	handlers.Handle(action.WorkSpaceRequestWorkSpacesType, handlerCreator.NewRequestWorkSpacesHandler())
+	handlers.Handle(action.AssetScanRequestType, handlerCreator.Asset.Scan())
+	handlers.Handle(action.TagRequestType, handlerCreator.Asset.Scan())
+	handlers.Handle(action.WorkSpaceSelectNewWorkSpace, handlerCreator.NewTagRequestHandler())
+	handlers.Handle(action.IndexUpdateTags, handlerCreator.NewTagUpdateHandler())
 	return handlers
 }

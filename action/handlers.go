@@ -7,11 +7,11 @@ import (
 )
 
 type HandlerCreator struct {
-	assetUseCase       *usecase.Asset
-	tagUseCase         *usecase.Tag
-	globalRepository   repository.Global
-	b                  *bbolt.DB
-	assetActionCreator *assetActionCreator
+	assetUseCase     *usecase.Asset
+	tagUseCase       *usecase.Tag
+	globalRepository repository.Global
+	b                *bbolt.DB
+	Asset            *AssetHandlerCreator
 }
 
 func NewHandlerCreator(
@@ -21,11 +21,11 @@ func NewHandlerCreator(
 	b *bbolt.DB,
 ) *HandlerCreator {
 	return &HandlerCreator{
-		assetUseCase:       assetUseCase,
-		tagUseCase:         tagUseCase,
-		globalRepository:   globalRepository,
-		b:                  b,
-		assetActionCreator: &assetActionCreator{},
+		assetUseCase:     assetUseCase,
+		tagUseCase:       tagUseCase,
+		globalRepository: globalRepository,
+		b:                b,
+		Asset:            NewAssetHandlerCreator(assetUseCase),
 	}
 }
 
@@ -35,13 +35,6 @@ func (h *HandlerCreator) NewFSScanHandler() *fsScanHandler {
 
 func (h *HandlerCreator) NewRequestWorkSpacesHandler() *requestWorkSpacesHandler {
 	return &requestWorkSpacesHandler{globalRepository: h.globalRepository}
-}
-
-func (h *HandlerCreator) NewRequestAssetsHandler() *requestAssetsHandler {
-	return &requestAssetsHandler{
-		assetUseCase:       h.assetUseCase,
-		assetActionCreator: h.assetActionCreator,
-	}
 }
 
 func (h *HandlerCreator) NewTagRequestHandler() *tagRequestHandler {
