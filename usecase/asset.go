@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -32,6 +33,30 @@ func (a *Asset) ListAsync(ws model.WSName) (<-chan *model.Asset, error) {
 		return nil, err
 	}
 	return a.assetRepository.ListByAsync(ws, nil, 10) // FIXME
+}
+
+func (a *Asset) AssignBoundingBox(ws model.WSName, assetId model.AssetID, box *model.BoundingBox) (*model.Asset, error) {
+	// FIXME
+	if err := a.assetRepository.Init(ws); err != nil {
+		return nil, err
+	}
+	asset, err := a.assetRepository.Get(ws, assetId) // FIXME
+	if err != nil {
+		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetId, err)
+	}
+
+	var maxId model.BoundingBoxID = 0
+	for _, boundingBox := range asset.BoundingBoxes {
+		if boundingBox.ID > maxId {
+			maxId = boundingBox.ID
+		}
+	}
+	box.ID = maxId + 1
+	asset.BoundingBoxes = append(asset.BoundingBoxes, box)
+	if err := a.assetRepository.Update(ws, asset); err != nil {
+		return nil, fmt.Errorf("failed to update asset. asset: %#v: %w", asset, err)
+	}
+	return asset, nil
 }
 
 func newAssetFromFilePath(filePath string) *model.Asset {

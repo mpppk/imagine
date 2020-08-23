@@ -10,6 +10,6 @@ export interface BoundingBoxAssignRequestPayload {
 
 export const boundingBoxActionCreators = {
   assignRequest: boundingBoxActionCreatorFactory<BoundingBoxAssignRequestPayload>('ASSIGN/REQUEST'),
-  unAssignRequest: boundingBoxActionCreatorFactory<BoundingBoxAssignRequestPayload>('UN_ASSIGN/REQUEST'),
+  unAssignRequest: boundingBoxActionCreatorFactory<BoundingBoxAssignRequestPayload>('UNASSIGN/REQUEST'),
 };
 
