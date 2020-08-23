@@ -16,6 +16,8 @@ export interface BoundingBox {
   height: number
 }
 
+export type BoundingBoxRequest = Omit<BoundingBox, 'id'>;
+
 export interface Asset {
   id: number
   name: string

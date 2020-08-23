@@ -29,6 +29,8 @@ const useStyles = makeStyles((theme: Theme) => {
 interface Props {
   tags: Tag[]
   editTagId?: number
+  selectedTagId?: number
+  assignedTagIds: number[]
   onClickAddButton: (tags: Tag[]) => void
   onClickEditButton: (tag: Tag) => void
   onClickDeleteButton?: (tag: Tag) => void
@@ -140,8 +142,8 @@ export const TagList: React.FC<Props> = (props) => {
                   /> :
                   <TagListItem
                     disabled={!!props.editTagId}
-                    selected={index === 1}
-                    assigned={index === 0}
+                    selected={tag.id === props.selectedTagId}
+                    assigned={props.assignedTagIds.includes(tag.id)}
                     key={tag.id}
                     tag={tag}
                     index={index}

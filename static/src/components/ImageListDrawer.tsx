@@ -24,12 +24,13 @@ const useStyles = makeStyles(() => {
 
 interface ImageListDrawerProps extends VirtualizedAssetProps {
   imagePaths: string[]
-  onClickImage: (path: string) => void
+  onClickImage: (path: string, index: number) => void
 }
 
 // tslint:disable-next-line variable-name
 export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = props => {
   const classes = useStyles();
+
   return (
     <Drawer
       open={true}

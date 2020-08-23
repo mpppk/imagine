@@ -26,19 +26,19 @@ interface Props extends VirtualizedAssetProps {
   cellHeight: number;
   width: number;
   paths: string[]
-  onClickImage: (path: string) => void
+  onClickImage: (path: string, index: number) => void
 }
 
 // tslint:disable-next-line:variable-name
 export const ImageGridList: React.FC<Props> = (props) => {
   const classes = useStyles();
 
-  const genClickImageHandler = (imgPath: string) => () => {
-    props.onClickImage(imgPath);
+  const genClickImageHandler = (imgPath: string, index: number) => () => {
+    props.onClickImage(imgPath, index);
   };
 
   // tslint:disable-next-line:variable-name
-  const ImageGridTile: React.FC<AssetListItemProps> = ({asset, isLoaded, style}) => {
+  const ImageGridTile: React.FC<AssetListItemProps> = ({asset, index, isLoaded, style}) => {
     if (!isLoaded) {
       return (<div style={style}>Loading...</div>);
     }
@@ -50,7 +50,7 @@ export const ImageGridList: React.FC<Props> = (props) => {
         style={style}
         key={asset.path}
         cols={1}
-        onClick={genClickImageHandler(pathUrl)}
+        onClick={genClickImageHandler(pathUrl, index)}
         className={classes.gridListTile}
       >
         <img src={pathUrl} />

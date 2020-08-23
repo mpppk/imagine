@@ -8,10 +8,11 @@ import {indexActionCreators} from "../actions";
 import {ImageListDrawer} from "../components/ImageListDrawer";
 import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
-import {Tag, WorkSpace} from "../models/models";
+import {Asset, Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import {assetPathToUrl} from "../util";
 import {tagActionCreators} from "../actions/tag";
+import uniq from "lodash/uniq";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -51,8 +52,8 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     clickEditTagButton: (tag: Tag) => {
       setLocalState({...localState, editTagId: tag.id});
     },
-    clickImage: (selectedImgPath: string) => {
-      setLocalState({...localState, selectedImgPath})
+    clickImage: (_: string, index: number) => {
+      indexActionDispatcher.assetSelect(globalState.assets[index])
     },
     updateTags: (tags: Tag[]) => {
       const workSpaceName = globalState.currentWorkSpace?.name!;
@@ -62,11 +63,20 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
       }
       const newTags: Tag[] = tags.map((t, i) => ({...t, index: i}))
       tagActionDispatcher.update({workSpaceName, tags: newTags});
+    },
+    keyDown: (e: any) => {
+      if (e.keyCode >= 48 && e.keyCode <= 57) {
+        indexActionDispatcher.downNumberKey(e.keyCode-48);
+      }
     }
   };
 }
 
 interface GlobalState {
+  assets: Asset[]
+  assignedTagIds: number[]
+  selectedTagId?: number
+  selectedAssetUrl?: string
   currentWorkSpace: WorkSpace | null
   tags: Tag[]
   imagePaths: string[]
@@ -74,23 +84,34 @@ interface GlobalState {
   isScanningDirectories: boolean
 }
 
-const selector = (state: State): GlobalState => ({
-  currentWorkSpace: state.global.currentWorkSpace,
-  tags: state.global.tags,
-  imagePaths: state.global.assets.map((a) => assetPathToUrl(a.path)),
-  isLoadingWorkSpace: state.global.isLoadingWorkSpaces,
-  isScanningDirectories: state.indexPage.scanning,
-})
+const selector = (state: State): GlobalState => {
+
+  const assignedTagIds = state.global.assets.flatMap((a) => {
+    return (a.boundingBoxes ?? []).map((box) => box.tag.id);
+  });
+  return {
+    assets: state.global.assets,
+    assignedTagIds: uniq(assignedTagIds),
+    selectedAssetUrl: state.global.selectedAsset === null ?
+     undefined : assetPathToUrl(state.global.selectedAsset?.path),
+    currentWorkSpace: state.global.currentWorkSpace,
+    tags: state.global.tags,
+    imagePaths: state.global.assets.map((a) => assetPathToUrl(a.path)),
+    isLoadingWorkSpace: state.global.isLoadingWorkSpaces,
+    isScanningDirectories: state.indexPage.scanning,
+    selectedTagId: state.global.selectedTagId,
+  };
+};
 
 interface LocalState {
   editTagId: number | null
-  selectedImgPath: string | null
+  // selectedImgPath: string | null
 }
 
 const generateInitialLocalState = (): LocalState => {
   return {
     editTagId: null,
-    selectedImgPath: null,
+    // selectedImgPath: null,
   }
 };
 
@@ -110,7 +131,7 @@ export default function Test() {
   }
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} onKeyDown={handlers.keyDown} tabIndex={0}>
       <ImageListDrawer
         {...virtualizedAssetProps}
         imagePaths={globalState.imagePaths}
@@ -118,11 +139,16 @@ export default function Test() {
       />
       <main className={classes.content}>
         <Toolbar/>
-        {localState.selectedImgPath === null ? null : <img
-          src={localState.selectedImgPath}
-          alt={localState.selectedImgPath}
+        {globalState.selectedAssetUrl === null ? null : <img
+          src={globalState.selectedAssetUrl}
+          alt={globalState.selectedAssetUrl}
           width='100%'
         />}
+        {/*{localState.selectedImgPath === null ? null : <img*/}
+        {/*  src={localState.selectedImgPath}*/}
+        {/*  alt={localState.selectedImgPath}*/}
+        {/*  width='100%'*/}
+        {/*/>}*/}
         <Typography paragraph={true}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
           ut labore et dolore magna aliqua. Rhoncus dolor purus non enim praesent elementum
@@ -144,6 +170,8 @@ export default function Test() {
       <TagListDrawer
         tags={globalState.tags}
         editTagId={localState.editTagId ?? undefined}
+        selectedTagId={globalState.selectedTagId}
+        assignedTagIds={globalState.assignedTagIds}
         onClickAddButton={handlers.clickAddTagButton}
         onClickEditButton={handlers.clickEditTagButton}
         onRename={handlers.renameTag}

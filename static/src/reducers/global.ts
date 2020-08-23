@@ -8,11 +8,13 @@ import {tagActionCreators} from "../actions/tag";
 
 export const globalInitialState = {
   assets: [] as Asset[],
+  selectedAsset: null as Asset | null,
   tags: [] as Tag[],
   currentWorkSpace: null as WorkSpace | null,
   hasMoreAssets :true,
   isLoadingWorkSpaces: true,
   isScanningAssets: false,
+  selectedTagId: undefined,
   workspaces: null as WorkSpace[] | null,
 };
 
@@ -49,4 +51,7 @@ export const global = reducerWithInitialState(globalInitialState)
   })
   .case(tagActionCreators.save, (state, payload) => {
     return {...state, tags: payload.tags};
+  })
+  .case(indexActionCreators.assetSelect, (state, asset) => {
+    return {...state, selectedAsset: asset};
   })
