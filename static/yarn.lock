@@ -6977,10 +6977,10 @@ react-double-scrollbar@0.0.15:
   version "0.0.15"
   resolved "https://registry.yarnpkg.com/react-double-scrollbar/-/react-double-scrollbar-0.0.15.tgz#e915ab8cb3b959877075f49436debfdb04288fe4"
 
-react-hook-form@6.5.1:
-  version "6.5.1"
-  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-6.5.1.tgz#504389d09970f2e7fc8c5ec8db2c551c863bcde9"
-  integrity sha512-MakeW3CRj4n1FW4HuliM8vlWup+5keUWDduf5lPlori6OWQ616xGzxrUOKoDUIGh0ERgCebObrLb5UiFDlSxAQ==
+react-hook-form@6.5.2:
+  version "6.5.2"
+  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-6.5.2.tgz#b357f708ebdcfb61735fc3790a9a939fa8e3af5d"
+  integrity sha512-bmVTOlk8L3tdSmNjsNCcTZ9MOzxQY3rb9a3KLJncygdVuns7GNNCKKJ0ESHSJUzkQ7abCr/C9VywDkIxxniaGQ==
 
 react-is@16.13.1, react-is@^16.13.1:
   version "16.13.1"
