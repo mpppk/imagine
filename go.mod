@@ -14,7 +14,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.3
 	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20200810083002-3184a7a553ab
 	github.com/rhysd/go-github-selfupdate v1.2.2
-	github.com/spf13/afero v1.3.4
+	github.com/spf13/afero v1.3.5
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
