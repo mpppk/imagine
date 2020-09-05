@@ -19,9 +19,9 @@ const (
 )
 
 type boxAssignRequestPayload struct {
-	*wsPayload `mapstructure:",squash"`
-	Asset      *model.Asset       `json:"asset"`
-	Box        *model.BoundingBox `json:"box"`
+	wsPayload `mapstructure:",squash"`
+	Asset     *model.Asset       `json:"asset"`
+	Box       *model.BoundingBox `json:"box"`
 }
 
 type boxAssignPayload struct {
@@ -44,9 +44,9 @@ func (a *boxActionCreator) assign(name model.WSName, asset *model.Asset, box *mo
 }
 
 type boxAssignRequestHandler struct {
-	c                  <-chan *model.Asset
-	assetUseCase       *usecase.Asset
-	assetActionCreator *assetActionCreator
+	c                <-chan *model.Asset
+	assetUseCase     *usecase.Asset
+	boxActionCreator *boxActionCreator
 }
 
 func (d *boxAssignRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
@@ -54,26 +54,30 @@ func (d *boxAssignRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) 
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
-	d.assetUseCase
+	asset, err := d.assetUseCase.AssignBoundingBox(payload.WorkSpaceName, payload.Asset.ID, payload.Box)
+	if err != nil {
+		return fmt.Errorf("failed to assgin bounding box to asset. box: %#v, asset: %#v: %w", payload.Box, payload.Asset, err)
+	}
+	return dispatch(d.boxActionCreator.assign(payload.WorkSpaceName, asset, payload.Box))
 }
 
 type boxHandlerCreator struct {
-	assetUseCase       *usecase.Asset
-	assetActionCreator *assetActionCreator
+	assetUseCase     *usecase.Asset
+	boxActionCreator *boxActionCreator
 }
 
 func newBoxHandlerCreator(
 	assetUseCase *usecase.Asset,
-) *assetHandlerCreator {
-	return &assetHandlerCreator{
-		assetUseCase:       assetUseCase,
-		assetActionCreator: &assetActionCreator{},
+) *boxHandlerCreator {
+	return &boxHandlerCreator{
+		assetUseCase:     assetUseCase,
+		boxActionCreator: &boxActionCreator{},
 	}
 }
 
-func (h *assetHandlerCreator) Assign() *assetScanHandler {
-	return &assetScanHandler{
-		assetUseCase:       h.assetUseCase,
-		assetActionCreator: h.assetActionCreator,
+func (h *boxHandlerCreator) Assign() *boxAssignRequestHandler {
+	return &boxAssignRequestHandler{
+		assetUseCase:     h.assetUseCase,
+		boxActionCreator: h.boxActionCreator,
 	}
 }

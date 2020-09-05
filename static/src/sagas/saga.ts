@@ -25,9 +25,16 @@ const downNumberKeyWorker = function*(key: number) {
     height: 0,
   };
 
+  if (!state.global.currentWorkSpace) {
+    // tslint:disable-next-line:no-console
+    console.info('bounding box assign request is not sent because workspace is not selected')
+    return
+  }
+
   const payload: BoundingBoxAssignRequestPayload = {
     asset: state.global.selectedAsset,
     box,
+    workSpaceName: state.global.currentWorkSpace!.name,
   };
 
   return yield put(boundingBoxActionCreators.assignRequest(payload));

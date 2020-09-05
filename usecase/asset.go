@@ -35,6 +35,7 @@ func (a *Asset) ListAsync(ws model.WSName) (<-chan *model.Asset, error) {
 	return a.assetRepository.ListByAsync(ws, nil, 10) // FIXME
 }
 
+// AssignBoundingBox assign bounding box to asset
 func (a *Asset) AssignBoundingBox(ws model.WSName, assetId model.AssetID, box *model.BoundingBox) (*model.Asset, error) {
 	// FIXME
 	if err := a.assetRepository.Init(ws); err != nil {

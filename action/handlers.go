@@ -12,6 +12,7 @@ type HandlerCreator struct {
 	globalRepository repository.Global
 	b                *bbolt.DB
 	Asset            *assetHandlerCreator
+	Box              *boxHandlerCreator
 	Tag              *tagHandlerCreator
 	FS               *fsHandlerCreator
 	Workspace        *workspaceHandlerCreator
@@ -29,6 +30,7 @@ func NewHandlerCreator(
 		globalRepository: globalRepository,
 		b:                b,
 		Asset:            newAssetHandlerCreator(assetUseCase),
+		Box:              newBoxHandlerCreator(assetUseCase),
 		Tag:              newTagHandlerCreator(tagUseCase),
 		FS:               newFSHandlerCreator(assetUseCase),
 		Workspace:        newWorkspaceHandlerCreator(globalRepository),
