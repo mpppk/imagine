@@ -16,7 +16,9 @@ const downNumberKeyWorker = function*(key: number) {
   if (key > state.global.tags.length || !state.global.selectedAsset) {
     return;
   }
-  const tag = state.global.tags[key];
+
+  // tag list is 0-indexed, but number key is 1-indexed
+  const tag = state.global.tags[key-1];
   const box: BoundingBoxRequest = { // FIXME
     tag,
     x: 0,
@@ -58,4 +60,3 @@ export const takeEveryAction = <T>(
     });
   };
 };
-

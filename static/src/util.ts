@@ -27,3 +27,10 @@ export const isDupNamedTag = (tags: Tag[], newTag: Tag) => {
 
 export const assetPathToUrl  =(p: string) => `http://localhost:1323/static${p}`;
 
+export const replaceBy = <T>(array: T[], newElm: T, f: (v: T) => boolean) => {
+  const newArray = [] as T[];
+  for (const v of array){
+    newArray.push(f(v) ? newElm : v);
+  }
+  return newArray;
+}

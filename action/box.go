@@ -25,9 +25,9 @@ type boxAssignRequestPayload struct {
 }
 
 type boxAssignPayload struct {
-	*wsPayload `mapstructure:",squash"`
-	Asset      *model.Asset       `json:"asset"`
-	Box        *model.BoundingBox `json:"box"`
+	wsPayload `mapstructure:",squash"`
+	Asset     *model.Asset       `json:"asset"`
+	Box       *model.BoundingBox `json:"box"`
 }
 
 type boxActionCreator struct{}
@@ -36,7 +36,7 @@ func (a *boxActionCreator) assign(name model.WSName, asset *model.Asset, box *mo
 	return &fsa.Action{
 		Type: BoxAssignType,
 		Payload: &boxAssignPayload{
-			wsPayload: newWSPayload(name),
+			wsPayload: wsPayload{WorkSpaceName: name},
 			Asset:     asset,
 			Box:       box,
 		},

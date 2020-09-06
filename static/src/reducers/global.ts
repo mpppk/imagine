@@ -3,8 +3,9 @@ import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
 import {Asset, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
-import {immutableSplice} from "../util";
+import {immutableSplice, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
+import {boundingBoxActionCreators} from "../actions/box";
 
 export const globalInitialState = {
   assets: [] as Asset[],
@@ -54,4 +55,10 @@ export const global = reducerWithInitialState(globalInitialState)
   })
   .case(indexActionCreators.assetSelect, (state, asset) => {
     return {...state, selectedAsset: asset};
+  })
+  .case(boundingBoxActionCreators.assign, (state, payload) => {
+    const asset = payload.asset;
+    const assets = replaceBy(state.assets, asset, (a) => a.id === asset.id);
+    const selectedAsset = state.selectedAsset?.id === asset.id ? asset : state.selectedAsset;
+    return {...state, assets, selectedAsset};
   })

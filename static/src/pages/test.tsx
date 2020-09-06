@@ -85,10 +85,8 @@ interface GlobalState {
 }
 
 const selector = (state: State): GlobalState => {
-
-  const assignedTagIds = state.global.assets.flatMap((a) => {
-    return (a.boundingBoxes ?? []).map((box) => box.tag.id);
-  });
+  const boxes = state.global.selectedAsset?.boundingBoxes ?? [];
+  const assignedTagIds = boxes.map((box) => box.tag.id);
   return {
     assets: state.global.assets,
     assignedTagIds: uniq(assignedTagIds),
