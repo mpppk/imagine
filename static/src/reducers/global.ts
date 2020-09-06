@@ -57,8 +57,14 @@ export const global = reducerWithInitialState(globalInitialState)
     return {...state, selectedAsset: asset};
   })
   .case(boundingBoxActionCreators.assign, (state, payload) => {
-    const asset = payload.asset;
-    const assets = replaceBy(state.assets, asset, (a) => a.id === asset.id);
-    const selectedAsset = state.selectedAsset?.id === asset.id ? asset : state.selectedAsset;
-    return {...state, assets, selectedAsset};
+    return {...state, ...updateAssets(state, payload.asset)};
   })
+  .case(boundingBoxActionCreators.unAssign, (state, payload) => {
+    return {...state, ...updateAssets(state, payload.asset)};
+  })
+
+const updateAssets = (state: GlobalState, asset: Asset) => {
+  const assets = replaceBy(state.assets, asset, (a) => a.id === asset.id);
+  const selectedAsset = state.selectedAsset?.id === asset.id ? asset : state.selectedAsset;
+  return {assets, selectedAsset};
+}

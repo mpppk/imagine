@@ -1,4 +1,4 @@
-import {Tag} from "./models/models";
+import {BoundingBox, Tag} from "./models/models";
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -34,3 +34,7 @@ export const replaceBy = <T>(array: T[], newElm: T, f: (v: T) => boolean) => {
   }
   return newArray;
 }
+
+export const isDefaultBox = (box: BoundingBox): boolean => {
+  return box.height === 0 && box.width === 0 && box.x === 0 && box.y === 0;
+};

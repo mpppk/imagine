@@ -4,8 +4,13 @@ import { SagaIterator } from 'redux-saga';
 import {workspaceActionCreators} from '../actions/workspace';
 import {BoundingBoxRequest, WorkSpace} from "../models/models";
 import {indexActionCreators} from "../actions";
-import {boundingBoxActionCreators, BoundingBoxAssignRequestPayload} from "../actions/box";
+import {
+  boundingBoxActionCreators,
+  BoundingBoxAssignRequestPayload,
+  BoundingBoxUnAssignRequestPayload
+} from "../actions/box";
 import {State} from "../reducers/reducer";
+import {isDefaultBox} from "../util";
 
 const scanWorkSpacesWorker = function*(workspaces: WorkSpace[]) {
   return yield put(workspaceActionCreators.select(workspaces[0]));
@@ -17,29 +22,45 @@ const downNumberKeyWorker = function*(key: number) {
     return;
   }
 
-  // tag list is 0-indexed, but number key is 1-indexed
-  const tag = state.global.tags[key-1];
-  const box: BoundingBoxRequest = { // FIXME
-    tag,
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  };
-
   if (!state.global.currentWorkSpace) {
     // tslint:disable-next-line:no-console
-    console.info('bounding box assign request is not sent because workspace is not selected')
+    console.info('bounding box assign/unassign request is not sent because workspace is not selected')
     return
   }
 
-  const payload: BoundingBoxAssignRequestPayload = {
-    asset: state.global.selectedAsset,
-    box,
-    workSpaceName: state.global.currentWorkSpace!.name,
-  };
+  // tag list is 0-indexed, but number key is 1-indexed
+  const tag = state.global.tags[key-1];
 
-  return yield put(boundingBoxActionCreators.assignRequest(payload));
+  // 初期状態のboxが存在する場合はunassign
+  let boxes = state.global.selectedAsset.boundingBoxes ?? [];
+  boxes = boxes.filter(isDefaultBox);
+  if (boxes.length > 0) { // unassign
+    for (const box of boxes) {
+      const payload: BoundingBoxUnAssignRequestPayload = {
+        asset: state.global.selectedAsset,
+        boxID: box.id,
+        workSpaceName: state.global.currentWorkSpace!.name,
+      };
+      yield put(boundingBoxActionCreators.unAssignRequest(payload));
+    }
+    return;
+  } else { // assign
+    const box: BoundingBoxRequest = { // FIXME
+      tag,
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+    };
+
+    const payload: BoundingBoxAssignRequestPayload = {
+      asset: state.global.selectedAsset,
+      box,
+      workSpaceName: state.global.currentWorkSpace!.name,
+    };
+
+    return yield put(boundingBoxActionCreators.assignRequest(payload));
+  }
 }
 
 export default function* rootSaga() {

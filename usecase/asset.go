@@ -60,6 +60,31 @@ func (a *Asset) AssignBoundingBox(ws model.WSName, assetId model.AssetID, box *m
 	return asset, nil
 }
 
+func (a *Asset) UnAssignBoundingBox(ws model.WSName, assetId model.AssetID, boxID model.BoundingBoxID) (*model.Asset, error) {
+	// FIXME
+	if err := a.assetRepository.Init(ws); err != nil {
+		return nil, err
+	}
+	asset, err := a.assetRepository.Get(ws, assetId) // FIXME
+	if err != nil {
+		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetId, err)
+	}
+
+	var newBoxes []*model.BoundingBox
+	for _, boundingBox := range asset.BoundingBoxes {
+		if boundingBox.ID == boxID {
+			continue
+		}
+		newBoxes = append(newBoxes, boundingBox)
+	}
+
+	asset.BoundingBoxes = newBoxes
+	if err := a.assetRepository.Update(ws, asset); err != nil {
+		return nil, fmt.Errorf("failed to update asset. asset: %#v: %w", asset, err)
+	}
+	return asset, nil
+}
+
 func newAssetFromFilePath(filePath string) *model.Asset {
 	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
 	return &model.Asset{

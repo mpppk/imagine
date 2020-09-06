@@ -9,14 +9,24 @@ export interface BoundingBoxAssignRequestPayload extends WSPayload {
   box: BoundingBoxRequest
 }
 
+export interface BoundingBoxUnAssignRequestPayload extends WSPayload {
+  asset: Asset
+  boxID: number
+}
+
 export interface BoundingBoxAssignPayload extends WSPayload {
   asset: Asset
   box: BoundingBoxRequest
 }
 
+export interface BoundingBoxUnAssignPayload extends WSPayload {
+  asset: Asset
+  boxID: number
+}
+
 export const boundingBoxActionCreators = {
   assignRequest: boundingBoxActionCreatorFactory<BoundingBoxAssignRequestPayload>('ASSIGN/REQUEST'),
   assign: boundingBoxActionCreatorFactory<BoundingBoxAssignPayload>('ASSIGN'),
-  unAssignRequest: boundingBoxActionCreatorFactory<BoundingBoxAssignRequestPayload>('UNASSIGN/REQUEST'),
+  unAssignRequest: boundingBoxActionCreatorFactory<BoundingBoxUnAssignRequestPayload>('UNASSIGN/REQUEST'),
+  unAssign: boundingBoxActionCreatorFactory<BoundingBoxUnAssignPayload>('UNASSIGN'),
 };
-
