@@ -33,7 +33,7 @@ const downNumberKeyWorker = function*(key: number) {
 
   // 初期状態のboxが存在する場合はunassign
   let boxes = state.global.selectedAsset.boundingBoxes ?? [];
-  boxes = boxes.filter(isDefaultBox);
+  boxes = boxes.filter(isDefaultBox).filter((box) => box.tag.id === tag.id);
   if (boxes.length > 0) { // unassign
     for (const box of boxes) {
       const payload: BoundingBoxUnAssignRequestPayload = {
