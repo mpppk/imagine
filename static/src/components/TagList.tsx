@@ -16,7 +16,6 @@ const useStyles = makeStyles((theme: Theme) => {
       width: 250 - theme.spacing(2)
     },
     draggingList: {
-      background: "lightgray",
       padding: theme.spacing(1),
       width: 250
     },
@@ -30,6 +29,8 @@ const useStyles = makeStyles((theme: Theme) => {
 interface Props {
   tags: Tag[]
   editTagId?: number
+  selectedTagId?: number
+  assignedTagIds: number[]
   onClickAddButton: (tags: Tag[]) => void
   onClickEditButton: (tag: Tag) => void
   onClickDeleteButton?: (tag: Tag) => void
@@ -141,6 +142,8 @@ export const TagList: React.FC<Props> = (props) => {
                   /> :
                   <TagListItem
                     disabled={!!props.editTagId}
+                    selected={tag.id === props.selectedTagId}
+                    assigned={props.assignedTagIds.includes(tag.id)}
                     key={tag.id}
                     tag={tag}
                     index={index}

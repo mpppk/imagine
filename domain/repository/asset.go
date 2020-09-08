@@ -1,3 +1,5 @@
+//go:generate mockgen -source=./asset.go -destination=../../infra/repoimpl/mock_asset.go -package=repoimpl
+
 package repository
 
 import (

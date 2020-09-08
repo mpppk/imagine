@@ -2,12 +2,12 @@ package model
 
 type BoundingBoxID uint64
 type BoundingBox struct {
-	ID     BoundingBoxID
-	Tag    *Tag
-	X      int
-	Y      int
-	Width  int
-	Height int
+	ID     BoundingBoxID `json:"id"`
+	Tag    *Tag          `json:"tag"`
+	X      int           `json:"x"`
+	Y      int           `json:"y"`
+	Width  int           `json:"width"`
+	Height int           `json:"height"`
 }
 
 type TagID uint64

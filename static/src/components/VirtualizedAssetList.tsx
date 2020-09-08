@@ -8,6 +8,7 @@ import {Asset} from "../models/models";
 export interface AssetListItemProps {
   style: React.CSSProperties
   asset: Asset
+  index: number
   isLoaded: boolean
 }
 
@@ -38,6 +39,7 @@ export const VirtualizedAssetList: React.FC<Props> = (props) => {
       <Children
         style={style as React.CSSProperties}
         asset={props.assets![index]}
+        index={index}
         isLoaded={assetInfo.isAssetLoaded(index)}
       />
     );

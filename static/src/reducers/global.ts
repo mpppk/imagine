@@ -3,16 +3,19 @@ import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
 import {Asset, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
-import {immutableSplice} from "../util";
+import {immutableSplice, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
+import {boundingBoxActionCreators} from "../actions/box";
 
 export const globalInitialState = {
   assets: [] as Asset[],
+  selectedAsset: null as Asset | null,
   tags: [] as Tag[],
   currentWorkSpace: null as WorkSpace | null,
   hasMoreAssets :true,
   isLoadingWorkSpaces: true,
   isScanningAssets: false,
+  selectedTagId: undefined,
   workspaces: null as WorkSpace[] | null,
 };
 
@@ -50,3 +53,18 @@ export const global = reducerWithInitialState(globalInitialState)
   .case(tagActionCreators.save, (state, payload) => {
     return {...state, tags: payload.tags};
   })
+  .case(indexActionCreators.assetSelect, (state, asset) => {
+    return {...state, selectedAsset: asset};
+  })
+  .case(boundingBoxActionCreators.assign, (state, payload) => {
+    return {...state, ...updateAssets(state, payload.asset)};
+  })
+  .case(boundingBoxActionCreators.unAssign, (state, payload) => {
+    return {...state, ...updateAssets(state, payload.asset)};
+  })
+
+const updateAssets = (state: GlobalState, asset: Asset) => {
+  const assets = replaceBy(state.assets, asset, (a) => a.id === asset.id);
+  const selectedAsset = state.selectedAsset?.id === asset.id ? asset : state.selectedAsset;
+  return {assets, selectedAsset};
+}

@@ -1,4 +1,4 @@
-import {Tag} from "./models/models";
+import {BoundingBox, Tag} from "./models/models";
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -27,3 +27,14 @@ export const isDupNamedTag = (tags: Tag[], newTag: Tag) => {
 
 export const assetPathToUrl  =(p: string) => `http://localhost:1323/static${p}`;
 
+export const replaceBy = <T>(array: T[], newElm: T, f: (v: T) => boolean) => {
+  const newArray = [] as T[];
+  for (const v of array){
+    newArray.push(f(v) ? newElm : v);
+  }
+  return newArray;
+}
+
+export const isDefaultBox = (box: BoundingBox): boolean => {
+  return box.height === 0 && box.width === 0 && box.x === 0 && box.y === 0;
+};
