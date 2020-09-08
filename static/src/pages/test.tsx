@@ -10,7 +10,7 @@ import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
 import {Asset, Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
-import {assetPathToUrl} from "../util";
+import {assetPathToUrl, isArrowKeyCode, keyCodeToDirection} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import uniq from "lodash/uniq";
 
@@ -67,6 +67,11 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     keyDown: (e: any) => {
       if (e.keyCode >= 48 && e.keyCode <= 57) {
         indexActionDispatcher.downNumberKey(e.keyCode-48);
+        return;
+      }
+
+      if (isArrowKeyCode(e.keyCode)) {
+        indexActionDispatcher.downArrowKey(keyCodeToDirection(e.keyCode));
       }
     }
   };

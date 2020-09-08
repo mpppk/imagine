@@ -24,3 +24,5 @@ export interface Asset {
   path: string
   boundingBoxes: BoundingBox[]
 }
+
+export type Direction = 'LEFT' | 'RIGHT' | 'UP' | 'DOWN';
