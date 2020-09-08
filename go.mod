@@ -7,7 +7,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/comail/colog v0.0.0-20160416085026-fba8e7b1f46c
 	github.com/gen2brain/dlgs v0.0.0-20200211102745-b9c2664df42f
-	github.com/golang/mock v1.3.1
+	github.com/golang/mock v1.4.4
 	github.com/google/wire v0.4.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible
