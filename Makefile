@@ -4,6 +4,7 @@ SHELL = /bin/bash
 setup:
 	go get github.com/google/wire/cmd/wire
 	go get github.com/goreleaser/goreleaser
+	go get github.com/golang/mock/mockgen@v1.4.4
 
 .PHONY: lint
 lint: generate
