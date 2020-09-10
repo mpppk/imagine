@@ -10,7 +10,7 @@ import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
 import {Asset, Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
-import {assetPathToUrl, isArrowKeyCode, keyCodeToDirection} from "../util";
+import {assetPathToUrl, findAssetIndexById, isArrowKeyCode, keyCodeToDirection} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import uniq from "lodash/uniq";
 
@@ -88,11 +88,15 @@ interface GlobalState {
   imagePaths: string[]
   isLoadingWorkSpace: boolean
   isScanningDirectories: boolean
+  selectedAssetIndex: number
 }
 
 const selector = (state: State): GlobalState => {
   const boxes = state.global.selectedAsset?.boundingBoxes ?? [];
   const assignedTagIds = boxes.map((box) => box.tag.id);
+  const selectedAssetIndex = state.global.selectedAsset ?
+    findAssetIndexById(state.global.assets, state.global.selectedAsset.id) :
+    -1;
   return {
     assets: state.global.assets,
     assignedTagIds: uniq(assignedTagIds),
@@ -104,6 +108,7 @@ const selector = (state: State): GlobalState => {
     isLoadingWorkSpace: state.global.isLoadingWorkSpaces,
     isScanningDirectories: state.indexPage.scanning,
     selectedTagId: state.global.selectedTagId,
+    selectedAssetIndex,
   };
 };
 
@@ -140,6 +145,7 @@ export default function Test() {
         {...virtualizedAssetProps}
         imagePaths={globalState.imagePaths}
         onClickImage={handlers.clickImage}
+        selectedIndex={globalState.selectedAssetIndex}
       />
       <main className={classes.content}>
         <Toolbar/>
@@ -148,11 +154,6 @@ export default function Test() {
           alt={globalState.selectedAssetUrl}
           width='100%'
         />}
-        {/*{localState.selectedImgPath === null ? null : <img*/}
-        {/*  src={localState.selectedImgPath}*/}
-        {/*  alt={localState.selectedImgPath}*/}
-        {/*  width='100%'*/}
-        {/*/>}*/}
         <Typography paragraph={true}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
           ut labore et dolore magna aliqua. Rhoncus dolor purus non enim praesent elementum

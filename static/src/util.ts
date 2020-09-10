@@ -1,4 +1,4 @@
-import {BoundingBox, Direction, Tag} from "./models/models";
+import {Asset, BoundingBox, Direction, Tag} from "./models/models";
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -52,3 +52,7 @@ export const keyCodeToDirection = (keyCode: number): Direction => {
     default: return 'DOWN';
   }
 }
+
+export const findAssetIndexById = (assets: Asset[], id: number): number => {
+  return assets.findIndex((a) => a.id === id);
+};

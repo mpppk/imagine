@@ -3,7 +3,7 @@ import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
 import {Asset, AssetWithIndex, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
-import {immutableSplice, replaceBy} from "../util";
+import {findAssetIndexById, immutableSplice, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import {boundingBoxActionCreators} from "../actions/box";
 
@@ -100,6 +100,3 @@ const updateAssets = (state: GlobalState, asset: AssetWithIndex) => {
   return {assets, selectedAsset};
 }
 
-const findAssetIndexById = (assets: Asset[], id: number): number => {
-  return assets.findIndex((a) => a.id === id);
-};
