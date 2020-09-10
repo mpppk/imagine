@@ -65,6 +65,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
       tagActionDispatcher.update({workSpaceName, tags: newTags});
     },
     keyDown: (e: any) => {
+      e.preventDefault();
       if (e.keyCode >= 48 && e.keyCode <= 57) {
         indexActionDispatcher.downNumberKey(e.keyCode-48);
         return;

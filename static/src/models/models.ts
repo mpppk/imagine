@@ -25,4 +25,9 @@ export interface Asset {
   boundingBoxes: BoundingBox[]
 }
 
+// 何番目のAssetか
+export interface AssetWithIndex extends Asset {
+  index: number
+}
+
 export type Direction = 'LEFT' | 'RIGHT' | 'UP' | 'DOWN';
