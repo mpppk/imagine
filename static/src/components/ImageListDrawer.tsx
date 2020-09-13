@@ -25,6 +25,7 @@ const useStyles = makeStyles(() => {
 interface ImageListDrawerProps extends VirtualizedAssetProps {
   imagePaths: string[]
   onClickImage: (path: string, index: number) => void
+  selectedIndex: number
 }
 
 // tslint:disable-next-line variable-name
@@ -46,6 +47,7 @@ export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = pr
           paths={props.imagePaths}
           onClickImage={props.onClickImage}
           cellHeight={200}
+          selectedIndex={props.selectedIndex}
           width={drawerWidth}
         />
       </div>

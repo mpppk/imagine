@@ -1,4 +1,4 @@
-import {BoundingBox, Tag} from "./models/models";
+import {Asset, BoundingBox, Direction, Tag} from "./models/models";
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -37,4 +37,22 @@ export const replaceBy = <T>(array: T[], newElm: T, f: (v: T) => boolean) => {
 
 export const isDefaultBox = (box: BoundingBox): boolean => {
   return box.height === 0 && box.width === 0 && box.x === 0 && box.y === 0;
+};
+
+export const isArrowKeyCode = (keyCode: number): boolean => keyCode >= 37 && keyCode <= 40;
+
+export const keyCodeToDirection = (keyCode: number): Direction => {
+  if (!isArrowKeyCode(keyCode)) {
+    throw new Error('failed to convert keycode to direction. keycode: ' + keyCode);
+  }
+  switch (keyCode) {
+    case 37: return 'LEFT';
+    case 38: return 'UP';
+    case 39: return 'RIGHT';
+    default: return 'DOWN';
+  }
+}
+
+export const findAssetIndexById = (assets: Asset[], id: number): number => {
+  return assets.findIndex((a) => a.id === id);
 };
