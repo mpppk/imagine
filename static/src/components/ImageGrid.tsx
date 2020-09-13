@@ -67,6 +67,7 @@ export const ImageGridList: React.FC<Props> = (props) => {
       <GridList cellHeight={props.cellHeight} className={classes.gridList} cols={1}>
         <VirtualizedAssetList
           assets={props.assets}
+          selectedIndex={props.selectedIndex}
           hasMoreAssets={props.hasMoreAssets}
           isScanningAssets={props.isScanningAssets}
           onRequestNextPage={props.onRequestNextPage}
