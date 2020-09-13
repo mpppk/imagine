@@ -17,7 +17,7 @@ interface Props extends VirtualizedAssetProps {
   width: number
   itemSize: number
   children: React.FC<AssetListItemProps>
-  selectedIndex: number
+  selectedIndex?: number
 }
 
 // tslint:disable-next-line:variable-name
@@ -49,7 +49,7 @@ export const VirtualizedAssetList: React.FC<Props> = (props) => {
 
     const loaderRef = useRef<any>(null);
     useEffect(() => {
-      if (loaderRef.current !== null) {
+      if (loaderRef.current !== null && props.selectedIndex !== undefined) {
         loaderRef.current._listRef.scrollToItem(props.selectedIndex);
       }
     }, [props.selectedIndex])
