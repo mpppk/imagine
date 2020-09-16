@@ -1,22 +1,22 @@
-import {all, call, put, select, takeEvery} from '@redux-saga/core/effects';
-import {ActionCreator} from "typescript-fsa";
+import { all, call, put, select, takeEvery } from '@redux-saga/core/effects';
+import { ActionCreator } from 'typescript-fsa';
 import { SagaIterator } from 'redux-saga';
-import {workspaceActionCreators} from '../actions/workspace';
-import {BoundingBoxRequest, WorkSpace} from "../models/models";
-import {indexActionCreators} from "../actions";
+import { workspaceActionCreators } from '../actions/workspace';
+import { BoundingBoxRequest, WorkSpace } from '../models/models';
+import { indexActionCreators } from '../actions';
 import {
   boundingBoxActionCreators,
   BoundingBoxAssignRequestPayload,
-  BoundingBoxUnAssignRequestPayload
-} from "../actions/box";
-import {State} from "../reducers/reducer";
-import {isDefaultBox} from "../util";
+  BoundingBoxUnAssignRequestPayload,
+} from '../actions/box';
+import { State } from '../reducers/reducer';
+import { isDefaultBox } from '../util';
 
-const scanWorkSpacesWorker = function*(workspaces: WorkSpace[]) {
+const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
   return yield put(workspaceActionCreators.select(workspaces[0]));
-}
+};
 
-const downNumberKeyWorker = function*(key: number) {
+const downNumberKeyWorker = function* (key: number) {
   const state: State = yield select();
   if (key > state.global.tags.length || !state.global.selectedAsset) {
     return;
@@ -24,17 +24,20 @@ const downNumberKeyWorker = function*(key: number) {
 
   if (!state.global.currentWorkSpace) {
     // tslint:disable-next-line:no-console
-    console.info('bounding box assign/unassign request is not sent because workspace is not selected')
-    return
+    console.info(
+      'bounding box assign/unassign request is not sent because workspace is not selected'
+    );
+    return;
   }
 
   // tag list is 0-indexed, but number key is 1-indexed
-  const tag = state.global.tags[key-1];
+  const tag = state.global.tags[key - 1];
 
   // 初期状態のboxが存在する場合はunassign
   let boxes = state.global.selectedAsset.boundingBoxes ?? [];
   boxes = boxes.filter(isDefaultBox).filter((box) => box.tag.id === tag.id);
-  if (boxes.length > 0) { // unassign
+  if (boxes.length > 0) {
+    // unassign
     for (const box of boxes) {
       const payload: BoundingBoxUnAssignRequestPayload = {
         asset: state.global.selectedAsset,
@@ -44,8 +47,10 @@ const downNumberKeyWorker = function*(key: number) {
       yield put(boundingBoxActionCreators.unAssignRequest(payload));
     }
     return;
-  } else { // assign
-    const box: BoundingBoxRequest = { // FIXME
+  } else {
+    // assign
+    const box: BoundingBoxRequest = {
+      // FIXME
       tag,
       x: 0,
       y: 0,
@@ -61,12 +66,12 @@ const downNumberKeyWorker = function*(key: number) {
 
     return yield put(boundingBoxActionCreators.assignRequest(payload));
   }
-}
+};
 
 export default function* rootSaga() {
   yield all([
     takeEveryAction(workspaceActionCreators.scanResult, scanWorkSpacesWorker)(),
-    takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)()
+    takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)(),
   ]);
 }
 

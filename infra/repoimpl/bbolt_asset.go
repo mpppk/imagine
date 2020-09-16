@@ -118,7 +118,3 @@ func (b *BBoltAsset) ForEach(ws model.WSName, f func(asset *model.Asset) error) 
 		})
 	})
 }
-
-func (b *BBoltAsset) itob(id model.AssetID) []byte {
-	return itob(uint64(id))
-}

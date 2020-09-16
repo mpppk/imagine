@@ -36,14 +36,14 @@ func (a *Asset) ListAsync(ws model.WSName) (<-chan *model.Asset, error) {
 }
 
 // AssignBoundingBox assign bounding box to asset
-func (a *Asset) AssignBoundingBox(ws model.WSName, assetId model.AssetID, box *model.BoundingBox) (*model.Asset, error) {
+func (a *Asset) AssignBoundingBox(ws model.WSName, assetID model.AssetID, box *model.BoundingBox) (*model.Asset, error) {
 	// FIXME
 	if err := a.assetRepository.Init(ws); err != nil {
 		return nil, err
 	}
-	asset, err := a.assetRepository.Get(ws, assetId) // FIXME
+	asset, err := a.assetRepository.Get(ws, assetID) // FIXME
 	if err != nil {
-		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetId, err)
+		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetID, err)
 	}
 
 	var maxId model.BoundingBoxID = 0
@@ -60,14 +60,14 @@ func (a *Asset) AssignBoundingBox(ws model.WSName, assetId model.AssetID, box *m
 	return asset, nil
 }
 
-func (a *Asset) UnAssignBoundingBox(ws model.WSName, assetId model.AssetID, boxID model.BoundingBoxID) (*model.Asset, error) {
+func (a *Asset) UnAssignBoundingBox(ws model.WSName, assetID model.AssetID, boxID model.BoundingBoxID) (*model.Asset, error) {
 	// FIXME
 	if err := a.assetRepository.Init(ws); err != nil {
 		return nil, err
 	}
-	asset, err := a.assetRepository.Get(ws, assetId) // FIXME
+	asset, err := a.assetRepository.Get(ws, assetID) // FIXME
 	if err != nil {
-		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetId, err)
+		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetID, err)
 	}
 
 	var newBoxes []*model.BoundingBox

@@ -18,7 +18,7 @@ func joinErrorMessages(messages []string) (message string) {
 		if i == len(messages)-1 {
 			prefix = "Error: "
 		}
-		message = message + fmt.Sprintln(prefix+strings.TrimSuffix(messages[i], ": "))
+		message += fmt.Sprintln(prefix + strings.TrimSuffix(messages[i], ": "))
 	}
 	return
 }

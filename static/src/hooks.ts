@@ -1,17 +1,20 @@
-import { useMemo } from 'react'
-import {useDispatch, useSelector} from 'react-redux'
+import { useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import {State} from "./reducers/reducer";
-import {assetActionCreators} from "./actions/asset";
+import { State } from './reducers/reducer';
+import { assetActionCreators } from './actions/asset';
 
-export function useActions<T extends ActionCreatorsMapObject>(actions: T, deps?: any[]) {
-  const dispatch = useDispatch()
+export function useActions<T extends ActionCreatorsMapObject>(
+  actions: T,
+  deps?: any[]
+) {
+  const dispatch = useDispatch();
   return useMemo(
     () => {
-      return bindActionCreators(actions, dispatch)
+      return bindActionCreators(actions, dispatch);
     },
     deps ? [dispatch, ...deps] : [dispatch]
-  )
+  );
 }
 
 export function useVirtualizedAsset() {
@@ -20,10 +23,12 @@ export function useVirtualizedAsset() {
 
   const loadNextPage = () => {
     if (globalState.currentWorkSpace !== null) {
-      dispatch(assetActionCreators.scanRequest({
-        requestNum: 10,
-        workSpaceName: globalState.currentWorkSpace.name,
-      }));
+      dispatch(
+        assetActionCreators.scanRequest({
+          requestNum: 10,
+          workSpaceName: globalState.currentWorkSpace.name,
+        })
+      );
     }
     return null;
   };
