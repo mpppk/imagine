@@ -20,10 +20,6 @@ func NewBBoltTag(b *bolt.DB) repository.Tag {
 	}
 }
 
-func (b *BBoltTag) bucketFunc(ws model.WSName, f func(bucket *bolt.Bucket) error) error {
-	return b.base.bucketFunc(createTagBucketNames(ws), f)
-}
-
 func (b *BBoltTag) loBucketFunc(ws model.WSName, f func(bucket *bolt.Bucket) error) error {
 	return b.base.loBucketFunc(createTagBucketNames(ws), f)
 }
@@ -109,8 +105,4 @@ func (b *BBoltTag) ForEach(ws model.WSName, f func(tag *model.Tag) error) error 
 			return f(&tag)
 		})
 	})
-}
-
-func (b *BBoltTag) itob(id model.TagID) []byte {
-	return itob(uint64(id))
 }

@@ -27,10 +27,6 @@ func NewBBoltGlobal(b *bolt.DB) repository.Global {
 	}
 }
 
-func (b *BBoltGlobal) loGlobalBucketFunc(f func(bucket *bolt.Bucket) error) error {
-	return b.base.loBucketFunc(globalBucketNames, f)
-}
-
 func (b *BBoltGlobal) globalBucketFunc(f func(bucket *bolt.Bucket) error) error {
 	return b.base.bucketFunc(globalBucketNames, f)
 }

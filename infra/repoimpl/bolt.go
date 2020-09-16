@@ -111,10 +111,6 @@ func (b *boltRepository) loBucketFunc(bucketNames []string, f func(bucket *bolt.
 	return b.bolt.View(b.internalLOBucketFunc(bucketNames, f))
 }
 
-func (b *boltRepository) close() error {
-	return b.bolt.Close()
-}
-
 type boltData interface {
 	GetID() uint64
 	SetID(id uint64)
