@@ -48,5 +48,6 @@ jobs:
         uses: github/super-linter@v3
         env:
           VALIDATE_ALL_CODEBASE: true
+          FILTER_REGEX_EXCLUDE: static/.next|static/node_modules
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
