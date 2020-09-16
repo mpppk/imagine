@@ -26,4 +26,4 @@ require (
 
 // replace github.com/zserge/lorca => ../lorca-fsa/lorca
 
-replace github.com/mpppk/lorca-fsa/lorca-fsa => ../lorca-fsa/lorca-fsa
+//replace github.com/mpppk/lorca-fsa/lorca-fsa => ../lorca-fsa/lorca-fsa
