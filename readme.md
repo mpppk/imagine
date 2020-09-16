@@ -1,4 +1,4 @@
 # imagine
 
-Tool for image labeling & management
+A tool for image labeling & management
 
