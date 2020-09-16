@@ -5,10 +5,12 @@ setup:
 	go get github.com/google/wire/cmd/wire
 	go get github.com/goreleaser/goreleaser
 	go get github.com/golang/mock/mockgen@v1.4.4
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.31.0
 
 .PHONY: lint
 lint: generate
 	go vet ./...
+	golangci-lint run
 	goreleaser check
 
 .PHONY: test

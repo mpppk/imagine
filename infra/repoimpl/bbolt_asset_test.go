@@ -121,12 +121,12 @@ func TestBBoltAsset_SearchByTags(t *testing.T) {
 				gotMsg := "\n"
 				for i, asset := range got {
 					gotMsg += fmt.Sprint(i) + pp.Sprintln(asset)
-					//gotMsg += fmt.Sprintf("%d: %#v\n", i, asset)
+					// gotMsg += fmt.Sprintf("%d: %#v\n", i, asset)
 				}
 				wantMsg := "\n"
 				for i, asset := range tt.want {
 					wantMsg += fmt.Sprint(i) + pp.Sprintln(asset)
-					//wantMsg += fmt.Sprintf("%d: %#v\n", i, asset)
+					// wantMsg += fmt.Sprintf("%d: %#v\n", i, asset)
 				}
 				t.Errorf("SearchByTags() got = %s\nwant = %s", gotMsg, wantMsg)
 			}

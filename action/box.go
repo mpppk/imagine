@@ -67,7 +67,6 @@ func (a *boxActionCreator) unassign(name model.WSName, asset *model.Asset, boxID
 }
 
 type boxAssignRequestHandler struct {
-	c                <-chan *model.Asset
 	assetUseCase     *usecase.Asset
 	boxActionCreator *boxActionCreator
 }
@@ -85,7 +84,6 @@ func (d *boxAssignRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) 
 }
 
 type boxUnAssignRequestHandler struct {
-	c                <-chan *model.Asset
 	assetUseCase     *usecase.Asset
 	boxActionCreator *boxActionCreator
 }

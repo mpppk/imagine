@@ -10,6 +10,7 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/google/wire v0.4.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
+	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3
@@ -25,4 +26,4 @@ require (
 
 // replace github.com/zserge/lorca => ../lorca-fsa/lorca
 
-// replace github.com/mpppk/lorca-fsa => ../lorca-fsa/lorca-fsa
+replace github.com/mpppk/lorca-fsa/lorca-fsa => ../lorca-fsa/lorca-fsa
