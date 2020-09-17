@@ -12,6 +12,7 @@ import {
 import {State} from '../reducers/reducer';
 import {isDefaultBox} from '../util';
 import {browserActionCreators} from "../actions/browser";
+import debounce from "lodash/debounce";
 
 const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
   return yield put(workspaceActionCreators.select(workspaces[0]));
@@ -91,12 +92,13 @@ export const takeEveryAction = <T>(
 
 function resize() {
   return eventChannel(emitter => {
-      if (window) {
-        window.addEventListener('resize', () => {
+      if (process.browser) {
+        const resizeEventHandler = debounce(() => {
           const width = window.innerWidth;
           const height = window.innerHeight;
           emitter({width, height});
-        });
+        }, 200);
+        window.addEventListener('resize', resizeEventHandler);
       }
       // tslint:disable-next-line:no-empty
       return () => {
