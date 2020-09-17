@@ -89,6 +89,7 @@ interface GlobalState {
   isLoadingWorkSpace: boolean
   isScanningDirectories: boolean
   selectedAssetIndex: number
+  imageDrawerHeight: number
 }
 
 const selector = (state: State): GlobalState => {
@@ -109,6 +110,7 @@ const selector = (state: State): GlobalState => {
     isScanningDirectories: state.indexPage.scanning,
     selectedTagId: state.global.selectedTagId,
     selectedAssetIndex,
+    imageDrawerHeight: state.global.windowHeight,
   };
 };
 
@@ -144,6 +146,7 @@ export default function Test() {
         imagePaths={globalState.imagePaths}
         onClickImage={handlers.clickImage}
         selectedIndex={globalState.selectedAssetIndex}
+        height={globalState.imageDrawerHeight}
       />
       <main className={classes.content}>
         <Toolbar/>
