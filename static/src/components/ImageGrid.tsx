@@ -28,6 +28,7 @@ interface Props extends VirtualizedAssetProps {
   paths: string[]
   onClickImage: (path: string, index: number) => void
   selectedIndex: number
+  height: number
 }
 
 // tslint:disable-next-line:variable-name
@@ -72,7 +73,7 @@ export const ImageGridList: React.FC<Props> = (props) => {
           isScanningAssets={props.isScanningAssets}
           onRequestNextPage={props.onRequestNextPage}
           workspace={props.workspace}
-          height={window.innerHeight}
+          height={props.height}
           itemSize={props.cellHeight}
           width={props.width}
         >

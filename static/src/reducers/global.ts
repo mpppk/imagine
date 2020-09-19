@@ -6,6 +6,7 @@ import {indexActionCreators} from "../actions";
 import {findAssetIndexById, immutableSplice, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import {boundingBoxActionCreators} from "../actions/box";
+import {browserActionCreators} from "../actions/browser";
 
 export const globalInitialState = {
   assets: [] as Asset[],
@@ -17,10 +18,14 @@ export const globalInitialState = {
   isScanningAssets: false,
   selectedTagId: undefined,
   workspaces: null as WorkSpace[] | null,
+  windowHeight: 720,
 };
 
 export type GlobalState = typeof globalInitialState;
 export const global = reducerWithInitialState(globalInitialState)
+  .case(browserActionCreators.resize, (state, payload) => {
+    return {...state, windowHeight: payload.height};
+  })
   .case(workspaceActionCreators.scanResult, (state, workspaces) => {
     return {...state, workspaces, isLoadingWorkSpaces: false};
   })

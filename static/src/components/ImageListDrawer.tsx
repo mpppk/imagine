@@ -26,6 +26,7 @@ interface ImageListDrawerProps extends VirtualizedAssetProps {
   imagePaths: string[]
   onClickImage: (path: string, index: number) => void
   selectedIndex: number
+  height: number
 }
 
 // tslint:disable-next-line variable-name

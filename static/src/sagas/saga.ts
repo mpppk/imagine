@@ -1,16 +1,18 @@
-import { all, call, put, select, takeEvery } from '@redux-saga/core/effects';
-import { ActionCreator } from 'typescript-fsa';
-import { SagaIterator } from 'redux-saga';
-import { workspaceActionCreators } from '../actions/workspace';
-import { BoundingBoxRequest, WorkSpace } from '../models/models';
-import { indexActionCreators } from '../actions';
+import {all, call, fork, put, select, take, takeEvery} from '@redux-saga/core/effects';
+import {ActionCreator} from 'typescript-fsa';
+import {eventChannel, SagaIterator} from 'redux-saga';
+import {workspaceActionCreators} from '../actions/workspace';
+import {BoundingBoxRequest, WorkSpace} from '../models/models';
+import {indexActionCreators} from '../actions';
 import {
   boundingBoxActionCreators,
   BoundingBoxAssignRequestPayload,
   BoundingBoxUnAssignRequestPayload,
 } from '../actions/box';
-import { State } from '../reducers/reducer';
-import { isDefaultBox } from '../util';
+import {State} from '../reducers/reducer';
+import {isDefaultBox} from '../util';
+import {browserActionCreators} from "../actions/browser";
+import debounce from "lodash/debounce";
 
 const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
   return yield put(workspaceActionCreators.select(workspaces[0]));
@@ -69,6 +71,7 @@ const downNumberKeyWorker = function* (key: number) {
 };
 
 export default function* rootSaga() {
+  yield fork(resizeSaga);
   yield all([
     takeEveryAction(workspaceActionCreators.scanResult, scanWorkSpacesWorker)(),
     takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)(),
@@ -86,3 +89,32 @@ export const takeEveryAction = <T>(
     });
   };
 };
+
+function resize() {
+  return eventChannel(emitter => {
+      if (process.browser) {
+        const resizeEventHandler = debounce(() => {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          emitter({width, height});
+        }, 200);
+        window.addEventListener('resize', resizeEventHandler);
+      }
+      // tslint:disable-next-line:no-empty
+      return () => {
+      };
+    }
+  )
+}
+
+export function* resizeSaga() {
+  const chan = yield call(resize);
+  try {
+    while (true) {
+      const payload = yield take(chan)
+      yield put(browserActionCreators.resize(payload));
+    }
+    // tslint:disable-next-line:no-empty
+  } finally {
+  }
+}
