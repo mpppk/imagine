@@ -35,6 +35,9 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     clickAddDirectoryButton: (ws: WorkSpace) => {
       indexActionDispatcher.clickAddDirectoryButton({workSpaceName: ws.name});
     },
+    clickTag: (tag: Tag) => {
+      indexActionDispatcher.selectTag(tag);
+    },
     clickAddTagButton: () => {
       const tag: Tag = {id: globalState.tags.length +1, name: ''};
       indexActionDispatcher.clickAddTagButton(tag);
@@ -178,6 +181,7 @@ export default function Test() {
         editTagId={localState.editTagId ?? undefined}
         selectedTagId={globalState.selectedTagId}
         assignedTagIds={globalState.assignedTagIds}
+        onClickItem={handlers.clickTag}
         onClickAddButton={handlers.clickAddTagButton}
         onClickEditButton={handlers.clickEditTagButton}
         onRename={handlers.renameTag}

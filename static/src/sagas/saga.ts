@@ -34,6 +34,7 @@ const downNumberKeyWorker = function* (key: number) {
 
   // tag list is 0-indexed, but number key is 1-indexed
   const tag = state.global.tags[key - 1];
+  yield put(indexActionCreators.selectTag(tag));
 
   // 初期状態のboxが存在する場合はunassign
   let boxes = state.global.selectedAsset.boundingBoxes ?? [];

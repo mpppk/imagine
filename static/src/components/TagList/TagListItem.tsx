@@ -47,6 +47,7 @@ interface Props {
   selected: boolean
   assigned: boolean
   disabled?: boolean
+  onClick: (tag: Tag) => void
   onClickEditButton: (tag: Tag) => void
   onClickDeleteButton: (tag: Tag) => void
 }
@@ -54,6 +55,9 @@ interface Props {
 const useHandlers = (props: Props) => {
   return useMemo(() => {
     return {
+      click: () => {
+        props.onClick(props.tag)
+      },
       clickDeleteButton: () => {
         props.onClickDeleteButton(props.tag)
       },
@@ -98,6 +102,7 @@ export const TagListItem: React.FC<Props> = (props) => {
   return (<Draggable key={props.tag.name} draggableId={props.tag.name} index={props.index} isDragDisabled={props.disabled}>
     {(provided, snapshot) => (
       <Paper
+        onClick={handlers.click}
         elevation={props.selected ? 4 : 1}
         ref={provided.innerRef}
         {...provided.draggableProps}
