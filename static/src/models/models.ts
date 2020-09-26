@@ -18,11 +18,16 @@ export interface BoundingBox {
 
 export type BoundingBoxRequest = Omit<BoundingBox, 'id'>;
 
+export const newEmptyBoundingBox = (tag: Tag): BoundingBoxRequest => ({
+  tag,
+  x: 0, y: 0, width: 0, height: 0
+});
+
 export interface Asset {
   id: number
   name: string
   path: string
-  boundingBoxes: BoundingBox[]
+  boundingBoxes: BoundingBox[] | null
 }
 
 // 何番目のAssetか
