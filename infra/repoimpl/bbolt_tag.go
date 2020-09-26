@@ -32,16 +32,16 @@ func (b *BBoltTag) Add(ws model.WSName, tag *model.Tag) error {
 	return b.base.add(createTagBucketNames(ws), tag)
 }
 
-func (b *BBoltTag) Get(ws model.WSName, id model.TagID) (tag *model.Tag, err error) {
-	data, err := b.base.get(createTagBucketNames(ws), uint64(id))
+func (b *BBoltTag) Get(ws model.WSName, id model.TagID) (tag *model.Tag, exist bool, err error) {
+	data, exist, err := b.base.get(createTagBucketNames(ws), uint64(id))
 	if err != nil {
-		return nil, err
+		return nil, exist, err
 	}
 	var a model.Tag
 	if err := json.Unmarshal(data, &a); err != nil {
-		return nil, err
+		return nil, exist, err
 	}
-	return &a, nil
+	return &a, exist, nil
 }
 
 func (b *BBoltTag) RecreateBucket(ws model.WSName) error {
