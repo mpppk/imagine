@@ -35,7 +35,7 @@ func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) error {
 }
 
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error) {
-	data, err := b.base.get(createAssetBucketNames(ws), uint64(id))
+	data, _, err := b.base.get(createAssetBucketNames(ws), uint64(id))
 	if err != nil {
 		return nil, err
 	}

@@ -27,6 +27,7 @@ interface TagListDrawerProps {
   editTagId?: number
   selectedTagId?: number
   assignedTagIds: number[]
+  onClickItem: (tag: Tag) => void
   onClickAddButton: () => void
   onClickEditButton: (tag: Tag) => void
   onClickDeleteButton?: (tag: Tag) => void
@@ -54,6 +55,7 @@ export const TagListDrawer: React.FunctionComponent<TagListDrawerProps> = props 
           editTagId={props.editTagId}
           selectedTagId={props.selectedTagId}
           assignedTagIds={props.assignedTagIds}
+          onClick={props.onClickItem}
           onClickAddButton={props.onClickAddButton}
           onClickEditButton={props.onClickEditButton}
           onRename={props.onRename}

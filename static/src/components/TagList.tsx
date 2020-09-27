@@ -31,6 +31,7 @@ interface Props {
   editTagId?: number
   selectedTagId?: number
   assignedTagIds: number[]
+  onClick: (tag: Tag) => void
   onClickAddButton: (tags: Tag[]) => void
   onClickEditButton: (tag: Tag) => void
   onClickDeleteButton?: (tag: Tag) => void
@@ -53,6 +54,10 @@ const useHandlers = (props: Props, localState: LocalState) => {
     return {
       clickAddButton: () => {
         props.onClickAddButton(props.tags);
+      },
+
+      clickItem: (tag: Tag) => {
+        props.onClick(tag);
       },
 
       clickItemEditButton: (tag: Tag) => {
@@ -147,6 +152,7 @@ export const TagList: React.FC<Props> = (props) => {
                     key={tag.id}
                     tag={tag}
                     index={index}
+                    onClick={handlers.clickItem}
                     onClickEditButton={handlers.clickItemEditButton}
                     onClickDeleteButton={handlers.clickItemDeleteButton}
                   />

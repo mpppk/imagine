@@ -16,7 +16,7 @@ export const globalInitialState = {
   hasMoreAssets :true,
   isLoadingWorkSpaces: true,
   isScanningAssets: false,
-  selectedTagId: undefined,
+  selectedTagId: undefined as number | undefined,
   workspaces: null as WorkSpace[] | null,
   windowHeight: 720,
 };
@@ -46,6 +46,9 @@ export const global = reducerWithInitialState(globalInitialState)
   })
   .case(workspaceActionCreators.select, (state, workspace) => {
     return {...state, currentWorkSpace: workspace};
+  })
+  .case(indexActionCreators.selectTag, (state, tag) => {
+    return {...state, selectedTagId: tag.id};
   })
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {
     return {...state, tags: [tag, ...state.tags]};

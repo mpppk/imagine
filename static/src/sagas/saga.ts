@@ -2,11 +2,10 @@ import {all, call, fork, put, select, take, takeEvery} from '@redux-saga/core/ef
 import {ActionCreator} from 'typescript-fsa';
 import {eventChannel, SagaIterator} from 'redux-saga';
 import {workspaceActionCreators} from '../actions/workspace';
-import {BoundingBoxRequest, WorkSpace} from '../models/models';
+import {AssetWithIndex, newEmptyBoundingBox, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from '../actions';
 import {
   boundingBoxActionCreators,
-  BoundingBoxAssignRequestPayload,
   BoundingBoxUnAssignRequestPayload,
 } from '../actions/box';
 import {State} from '../reducers/reducer';
@@ -16,6 +15,37 @@ import debounce from "lodash/debounce";
 
 const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
   return yield put(workspaceActionCreators.select(workspaces[0]));
+};
+
+const selectTagWorker = function* (tag: Tag): any { // FIXME any
+  const [asset, workSpaceName]: [AssetWithIndex | null, string?] = yield select<(s: State) => [AssetWithIndex | null, string?]>((s) => [s.global.selectedAsset, s.global.currentWorkSpace?.name]);
+  if (workSpaceName === undefined) {
+    // tslint:disable-next-line:no-console
+    console.warn('failed to request to assign tag because workspace name is undefined');
+    return;
+  }
+
+  if (asset === null) {
+    // tslint:disable-next-line:no-console
+    console.warn('failed to request to assign tag because asset is not selected');
+    return;
+  }
+
+  let boxes = asset.boundingBoxes;
+  if (boxes === null || boxes.length === 0) {
+    return yield put(boundingBoxActionCreators.assignRequest({
+      asset, box: newEmptyBoundingBox(tag), workSpaceName,
+    }));
+  }
+  boxes = boxes.filter(isDefaultBox).filter((box) => box.tag.id === tag.id);
+  for (const box of boxes) {
+    const payload: BoundingBoxUnAssignRequestPayload = {
+      asset,
+      boxID: box.id,
+      workSpaceName,
+    };
+    yield put(boundingBoxActionCreators.unAssignRequest(payload));
+  }
 };
 
 const downNumberKeyWorker = function* (key: number) {
@@ -34,40 +64,7 @@ const downNumberKeyWorker = function* (key: number) {
 
   // tag list is 0-indexed, but number key is 1-indexed
   const tag = state.global.tags[key - 1];
-
-  // 初期状態のboxが存在する場合はunassign
-  let boxes = state.global.selectedAsset.boundingBoxes ?? [];
-  boxes = boxes.filter(isDefaultBox).filter((box) => box.tag.id === tag.id);
-  if (boxes.length > 0) {
-    // unassign
-    for (const box of boxes) {
-      const payload: BoundingBoxUnAssignRequestPayload = {
-        asset: state.global.selectedAsset,
-        boxID: box.id,
-        workSpaceName: state.global.currentWorkSpace!.name,
-      };
-      yield put(boundingBoxActionCreators.unAssignRequest(payload));
-    }
-    return;
-  } else {
-    // assign
-    const box: BoundingBoxRequest = {
-      // FIXME
-      tag,
-      x: 0,
-      y: 0,
-      width: 0,
-      height: 0,
-    };
-
-    const payload: BoundingBoxAssignRequestPayload = {
-      asset: state.global.selectedAsset,
-      box,
-      workSpaceName: state.global.currentWorkSpace!.name,
-    };
-
-    return yield put(boundingBoxActionCreators.assignRequest(payload));
-  }
+  yield put(indexActionCreators.selectTag(tag));
 };
 
 export default function* rootSaga() {
@@ -75,6 +72,7 @@ export default function* rootSaga() {
   yield all([
     takeEveryAction(workspaceActionCreators.scanResult, scanWorkSpacesWorker)(),
     takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)(),
+    takeEveryAction(indexActionCreators.selectTag, selectTagWorker)(),
   ]);
 }
 

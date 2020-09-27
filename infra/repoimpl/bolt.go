@@ -131,15 +131,12 @@ func (b *boltRepository) add(bucketNames []string, data boltData) error {
 	})
 }
 
-func (b *boltRepository) get(bucketNames []string, id uint64) (data []byte, err error) {
+func (b *boltRepository) get(bucketNames []string, id uint64) (data []byte, exist bool, err error) {
 	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		data = bucket.Get(itob(id))
-		if data == nil {
-			return fmt.Errorf("data does not exist: %v", id)
-		}
 		return nil
 	})
-	return
+	return data, data != nil, err
 }
 
 func (b *boltRepository) update(bucketNames []string, data boltData) error {

@@ -48,7 +48,7 @@ func TestBBoltTag_Update(t *testing.T) {
 			if err := repo.Update(wsName, tt.args.tag); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			got, err := repo.Get(wsName, tt.args.tag.ID)
+			got, _, err := repo.Get(wsName, tt.args.tag.ID)
 			if err != nil {
 				t.Errorf("failed to get tag: %v: %v", newTag.ID, err)
 			}
