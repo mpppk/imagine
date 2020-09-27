@@ -32,12 +32,18 @@ const selectTagWorker = function* (tag: Tag): any { // FIXME any
   }
 
   let boxes = asset.boundingBoxes;
-  if (boxes === null || boxes.length === 0) {
+  if (boxes === null) {
     return yield put(boundingBoxActionCreators.assignRequest({
       asset, box: newEmptyBoundingBox(tag), workSpaceName,
     }));
   }
   boxes = boxes.filter(isDefaultBox).filter((box) => box.tag.id === tag.id);
+  if (boxes.length === 0) {
+    return yield put(boundingBoxActionCreators.assignRequest({
+      asset, box: newEmptyBoundingBox(tag), workSpaceName,
+    }));
+  }
+
   for (const box of boxes) {
     const payload: BoundingBoxUnAssignRequestPayload = {
       asset,
