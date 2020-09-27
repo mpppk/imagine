@@ -44,6 +44,7 @@ const useHandlers = (props: Props, localState: LocalState) => {
       submitTagName: (data: any) => {
         props.onFinishEdit({...props.tag, name: data.tagName})
       },
+      keyDown: (e: React.KeyboardEvent<HTMLFormElement>) => e.stopPropagation(),
     };
   }, [props, localState])
 }
@@ -93,7 +94,7 @@ export const EditingTagListItem: React.FC<Props> = (props) => {
       <Paper
         className={viewState.paper.className}
       >
-        <form onSubmit={handleSubmit(handlers.submitTagName)}>
+        <form onSubmit={handleSubmit(handlers.submitTagName)} onKeyDown={handlers.keyDown}>
           <Controller
             as={TextField}
             name="tagName"
