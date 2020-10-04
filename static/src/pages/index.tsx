@@ -6,9 +6,10 @@ import {resetServerContext} from "react-beautiful-dnd";
 import {useSelector} from "react-redux";
 import {indexActionCreators} from "../actions";
 import {ImageListDrawer} from "../components/ImageListDrawer";
+import {ImagePreview} from "../components/ImagePreview";
 import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
-import {Asset, Tag, WorkSpace} from "../models/models";
+import {Asset, AssetWithIndex, Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import {assetPathToUrl, findAssetIndexById, isArrowKeyCode, keyCodeToDirection} from "../util";
 import {tagActionCreators} from "../actions/tag";
@@ -85,6 +86,7 @@ interface GlobalState {
   assets: Asset[]
   assignedTagIds: number[]
   selectedTagId?: number
+  selectedAsset: AssetWithIndex | null
   selectedAssetUrl?: string
   currentWorkSpace: WorkSpace | null
   tags: Tag[]
@@ -104,6 +106,7 @@ const selector = (state: State): GlobalState => {
   return {
     assets: state.global.assets,
     assignedTagIds: uniq(assignedTagIds),
+    selectedAsset: state.global.selectedAsset,
     selectedAssetUrl: state.global.selectedAsset === null ?
      undefined : assetPathToUrl(state.global.selectedAsset?.path),
     currentWorkSpace: state.global.currentWorkSpace,
@@ -153,10 +156,9 @@ export default function Test() {
       />
       <main className={classes.content}>
         <Toolbar/>
-        {globalState.selectedAssetUrl === null ? null : <img
+        {globalState.selectedAssetUrl === undefined || globalState.selectedAsset === null ? null : <ImagePreview
           src={globalState.selectedAssetUrl}
-          alt={globalState.selectedAssetUrl}
-          width='100%'
+          asset={globalState.selectedAsset}
         />}
         <Typography paragraph={true}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
