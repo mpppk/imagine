@@ -9,11 +9,12 @@ import {ImageListDrawer} from "../components/ImageListDrawer";
 import {ImagePreview} from "../components/ImagePreview";
 import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
-import {Asset, AssetWithIndex, Tag, WorkSpace} from "../models/models";
+import {Asset, AssetWithIndex, BoundingBox, Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import {assetPathToUrl, findAssetIndexById, isArrowKeyCode, keyCodeToDirection} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import uniq from "lodash/uniq";
+import {boundingBoxActionCreators} from "../actions/box";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -30,6 +31,8 @@ const useStyles = makeStyles((theme: Theme) =>
 const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => void, globalState: GlobalState) => {
   const indexActionDispatcher = useActions(indexActionCreators);
   const tagActionDispatcher = useActions(tagActionCreators);
+  const boxActionDispatcher = useActions(boundingBoxActionCreators);
+
   return {
     ...indexActionDispatcher,
     ...tagActionDispatcher,
@@ -40,7 +43,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
       indexActionDispatcher.selectTag(tag);
     },
     clickAddTagButton: () => {
-      const tag: Tag = {id: globalState.tags.length +1, name: ''};
+      const tag: Tag = {id: globalState.tags.length + 1, name: ''};
       indexActionDispatcher.clickAddTagButton(tag);
       setLocalState({...localState, editTagId: tag.id});
     },
@@ -71,14 +74,24 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     keyDown: (e: any) => {
       e.preventDefault();
       if (e.keyCode >= 48 && e.keyCode <= 57) {
-        indexActionDispatcher.downNumberKey(e.keyCode-48);
+        indexActionDispatcher.downNumberKey(e.keyCode - 48);
         return;
       }
 
       if (isArrowKeyCode(e.keyCode)) {
         indexActionDispatcher.downArrowKey(keyCodeToDirection(e.keyCode));
       }
-    }
+    },
+    onBoundingBoxModify: (box: BoundingBox) => {
+      if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
+        return;
+      }
+      boxActionDispatcher.modify({
+        workSpaceName: globalState.currentWorkSpace.name,
+        asset: globalState.selectedAsset,
+        box,
+      })
+    },
   };
 }
 
@@ -108,7 +121,7 @@ const selector = (state: State): GlobalState => {
     assignedTagIds: uniq(assignedTagIds),
     selectedAsset: state.global.selectedAsset,
     selectedAssetUrl: state.global.selectedAsset === null ?
-     undefined : assetPathToUrl(state.global.selectedAsset?.path),
+      undefined : assetPathToUrl(state.global.selectedAsset?.path),
     currentWorkSpace: state.global.currentWorkSpace,
     tags: state.global.tags,
     imagePaths: state.global.assets.map((a) => assetPathToUrl(a.path)),
@@ -159,6 +172,7 @@ export default function Test() {
         {globalState.selectedAssetUrl === undefined || globalState.selectedAsset === null ? null : <ImagePreview
           src={globalState.selectedAssetUrl}
           asset={globalState.selectedAsset}
+          onBoundingBoxModify={handlers.onBoundingBoxModify}
         />}
         <Typography paragraph={true}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt

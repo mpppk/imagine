@@ -1,5 +1,5 @@
 import actionCreatorFactory from 'typescript-fsa';
-import {Asset, BoundingBoxRequest} from "../models/models";
+import {Asset, BoundingBox, BoundingBoxRequest} from "../models/models";
 import {WSPayload} from "./workspace";
 
 const boundingBoxActionCreatorFactory = actionCreatorFactory('BOUNDING_BOX');
@@ -24,9 +24,15 @@ export interface BoundingBoxUnAssignPayload extends WSPayload {
   boxID: number
 }
 
+export interface BoundingBoxModifyPayload extends WSPayload {
+  asset: Asset
+  box: BoundingBox
+}
+
 export const boundingBoxActionCreators = {
   assignRequest: boundingBoxActionCreatorFactory<BoundingBoxAssignRequestPayload>('ASSIGN/REQUEST'),
   assign: boundingBoxActionCreatorFactory<BoundingBoxAssignPayload>('ASSIGN'),
   unAssignRequest: boundingBoxActionCreatorFactory<BoundingBoxUnAssignRequestPayload>('UNASSIGN/REQUEST'),
   unAssign: boundingBoxActionCreatorFactory<BoundingBoxUnAssignPayload>('UNASSIGN'),
+  modify: boundingBoxActionCreatorFactory<BoundingBoxModifyPayload>('MODIFY'),
 };
