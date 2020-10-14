@@ -17,7 +17,7 @@ require (
 	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20200916170540-145bd67d1a8e
 	github.com/rhysd/go-github-selfupdate v1.2.2
 	github.com/spf13/afero v1.4.1
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.1.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	go.etcd.io/bbolt v1.3.5
