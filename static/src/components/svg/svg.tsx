@@ -9,4 +9,3 @@ export interface Layer extends DraggableHandlers {
   x: Pixel;
   y: Pixel;
 }
-

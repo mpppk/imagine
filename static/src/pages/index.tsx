@@ -86,7 +86,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
       if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
         return;
       }
-      boxActionDispatcher.modify({
+      boxActionDispatcher.modifyRequest({
         workSpaceName: globalState.currentWorkSpace.name,
         asset: globalState.selectedAsset,
         box,

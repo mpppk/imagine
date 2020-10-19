@@ -35,4 +35,5 @@ export const boundingBoxActionCreators = {
   unAssignRequest: boundingBoxActionCreatorFactory<BoundingBoxUnAssignRequestPayload>('UNASSIGN/REQUEST'),
   unAssign: boundingBoxActionCreatorFactory<BoundingBoxUnAssignPayload>('UNASSIGN'),
   modify: boundingBoxActionCreatorFactory<BoundingBoxModifyPayload>('MODIFY'),
+  modifyRequest: boundingBoxActionCreatorFactory<BoundingBoxModifyPayload>('MODIFY/REQUEST'),
 };

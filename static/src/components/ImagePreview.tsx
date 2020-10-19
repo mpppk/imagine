@@ -4,7 +4,7 @@ import React, {useMemo} from "react";
 import {AssetWithIndex, BoundingBox} from "../models/models";
 import {isDefaultBox} from "../util";
 import {RectLayer} from "./svg/RectLayer";
-import {Layer, Pixel} from "./svg/svg";
+import {Pixel} from "./svg/svg";
 
 const useStyles = makeStyles((theme: Theme) => {
   return {
@@ -31,13 +31,19 @@ export type BoundingBoxModifyHandler = (box: BoundingBox) => void;
 // }
 
 const createRectProp = (onBoundingBoxModify: BoundingBoxModifyHandler) => (box: BoundingBox) => {
-  const rectLayerProp: Layer & {key: any} = {
+  const rectLayerProp = {
     onMove: (dx: Pixel, dy: Pixel) => {
       // FIXME
       onBoundingBoxModify({
         ...box,
         x: box.x+dx,
         y: box.y+dy,
+      });
+    },
+    onScale: (width: number, height: number) => {
+      onBoundingBoxModify({
+        ...box,
+        width,height,
       });
     },
     id: box.id,
@@ -70,7 +76,12 @@ export const ImagePreview: React.FC<Props> = (props) => {
       <svg id="canvas" viewBox="0 0 500 500" width="500" height="500">
         <image href={props.src} width={'100%'}/>
         {viewState.rectProps.map((rectProp) => {
-          return <RectLayer src={rectProp} key={rectProp.key} className={classes.rect}/>
+          return <RectLayer
+            src={rectProp}
+            key={rectProp.key}
+            className={classes.rect}
+            onScale={rectProp.onScale}
+          />
         })}
       </svg>
     </div>
