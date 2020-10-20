@@ -18,7 +18,8 @@ const useStyles = makeStyles((theme: Theme) => {
 });
 
 export type BoundingBoxModifyHandler = (box: BoundingBox) => void;
-  interface Props {
+
+interface Props {
   src: string
   asset: AssetWithIndex
   onBoundingBoxModify: BoundingBoxModifyHandler
@@ -32,19 +33,22 @@ export type BoundingBoxModifyHandler = (box: BoundingBox) => void;
 
 const createRectProp = (onBoundingBoxModify: BoundingBoxModifyHandler) => (box: BoundingBox) => {
   const rectLayerProp = {
-    onMove: (dx: Pixel, dy: Pixel) => {
+    onMove: (_dx: Pixel, _dy: Pixel) => {
+      // onMove: (dx: Pixel, dy: Pixel) => {
       // FIXME
       onBoundingBoxModify({
         ...box,
-        x: box.x+dx,
-        y: box.y+dy,
+        x: 0,
+        y: 0,
+        // x: box.x + dx,
+        // y: box.y + dy,
       });
     },
-    onScale: (width: number, height: number) => {
-      onBoundingBoxModify({
-        ...box,
-        width,height,
-      });
+    onScale: (width: Pixel, height: Pixel) => {
+        onBoundingBoxModify({
+          ...box,
+          width, height,
+        });
     },
     id: box.id,
     width: box.width as Pixel,

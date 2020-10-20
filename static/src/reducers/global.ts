@@ -3,7 +3,7 @@ import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
 import {Asset, AssetWithIndex, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
-import {findAssetIndexById, immutableSplice, replaceBy} from "../util";
+import {findAssetIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import {boundingBoxActionCreators} from "../actions/box";
 import {browserActionCreators} from "../actions/browser";
@@ -80,6 +80,15 @@ export const global = reducerWithInitialState(globalInitialState)
     // FIXME: O(n)
     const index = findAssetIndexById(state.assets, payload.asset.id);
     return {...state, ...updateAssets(state, {...payload.asset, index})};
+  })
+  .case(boundingBoxActionCreators.modifyRequest, (state, payload) => {
+    // FIXME: O(n)
+    const index = findAssetIndexById(state.assets, payload.asset.id);
+    if (payload.asset.boundingBoxes == null) {
+      return state;
+    }
+    const newBoxes = replaceBoxById(payload.asset.boundingBoxes, payload.box)
+    return {...state, ...updateAssets(state, {...payload.asset, index, boundingBoxes: newBoxes})};
   })
   .case(indexActionCreators.downArrowKey, (state, payload) => {
     if (!state.selectedAsset) {

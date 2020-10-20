@@ -14,6 +14,7 @@ import {State} from "../reducers/reducer";
 import {assetPathToUrl, findAssetIndexById, isArrowKeyCode, keyCodeToDirection} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import uniq from "lodash/uniq";
+import _ from "lodash";
 import {boundingBoxActionCreators} from "../actions/box";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -59,7 +60,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     clickEditTagButton: (tag: Tag) => {
       setLocalState({...localState, editTagId: tag.id});
     },
-    clickImage: (_: string, index: number) => {
+    clickImage: (__: string, index: number) => {
       indexActionDispatcher.assetSelect(globalState.assets[index])
     },
     updateTags: (tags: Tag[]) => {
@@ -82,7 +83,8 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         indexActionDispatcher.downArrowKey(keyCodeToDirection(e.keyCode));
       }
     },
-    onBoundingBoxModify: (box: BoundingBox) => {
+
+    onBoundingBoxModify: _.debounce((box: BoundingBox) => {
       if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
         return;
       }
@@ -91,7 +93,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         asset: globalState.selectedAsset,
         box,
       })
-    },
+    }, 50, {maxWait: 150}),
   };
 }
 

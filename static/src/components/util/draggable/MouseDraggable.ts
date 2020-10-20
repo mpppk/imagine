@@ -5,14 +5,14 @@ export class MouseDraggable<E extends SVGElement> implements Draggable {
   constructor(private element: E, private handlers: DraggableHandlers) {
     const passive = {passive: true};
     this.element.addEventListener("mousedown", this._onDragStart, passive);
-    this.element.addEventListener("mousemove", this._onDrag, passive);
-    this.element.addEventListener("mouseup", this._onDragEnd, passive);
+    window.addEventListener("mousemove", this._onDrag, passive);
+    window.addEventListener("mouseup", this._onDragEnd, passive);
   }
 
   destroy() {
-    this.element.removeEventListener("dragstart", this._onDragStart);
-    this.element.removeEventListener("drag", this._onDrag);
-    this.element.removeEventListener("dragend", this._onDragEnd);
+    this.element.removeEventListener("mousedown", this._onDragStart);
+    window.removeEventListener("mousemove", this._onDrag);
+    window.removeEventListener("mouseup", this._onDragEnd);
   }
 
   private initialDrag?: { x: Pixel, y: Pixel }

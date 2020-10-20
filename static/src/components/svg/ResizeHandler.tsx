@@ -4,10 +4,10 @@ import {useDrag} from "../util/draggable/draggable";
 interface Props {
   width: Pixel
   height: Pixel
-  onMove(x: Pixel, y: Pixel): void;
+  onScale(x: Pixel, y: Pixel): void;
 }
 
-const HANDLE_SIZE = 20 as Pixel;
+const HANDLE_SIZE = 10 as Pixel;
 
 /**
  * 実際のリサイズハンドラよりもどのくらい当たり判定を大きくするか
@@ -17,10 +17,10 @@ const TOLERANCE = 4 as Pixel;
 export function ResizeHandler({
   width,
   height,
-  onMove,
+  onScale,
 }: Props) {
   const ref = useDrag("ontouchstart" in window, {
-    onMove,
+    onMove: onScale,
   });
 
   const x = width - HANDLE_SIZE / 2;
