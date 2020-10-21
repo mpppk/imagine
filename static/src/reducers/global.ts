@@ -3,7 +3,7 @@ import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
 import {Asset, AssetWithIndex, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
-import {findAssetIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
+import {findAssetIndexById, findBoxIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import {boundingBoxActionCreators} from "../actions/box";
 import {browserActionCreators} from "../actions/browser";
@@ -13,7 +13,7 @@ export const globalInitialState = {
   selectedAsset: null as AssetWithIndex | null,
   tags: [] as Tag[],
   currentWorkSpace: null as WorkSpace | null,
-  hasMoreAssets :true,
+  hasMoreAssets: true,
   isLoadingWorkSpaces: true,
   isScanningAssets: false,
   selectedTagId: undefined as number | undefined,
@@ -90,22 +90,40 @@ export const global = reducerWithInitialState(globalInitialState)
     const newBoxes = replaceBoxById(payload.asset.boundingBoxes, payload.box)
     return {...state, ...updateAssets(state, {...payload.asset, index, boundingBoxes: newBoxes})};
   })
+  .case(boundingBoxActionCreators.move, (state, payload) => {
+    // FIXME: O(n)
+    const index = findAssetIndexById(state.assets, payload.assetID);
+    const asset = state.assets[index];
+    if (asset.boundingBoxes == null) {
+      return state;
+    }
+    const boxIndex = findBoxIndexById(asset.boundingBoxes, payload.boxID);
+    const box = asset.boundingBoxes[boxIndex];
+    // FIXME: magic number 500
+    const newBox = {
+      ...box,
+      x: Math.max(Math.min(box.x + payload.dx, 500 - box.width), 0),
+      y: Math.max(Math.min(box.y + payload.dy, 500 - box.height), 0),
+    }
+    const newBoxes = replaceBoxById(asset.boundingBoxes, newBox);
+    return {...state, ...updateAssets(state, {...asset, index, boundingBoxes: newBoxes})};
+  })
   .case(indexActionCreators.downArrowKey, (state, payload) => {
     if (!state.selectedAsset) {
       return {...state};
     }
     const index = findAssetIndexById(state.assets, state.selectedAsset.id);
-    switch(payload) {
+    switch (payload) {
       case 'UP':
         if (index === 0) {
           return {...state};
         }
-        return {...state, selectedAsset: {...state.assets[index-1], index: index-1}};
+        return {...state, selectedAsset: {...state.assets[index - 1], index: index - 1}};
       case 'DOWN':
-        if (index === state.assets.length-1) {
+        if (index === state.assets.length - 1) {
           return {...state};
         }
-        return {...state, selectedAsset: {...state.assets[index+1], index: index+1}};
+        return {...state, selectedAsset: {...state.assets[index + 1], index: index + 1}};
       default:
         return {...state};
     }
