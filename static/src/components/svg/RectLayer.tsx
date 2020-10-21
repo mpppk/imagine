@@ -3,8 +3,7 @@ import React from "react";
 import {useDrag} from "../util/draggable/draggable";
 import {ResizeHandler} from "./ResizeHandler";
 
-interface Props {
-  src: Layer;
+interface Props extends Layer {
   className?: string;
   onScale: (width: Pixel, height: Pixel) => void;
 }
@@ -21,11 +20,11 @@ interface Props {
 //   }, [el]);
 // };
 
-export function RectLayer({src, className, onScale}: Props) {
+export function RectLayer(props: Props) {
   const ref = useDrag("ontouchstart" in window, {
-    onMove: src.onMove,
-    onDragStart: src.onDragStart,
-    onDragEnd: src.onDragEnd,
+    onMove: props.onMove,
+    onDragStart: props.onDragStart,
+    onDragEnd: props.onDragEnd,
   });
 
   const {width, height} = ref.current === null ?
@@ -33,18 +32,19 @@ export function RectLayer({src, className, onScale}: Props) {
     ref.current.getBoundingClientRect();
 
   const handleScale = (dx: Pixel, dy: Pixel) => {
-    onScale(Math.max(width + dx, 0), Math.max(height + dy, 0))
+    props.onScale(Math.max(props.width + dx, 0), Math.max(props.height + dy, 0))
+    // onScale(Math.max(width + dx, 0), Math.max(height + dy, 0))
   };
 
   return (
     <>
       <rect
-        className={className}
+        className={props.className}
         fill="orange"
-        width={src.width}
-        height={src.height}
-        x={src.x}
-        y={src.y}
+        width={props.width}
+        height={props.height}
+        x={props.x}
+        y={props.y}
         ref={ref}
       />
       <ResizeHandler width={width} height={height} onScale={handleScale}/>

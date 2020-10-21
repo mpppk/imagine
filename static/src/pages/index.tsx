@@ -16,6 +16,7 @@ import {tagActionCreators} from "../actions/tag";
 import uniq from "lodash/uniq";
 import _ from "lodash";
 import {boundingBoxActionCreators} from "../actions/box";
+import {Pixel} from "../components/svg/svg";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -84,14 +85,37 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
       }
     },
 
-    onBoundingBoxModify: _.debounce((box: BoundingBox) => {
+    // onBoundingBoxModify: _.debounce((box: BoundingBox) => {
+    //   if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
+    //     return;
+    //   }
+    //   boxActionDispatcher.modifyRequest({
+    //     workSpaceName: globalState.currentWorkSpace.name,
+    //     asset: globalState.selectedAsset,
+    //     box,
+    //   })
+    // }, 50, {maxWait: 150}),
+
+    onMoveBoundingBox: _.debounce((box: BoundingBox, dx: Pixel, dy: Pixel) => {
       if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
         return;
       }
-      boxActionDispatcher.modifyRequest({
+      boxActionDispatcher.move({
         workSpaceName: globalState.currentWorkSpace.name,
-        asset: globalState.selectedAsset,
-        box,
+        assetID: globalState.selectedAsset.id,
+        boxID: box.id,
+        dx, dy,
+      })
+    }, 50, {maxWait: 150}),
+    onScaleBoundingBox: _.debounce((box: BoundingBox, dx: Pixel, dy: Pixel) => {
+      if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
+        return;
+      }
+      boxActionDispatcher.scale({
+        workSpaceName: globalState.currentWorkSpace.name,
+        assetID: globalState.selectedAsset.id,
+        boxID: box.id,
+        dx, dy,
       })
     }, 50, {maxWait: 150}),
   };
@@ -174,7 +198,8 @@ export default function Test() {
         {globalState.selectedAssetUrl === undefined || globalState.selectedAsset === null ? null : <ImagePreview
           src={globalState.selectedAssetUrl}
           asset={globalState.selectedAsset}
-          onBoundingBoxModify={handlers.onBoundingBoxModify}
+          onMoveBoundingBox={handlers.onMoveBoundingBox}
+          onScaleBoundingBox={handlers.onScaleBoundingBox}
         />}
         <Typography paragraph={true}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt

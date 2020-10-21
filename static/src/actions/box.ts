@@ -1,6 +1,7 @@
 import actionCreatorFactory from 'typescript-fsa';
 import {Asset, BoundingBox, BoundingBoxRequest} from "../models/models";
 import {WSPayload} from "./workspace";
+import {Pixel} from "../components/svg/svg";
 
 const boundingBoxActionCreatorFactory = actionCreatorFactory('BOUNDING_BOX');
 
@@ -29,6 +30,20 @@ export interface BoundingBoxModifyPayload extends WSPayload {
   box: BoundingBox
 }
 
+export interface BoundingBoxMovePayload extends WSPayload {
+  assetID: number
+  boxID: number
+  dx: Pixel
+  dy: Pixel
+}
+
+export interface BoundingBoxScalePayload extends WSPayload {
+  assetID: number
+  boxID: number
+  dx: Pixel
+  dy: Pixel
+}
+
 export const boundingBoxActionCreators = {
   assignRequest: boundingBoxActionCreatorFactory<BoundingBoxAssignRequestPayload>('ASSIGN/REQUEST'),
   assign: boundingBoxActionCreatorFactory<BoundingBoxAssignPayload>('ASSIGN'),
@@ -36,4 +51,6 @@ export const boundingBoxActionCreators = {
   unAssign: boundingBoxActionCreatorFactory<BoundingBoxUnAssignPayload>('UNASSIGN'),
   modify: boundingBoxActionCreatorFactory<BoundingBoxModifyPayload>('MODIFY'),
   modifyRequest: boundingBoxActionCreatorFactory<BoundingBoxModifyPayload>('MODIFY/REQUEST'),
+  move: boundingBoxActionCreatorFactory<BoundingBoxScalePayload>('MOVE'),
+  scale: boundingBoxActionCreatorFactory<BoundingBoxScalePayload>('SCALE'),
 };

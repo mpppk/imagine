@@ -4,8 +4,8 @@ export type Pixel = number;
 
 export interface Layer extends DraggableHandlers {
   id: number;
-  width: Pixel | string;
-  height: Pixel | string;
+  width: Pixel;
+  height: Pixel;
   x: Pixel;
   y: Pixel;
 }

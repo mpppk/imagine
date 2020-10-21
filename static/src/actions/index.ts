@@ -1,9 +1,13 @@
 import actionCreatorFactory from 'typescript-fsa';
 import {Asset, Direction, Tag} from "../models/models";
 import {WSPayload} from "./workspace";
-import {BoundingBoxModifyPayload} from "./box";
 
 const indexActionCreatorFactory = actionCreatorFactory('INDEX');
+
+export interface DragResizeHandlerPayload {
+  dx: number;
+  dy: number;
+}
 
 export const indexActionCreators = {
   selectTag: indexActionCreatorFactory<Tag>('TAG/SELECT'),
@@ -13,6 +17,6 @@ export const indexActionCreators = {
   downNumberKey: indexActionCreatorFactory<number>('NUMBER_KEY/DOWN'),
   downArrowKey: indexActionCreatorFactory<Direction>('ARROW_KEY/DOWN'),
   assetSelect: indexActionCreatorFactory<Asset>('ASSET/SELECT'),
-  dragResizeHandler: indexActionCreatorFactory<BoundingBoxModifyPayload>('RESIZE_HANDLER/DRAG'),
+  dragResizeHandler: indexActionCreatorFactory<DragResizeHandlerPayload>('RESIZE_HANDLER/DRAG'),
 };
 
