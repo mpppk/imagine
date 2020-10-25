@@ -9,8 +9,6 @@ import (
 
 	"github.com/mpppk/imagine/domain/model"
 
-	"github.com/spf13/viper"
-
 	"github.com/mpppk/imagine/cmd/option"
 	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/spf13/afero"
@@ -23,12 +21,6 @@ func newAssetDeleteCmd(fs afero.Fs) (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "delete assets",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if err := viper.BindPFlag("db", cmd.Flags().Lookup("db")); err != nil {
-				return err
-			}
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			conf, err := option.NewAssetDeleteCmdConfigFromViper(args)
 			if err != nil {
@@ -69,29 +61,6 @@ func newAssetDeleteCmd(fs afero.Fs) (*cobra.Command, error) {
 		},
 	}
 
-	registerFlags := func(cmd *cobra.Command) error {
-		flags := []option.Flag{
-			&option.StringFlag{
-				BaseFlag: &option.BaseFlag{
-					Name:       "db",
-					Usage:      "db file path",
-					IsRequired: true,
-				},
-			},
-			&option.StringFlag{
-				BaseFlag: &option.BaseFlag{
-					Name:  "workspace",
-					Usage: "workspace name",
-				},
-				Value: "default-workspace",
-			},
-		}
-		return option.RegisterFlags(cmd, flags)
-	}
-
-	if err := registerFlags(cmd); err != nil {
-		return nil, err
-	}
 	return cmd, nil
 }
 

@@ -7,8 +7,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/spf13/viper"
-
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -25,12 +23,6 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "update assets",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if err := viper.BindPFlag("db", cmd.Flags().Lookup("db")); err != nil {
-				return err
-			}
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			conf, err := option.NewAssetAddCmdConfigFromViper(args)
 			if err != nil {
@@ -88,20 +80,6 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 
 	registerFlags := func(cmd *cobra.Command) error {
 		flags := []option.Flag{
-			&option.StringFlag{
-				BaseFlag: &option.BaseFlag{
-					Name:       "db",
-					Usage:      "db file path",
-					IsRequired: true,
-				},
-			},
-			&option.StringFlag{
-				BaseFlag: &option.BaseFlag{
-					Name:  "workspace",
-					Usage: "workspace name",
-				},
-				Value: "default-workspace",
-			},
 			&option.BoolFlag{
 				BaseFlag: &option.BaseFlag{
 					Name:  "new",
