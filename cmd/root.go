@@ -26,8 +26,12 @@ import (
 var cfgFile string
 
 // NewRootCmd generate root cmd
-func NewRootCmd(fs afero.Fs) (*cobra.Command, error) {
-	pPreRunE := func(cmd *cobra.Command, args []string) error {
+var rootCmd = &cobra.Command{
+	Use:           "imagine",
+	Short:         "imagine",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SetOut(os.Stdout)
 		conf, err := option.NewRootCmdConfigFromViper()
 		if err != nil {
@@ -35,71 +39,53 @@ func NewRootCmd(fs afero.Fs) (*cobra.Command, error) {
 		}
 		util.InitializeLog(conf.Verbose)
 		return nil
-	}
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		//devMode := false
+		//if len(os.Args) > 1 && os.Args[1] == "dev" {
+		//	devMode = true
+		//}
+		devMode := true
 
-	cmd := &cobra.Command{
-		Use:               "imagine",
-		Short:             "imagine",
-		SilenceErrors:     true,
-		SilenceUsage:      true,
-		PersistentPreRunE: pPreRunE,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			//devMode := false
-			//if len(os.Args) > 1 && os.Args[1] == "dev" {
-			//	devMode = true
-			//}
-			devMode := true
+		db, err := bbolt.Open("test.db", 0600, nil)
+		if err != nil {
+			return fmt.Errorf("failed to open DB: %w", err)
+		}
 
-			db, err := bbolt.Open("test.db", 0600, nil)
-			if err != nil {
-				return fmt.Errorf("failed to open DB: %w", err)
-			}
+		logger := colog.NewCoLog(os.Stdout, "", 0).NewLogger()
 
-			logger := colog.NewCoLog(os.Stdout, "", 0).NewLogger()
+		handlers := registry.NewHandlers(db)
+		config := &fsa.LorcaConfig{
+			AppName:          "imagine",
+			Url:              "http://localhost:3000",
+			Width:            1080,
+			Height:           720,
+			EnableExtensions: devMode,
+			Handlers:         handlers,
+			Logger:           logger,
+		}
 
-			handlers := registry.NewHandlers(db)
-			config := &fsa.LorcaConfig{
-				AppName:          "imagine",
-				Url:              "http://localhost:3000",
-				Width:            1080,
-				Height:           720,
-				EnableExtensions: devMode,
-				Handlers:         handlers,
-				Logger:           logger,
-			}
-
-			ui, err := fsa.Start(config)
-			if err != nil {
+		ui, err := fsa.Start(config)
+		if err != nil {
+			panic(err)
+		}
+		defer func() {
+			if err := ui.Close(); err != nil {
 				panic(err)
 			}
-			defer func() {
-				if err := ui.Close(); err != nil {
-					panic(err)
-				}
-			}()
+		}()
 
-			http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("/"))))
+		http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("/"))))
 
-			go func() {
-				if err := http.ListenAndServe(":1323", nil); err != nil {
-					log.Fatal("ListenAndServe: ", err)
-				}
-			}()
+		go func() {
+			if err := http.ListenAndServe(":1323", nil); err != nil {
+				log.Fatal("ListenAndServe: ", err)
+			}
+		}()
 
-			fsa.Wait(ui)
-			return nil
-		},
-	}
-
-	if err := registerSubCommands(fs, cmd); err != nil {
-		return nil, err
-	}
-
-	if err := registerFlags(cmd); err != nil {
-		return nil, err
-	}
-
-	return cmd, nil
+		fsa.Wait(ui)
+		return nil
+	},
 }
 
 func registerSubCommands(fs afero.Fs, cmd *cobra.Command) error {
@@ -137,10 +123,15 @@ func registerFlags(cmd *cobra.Command) error {
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	rootCmd, err := NewRootCmd(afero.NewOsFs())
-	if err != nil {
+	fs := afero.NewOsFs()
+	if err := registerSubCommands(fs, rootCmd); err != nil {
 		panic(err)
 	}
+
+	if err := registerFlags(rootCmd); err != nil {
+		panic(err)
+	}
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Print(util.PrettyPrintError(err))
 		os.Exit(1)

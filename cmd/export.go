@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/spf13/viper"
+
 	"github.com/mpppk/imagine/cmd/option"
 	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/mpppk/imagine/usecase"
@@ -17,6 +19,12 @@ func newExportCmd(fs afero.Fs) (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:   "export",
 		Short: "export tags",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if err := viper.BindPFlag("db", cmd.Flags().Lookup("db")); err != nil {
+				return err
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			conf, err := option.NewExportCmdConfigFromViper(args)
 			if err != nil {
