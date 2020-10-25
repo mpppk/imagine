@@ -10,34 +10,12 @@ interface Props extends Layer {
   onScaleEnd?: (width: Pixel, height: Pixel) => void;
 }
 
-// const useResizeObserver = (el: Element | null, callback: ResizeObserverCallback) => {
-//   // const [width, setWidth] = useState(0);
-//   // const [height, setHeight] = useState(0);
-//
-//   useEffect(() => {
-//     const resizeObserver = new ResizeObserver(callback);
-//     if (el !== null) {
-//       resizeObserver.observe(el);
-//     }
-//   }, [el]);
-// };
-
-// 開始時のx, y, w, hを保持して、onScaleとonMoveにいい感じに返す
 export function RectLayer(props: Props) {
   const ref = useDrag("ontouchstart" in window, {
     onMove: props.onMove,
     onDragStart: props.onDragStart,
     onDragEnd: props.onDragEnd,
   });
-
-  // const {width, height} = ref.current === null ?
-  //   {width: 0, height: 0} :
-  //   ref.current.getBoundingClientRect();
-
-  // const handleScale = (dx: Pixel, dy: Pixel) => {
-  //   props.onScale(Math.max(props.width + dx, 0), Math.max(props.height + dy, 0))
-  //   onScale(Math.max(width + dx, 0), Math.max(height + dy, 0))
-  // };
 
   return (
     <>
