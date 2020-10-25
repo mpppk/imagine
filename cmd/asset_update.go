@@ -59,10 +59,24 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 					}
 					log.Printf("debug: asset added: %#v", asset)
 				} else {
+					ok, err := assetRepository.Has(conf.WorkSpace, asset.ID)
+					if err != nil {
+						return fmt.Errorf("failed to check asset. image path: %s: %w", asset.Path, err)
+					} else if !ok {
+						if conf.New {
+							if err := assetRepository.Add(conf.WorkSpace, &asset); err != nil {
+								return fmt.Errorf("failed to add asset: %w", err)
+							}
+							log.Printf("debug: asset added: %#v", asset)
+						} else {
+							log.Printf("debug: asset skipped because it does not exist: id:%d", asset.ID)
+						}
+						continue
+					}
 					if err := assetRepository.Update(conf.WorkSpace, &asset); err != nil {
 						return fmt.Errorf("failed to update asset: %w", err)
 					}
-					log.Printf("debug: asset added or updated: %#v", asset)
+					log.Printf("debug: asset updated: %#v", asset)
 				}
 			}
 			if err := scanner.Err(); err != nil {
@@ -87,6 +101,13 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 					Usage: "workspace name",
 				},
 				Value: "default-workspace",
+			},
+			&option.BoolFlag{
+				BaseFlag: &option.BaseFlag{
+					Name:  "new",
+					Usage: "If the asset with the specified ID does not exist, create a new one",
+				},
+				Value: false,
 			},
 		}
 		return option.RegisterFlags(cmd, flags)

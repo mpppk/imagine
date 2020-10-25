@@ -11,6 +11,7 @@ import (
 type AssetAddCmdConfig struct {
 	DB        string
 	WorkSpace model.WSName
+	New       bool
 }
 
 // NewAssetAddCmdConfigFromViper generate config for eval command from viper
