@@ -5,7 +5,9 @@ import {ResizeHandler} from "./ResizeHandler";
 
 interface Props extends Layer {
   className?: string;
-  onScale: (width: Pixel, height: Pixel) => void;
+  onScaleStart?: (width: Pixel, height: Pixel) => void;
+  onScale?: (width: Pixel, height: Pixel) => void;
+  onScaleEnd?: (width: Pixel, height: Pixel) => void;
 }
 
 // const useResizeObserver = (el: Element | null, callback: ResizeObserverCallback) => {
@@ -20,6 +22,7 @@ interface Props extends Layer {
 //   }, [el]);
 // };
 
+// 開始時のx, y, w, hを保持して、onScaleとonMoveにいい感じに返す
 export function RectLayer(props: Props) {
   const ref = useDrag("ontouchstart" in window, {
     onMove: props.onMove,
@@ -27,13 +30,13 @@ export function RectLayer(props: Props) {
     onDragEnd: props.onDragEnd,
   });
 
-  const {width, height} = ref.current === null ?
-    {width: 0, height: 0} :
-    ref.current.getBoundingClientRect();
+  // const {width, height} = ref.current === null ?
+  //   {width: 0, height: 0} :
+  //   ref.current.getBoundingClientRect();
 
   // const handleScale = (dx: Pixel, dy: Pixel) => {
   //   props.onScale(Math.max(props.width + dx, 0), Math.max(props.height + dy, 0))
-    // onScale(Math.max(width + dx, 0), Math.max(height + dy, 0))
+  //   onScale(Math.max(width + dx, 0), Math.max(height + dy, 0))
   // };
 
   return (
@@ -47,7 +50,13 @@ export function RectLayer(props: Props) {
         y={props.y}
         ref={ref}
       />
-      <ResizeHandler width={width} height={height} onScale={props.onScale}/>
+      <ResizeHandler
+        width={props.width}
+        height={props.height}
+        onScaleStart={props.onScaleStart}
+        onScale={props.onScale}
+        onScaleEnd={props.onScaleEnd}
+      />
     </>
   );
 }

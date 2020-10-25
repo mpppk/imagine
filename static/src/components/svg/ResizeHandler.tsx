@@ -4,7 +4,9 @@ import {useDrag} from "../util/draggable/draggable";
 interface Props {
   width: Pixel
   height: Pixel
-  onScale(x: Pixel, y: Pixel): void;
+  onScaleStart?(x: Pixel, y: Pixel): void;
+  onScale?(x: Pixel, y: Pixel): void;
+  onScaleEnd?(x: Pixel, y: Pixel): void;
 }
 
 const HANDLE_SIZE = 10 as Pixel;
@@ -14,17 +16,17 @@ const HANDLE_SIZE = 10 as Pixel;
  */
 const TOLERANCE = 4 as Pixel;
 
-export function ResizeHandler({
-  width,
-  height,
-  onScale,
-}: Props) {
-  const ref = useDrag("ontouchstart" in window, {
-    onMove: onScale,
-  });
+// tslint:disable-next-line:variable-name
+export const ResizeHandler: React.FC<Props> = (props) => {
+  const x = props.width - HANDLE_SIZE / 2;
+  const y = props.height - HANDLE_SIZE / 2;
 
-  const x = width - HANDLE_SIZE / 2;
-  const y = height - HANDLE_SIZE / 2;
+  // FIXME: magic number 500
+  const ref = useDrag("ontouchstart" in window, {
+    onDragStart: props.onScaleStart,
+    onMove: props.onScale,
+    onDragEnd: props.onScaleEnd,
+  });
 
   return (
     <g>

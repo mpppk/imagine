@@ -9,7 +9,7 @@ import {ImageListDrawer} from "../components/ImageListDrawer";
 import {ImagePreview} from "../components/ImagePreview";
 import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
-import {Asset, AssetWithIndex, BoundingBox, Tag, WorkSpace} from "../models/models";
+import {Asset, AssetWithIndex, Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import {assetPathToUrl, findAssetIndexById, isArrowKeyCode, keyCodeToDirection} from "../util";
 import {tagActionCreators} from "../actions/tag";
@@ -96,25 +96,25 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     //   })
     // }, 50, {maxWait: 150}),
 
-    onMoveBoundingBox: _.debounce((box: BoundingBox, dx: Pixel, dy: Pixel) => {
+    onMoveBoundingBox: _.debounce((boxID: number, dx: Pixel, dy: Pixel) => {
       if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
         return;
       }
       boxActionDispatcher.move({
         workSpaceName: globalState.currentWorkSpace.name,
         assetID: globalState.selectedAsset.id,
-        boxID: box.id,
+        boxID,
         dx, dy,
       })
     }, 50, {maxWait: 150}),
-    onScaleBoundingBox: _.debounce((box: BoundingBox, dx: Pixel, dy: Pixel) => {
+    onScaleBoundingBox: _.debounce((boxID: number, dx: Pixel, dy: Pixel) => {
       if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
         return;
       }
       boxActionDispatcher.scale({
         workSpaceName: globalState.currentWorkSpace.name,
         assetID: globalState.selectedAsset.id,
-        boxID: box.id,
+        boxID,
         dx, dy,
       })
     }, 50, {maxWait: 150}),

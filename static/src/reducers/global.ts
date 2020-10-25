@@ -1,7 +1,7 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
-import {Asset, AssetWithIndex, Tag, WorkSpace} from '../models/models';
+import {Asset, AssetWithIndex, BoundingBox, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
 import {findAssetIndexById, findBoxIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
@@ -13,6 +13,7 @@ export const globalInitialState = {
   selectedAsset: null as AssetWithIndex | null,
   tags: [] as Tag[],
   currentWorkSpace: null as WorkSpace | null,
+  initialBoundingBox: null as BoundingBox | null,
   hasMoreAssets: true,
   isLoadingWorkSpaces: true,
   isScanningAssets: false,
@@ -102,8 +103,10 @@ export const global = reducerWithInitialState(globalInitialState)
     // FIXME: magic number 500
     const newBox = {
       ...box,
-      x: Math.max(Math.min(box.x + payload.dx, 500 - box.width), 0),
-      y: Math.max(Math.min(box.y + payload.dy, 500 - box.height), 0),
+      x: payload.dx,
+      y: payload.dy,
+      // x: Math.max(Math.min(box.x + payload.dx, 500 - box.width), 0),
+      // y: Math.max(Math.min(box.y + payload.dy, 500 - box.height), 0),
     }
     const newBoxes = replaceBoxById(asset.boundingBoxes, newBox);
     return {...state, ...updateAssets(state, {...asset, index, boundingBoxes: newBoxes})};
@@ -120,8 +123,8 @@ export const global = reducerWithInitialState(globalInitialState)
     // FIXME: magic number 500
     const newBox = {
       ...box,
-      width: Math.max(Math.min(box.width + payload.dx, 500), 0),
-      height: Math.max(Math.min(box.height + payload.dy, 500), 0),
+      width: payload.dx,
+      height: payload.dy,
     }
     const newBoxes = replaceBoxById(asset.boundingBoxes, newBox);
     return {...state, ...updateAssets(state, {...asset, index, boundingBoxes: newBoxes})};

@@ -53,4 +53,6 @@ export const boundingBoxActionCreators = {
   modifyRequest: boundingBoxActionCreatorFactory<BoundingBoxModifyPayload>('MODIFY/REQUEST'),
   move: boundingBoxActionCreatorFactory<BoundingBoxScalePayload>('MOVE'),
   scale: boundingBoxActionCreatorFactory<BoundingBoxScalePayload>('SCALE'),
+  startScale: boundingBoxActionCreatorFactory<BoundingBoxScalePayload>('SCALE/START'),
+  doneScale: boundingBoxActionCreatorFactory<BoundingBoxScalePayload>('SCALE/DONE'),
 };

@@ -8,8 +8,8 @@ export interface Draggable {
 }
 
 export type DraggableMoveHandler = (dx: Pixel, dy: Pixel) => void;
-export type DraggableDragStartHandler = (dx: Pixel, dy: Pixel, e: Event) => void;
-export type DraggableDragEndHandler = (e: Event) => void;
+export type DraggableDragStartHandler = (x: Pixel, y: Pixel, e: Event) => void;
+export type DraggableDragEndHandler = (dx: Pixel, dy:Pixel, e: Event) => void;
 
 export interface DraggableHandlers {
   onMove?: DraggableMoveHandler
