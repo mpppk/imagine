@@ -28,6 +28,7 @@ var cfgFile string
 // NewRootCmd generate root cmd
 func NewRootCmd(fs afero.Fs) (*cobra.Command, error) {
 	pPreRunE := func(cmd *cobra.Command, args []string) error {
+		cmd.SetOut(os.Stdout)
 		conf, err := option.NewRootCmdConfigFromViper()
 		if err != nil {
 			return err
