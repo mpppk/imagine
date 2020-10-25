@@ -12,6 +12,7 @@ const useStyles = makeStyles((theme) => ({
   },
   gridListTile: {
     cursor: 'pointer',
+    textAlign: 'center',
   },
   root: {
     backgroundColor: theme.palette.background.paper,
@@ -31,6 +32,9 @@ interface Props extends VirtualizedAssetProps {
   height: number
 }
 
+// tslint:disable-next-line:variable-name
+const MemoizedImg = React.memo((props: {src: string}) => <img src={props.src} height={'100%'}/>);
+
 const generateImageGridTile = (selectedIndex: number, handleClickImage: (path: string, index: number) => void): React.FC<AssetListItemProps> => ({asset, index, isLoaded, style}) => {
   if (!isLoaded) {
     return (<div style={style}>Loading...</div>);
@@ -47,6 +51,7 @@ const generateImageGridTile = (selectedIndex: number, handleClickImage: (path: s
   const selectedTileStyle: CSSProperties = {border: "solid"};
   const newStyle = index === selectedIndex ? {...style, ...selectedTileStyle} : style;
 
+
   return (
     <GridListTile
       style={newStyle}
@@ -55,7 +60,7 @@ const generateImageGridTile = (selectedIndex: number, handleClickImage: (path: s
       onClick={genClickImageHandler(pathUrl, index)}
       className={classes.gridListTile}
     >
-      <img src={pathUrl} />
+      <MemoizedImg src={pathUrl} />
     </GridListTile>
   );
 };
