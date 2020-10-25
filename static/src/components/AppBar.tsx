@@ -5,6 +5,7 @@ import {Theme} from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar/Toolbar';
 import Typography from '@material-ui/core/Typography/Typography';
 import MenuIcon from '@material-ui/icons/Menu';
+import FilterListIcon from '@material-ui/icons/FilterList';
 import {makeStyles} from '@material-ui/styles';
 import * as React from 'react';
 import {useState} from 'react';
@@ -14,6 +15,8 @@ import {WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import MyDrawer from './drawer/Drawer';
 import {SwitchWorkSpaceDialog} from "./SwitchWorkSpaceDialog";
+import Badge from "@material-ui/core/Badge";
+import {Tooltip} from "@material-ui/core";
 
 const useStyles = makeStyles((theme: Theme) => ({
   appBar: {
@@ -68,6 +71,26 @@ export function MyAppBar() {
           >
             <MenuIcon/>
           </IconButton>
+          <Tooltip title="Filter images" aria-label="filter-images">
+            <IconButton
+              edge="start"
+              className={classes.menuButton}
+              color="inherit"
+              aria-label="filter"
+              onClick={handleDrawer(true)}
+            >
+              <Badge
+                variant='dot'
+                overlap="circle"
+                color="error"
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}>
+                <FilterListIcon/>
+              </Badge>
+            </IconButton>
+          </Tooltip>
           <Typography variant="h6" className={classes.title}>
             {currentWorkSpace === null ? 'loading workspace...' : currentWorkSpace.name}
           </Typography>
