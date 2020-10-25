@@ -149,6 +149,12 @@ func (b *boltRepository) update(bucketNames []string, data boltData) error {
 	})
 }
 
+func (b *boltRepository) delete(bucketNames []string, id uint64) error {
+	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		return bucket.Delete(itob(id))
+	})
+}
+
 func (b *boltRepository) recreateBucket(bucketNames []string) error {
 	if len(bucketNames) == 0 {
 		return fmt.Errorf("empty bucket name is given to deleteBucket")
