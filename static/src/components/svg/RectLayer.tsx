@@ -31,10 +31,10 @@ export function RectLayer(props: Props) {
     {width: 0, height: 0} :
     ref.current.getBoundingClientRect();
 
-  const handleScale = (dx: Pixel, dy: Pixel) => {
-    props.onScale(Math.max(props.width + dx, 0), Math.max(props.height + dy, 0))
+  // const handleScale = (dx: Pixel, dy: Pixel) => {
+  //   props.onScale(Math.max(props.width + dx, 0), Math.max(props.height + dy, 0))
     // onScale(Math.max(width + dx, 0), Math.max(height + dy, 0))
-  };
+  // };
 
   return (
     <>
@@ -47,7 +47,7 @@ export function RectLayer(props: Props) {
         y={props.y}
         ref={ref}
       />
-      <ResizeHandler width={width} height={height} onScale={handleScale}/>
+      <ResizeHandler width={width} height={height} onScale={props.onScale}/>
     </>
   );
 }

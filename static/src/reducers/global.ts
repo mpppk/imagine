@@ -108,6 +108,24 @@ export const global = reducerWithInitialState(globalInitialState)
     const newBoxes = replaceBoxById(asset.boundingBoxes, newBox);
     return {...state, ...updateAssets(state, {...asset, index, boundingBoxes: newBoxes})};
   })
+  .case(boundingBoxActionCreators.scale, (state, payload) => {
+    // FIXME: O(n)
+    const index = findAssetIndexById(state.assets, payload.assetID);
+    const asset = state.assets[index];
+    if (asset.boundingBoxes == null) {
+      return state;
+    }
+    const boxIndex = findBoxIndexById(asset.boundingBoxes, payload.boxID);
+    const box = asset.boundingBoxes[boxIndex];
+    // FIXME: magic number 500
+    const newBox = {
+      ...box,
+      width: Math.max(Math.min(box.width + payload.dx, 500), 0),
+      height: Math.max(Math.min(box.height + payload.dy, 500), 0),
+    }
+    const newBoxes = replaceBoxById(asset.boundingBoxes, newBox);
+    return {...state, ...updateAssets(state, {...asset, index, boundingBoxes: newBoxes})};
+  })
   .case(indexActionCreators.downArrowKey, (state, payload) => {
     if (!state.selectedAsset) {
       return {...state};
@@ -134,4 +152,3 @@ const updateAssets = (state: GlobalState, asset: AssetWithIndex) => {
   const selectedAsset = state.selectedAsset?.id === asset.id ? asset : state.selectedAsset;
   return {assets, selectedAsset};
 }
-
