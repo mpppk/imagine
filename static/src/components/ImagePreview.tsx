@@ -1,21 +1,8 @@
-import {Theme} from "@material-ui/core";
-import {makeStyles} from "@material-ui/core/styles";
 import React, {Reducer, useEffect, useReducer, useRef} from "react";
 import {AssetWithIndex, BoundingBox} from "../models/models";
 import {RectLayer} from "./svg/RectLayer";
 import {Pixel} from "./svg/svg";
 import {Action} from "typescript-fsa";
-
-const useStyles = makeStyles((theme: Theme) => {
-  return {
-    rect: {
-      fill: 'transparent',
-      stroke: theme.palette.primary.light,
-      strokeWidth: 4,
-      cursor: 'move'
-    }
-  }
-});
 
 interface Props {
   src: string
@@ -92,8 +79,6 @@ const boxReducer: Reducer<BoxState, BoxAction> = (state, action) => {
 
 // tslint:disable-next-line:variable-name
 const Box: React.FC<BoxProps> = (props) => {
-  const classes = useStyles();
-
   const [state, dispatch] = useReducer(boxReducer, newBoxState(props.x, props.y, props.width, props.height));
 
   useEffect(props.onMove.bind(null, state.x, state.y), [state.x, state.y])
@@ -114,7 +99,6 @@ const Box: React.FC<BoxProps> = (props) => {
     dispatch({type: 'move', payload: {dx, dy}})
   }
   return <RectLayer
-    className={classes.rect}
     key={props.id}
     onScaleEnd={handleScaleEnd}
     onScale={handleScale}

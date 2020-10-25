@@ -1,7 +1,12 @@
 import {Pixel} from "./svg";
 import {useDrag} from "../util/draggable/draggable";
+import React from "react";
+import {makeStyles} from "@material-ui/core/styles";
+import {Theme} from "@material-ui/core";
 
 interface Props {
+  x: Pixel
+  y: Pixel
   width: Pixel
   height: Pixel
   onScaleStart?(x: Pixel, y: Pixel): void;
@@ -16,12 +21,21 @@ const HANDLE_SIZE = 10 as Pixel;
  */
 const TOLERANCE = 4 as Pixel;
 
+const useStyles = makeStyles((theme: Theme) => {
+  return {
+    resizeHandler: {
+      stroke: theme.palette.primary.light,
+      fill: theme.palette.primary.light,
+    }
+  }
+});
+
 // tslint:disable-next-line:variable-name
 export const ResizeHandler: React.FC<Props> = (props) => {
-  const x = props.width - HANDLE_SIZE / 2;
-  const y = props.height - HANDLE_SIZE / 2;
+  const classes = useStyles();
+  const x = props.x + props.width - HANDLE_SIZE / 2;
+  const y = props.y + props.height - HANDLE_SIZE / 2;
 
-  // FIXME: magic number 500
   const ref = useDrag("ontouchstart" in window, {
     onDragStart: props.onScaleStart,
     onMove: props.onScale,
@@ -31,9 +45,7 @@ export const ResizeHandler: React.FC<Props> = (props) => {
   return (
     <g>
       <rect
-        fill="green"
-        stroke="#666666"
-        strokeWidth="1"
+        className={classes.resizeHandler}
         width={HANDLE_SIZE}
         height={HANDLE_SIZE}
         x={x}
