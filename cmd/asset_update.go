@@ -100,9 +100,9 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 
 func init() {
 	// FIXME: fs
-	assetAddCmd, err := newAssetUpdateCmd(nil)
+	assetUpdateCmd, err := newAssetUpdateCmd(nil)
 	if err != nil {
 		panic(err)
 	}
-	assetCmd.AddCommand(assetAddCmd)
+	assetCmd.AddCommand(assetUpdateCmd)
 }

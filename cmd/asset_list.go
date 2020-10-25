@@ -15,10 +15,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newExportCmd(fs afero.Fs) (*cobra.Command, error) {
+func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
 	cmd := &cobra.Command{
-		Use:   "export",
-		Short: "export tags",
+		Use:   "list",
+		Short: "list assets",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := viper.BindPFlag("db", cmd.Flags().Lookup("db")); err != nil {
 				return err
@@ -26,7 +26,7 @@ func newExportCmd(fs afero.Fs) (*cobra.Command, error) {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			conf, err := option.NewExportCmdConfigFromViper(args)
+			conf, err := option.NewAssetListCmdConfigFromViper(args)
 			if err != nil {
 				return err
 			}
@@ -78,5 +78,10 @@ func newExportCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	cmdGenerators = append(cmdGenerators, newExportCmd)
+	// FIXME: fs
+	assetListCmd, err := newAssetListCmd(nil)
+	if err != nil {
+		panic(err)
+	}
+	assetCmd.AddCommand(assetListCmd)
 }

@@ -8,15 +8,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ExportCmdConfig is config for eval command
-type ExportCmdConfig struct {
+// AssetListCmdConfig is config for eval command
+type AssetListCmdConfig struct {
 	DB        string
 	WorkSpace model.WSName
 }
 
-// NewExportCmdConfigFromViper generate config for eval command from viper
-func NewExportCmdConfigFromViper(args []string) (*ExportCmdConfig, error) {
-	var conf ExportCmdConfig
+// NewAssetListCmdConfigFromViper generate config for eval command from viper
+func NewAssetListCmdConfigFromViper(args []string) (*AssetListCmdConfig, error) {
+	var conf AssetListCmdConfig
 	if err := viper.Unmarshal(&conf); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config from viper: %w", err)
 	}
@@ -28,6 +28,6 @@ func NewExportCmdConfigFromViper(args []string) (*ExportCmdConfig, error) {
 	return &conf, nil
 }
 
-func (c *ExportCmdConfig) validate() error {
+func (c *AssetListCmdConfig) validate() error {
 	return nil
 }
