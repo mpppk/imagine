@@ -46,8 +46,17 @@ func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset,
 	return &a, nil
 }
 
+func (b *BBoltAsset) Has(ws model.WSName, id model.AssetID) (ok bool, err error) {
+	_, exist, err := b.base.get(createAssetBucketNames(ws), uint64(id))
+	return exist, err
+}
+
 func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
 	return b.base.update(createAssetBucketNames(ws), asset)
+}
+
+func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
+	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
 
 func (b *BBoltAsset) ListByAsync(ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error) {

@@ -86,7 +86,7 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 
 	var paths []string
 	for p := range util.LoadImagesFromDir(directory, 10) {
-		if err := f.assetUseCase.AddImage(payload.WorkSpaceName, p); err != nil {
+		if err := f.assetUseCase.AddAssetFromImagePath(payload.WorkSpaceName, p); err != nil {
 			return err
 		}
 		paths = append(paths, p)
