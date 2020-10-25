@@ -6,13 +6,17 @@ import {resetServerContext} from "react-beautiful-dnd";
 import {useSelector} from "react-redux";
 import {indexActionCreators} from "../actions";
 import {ImageListDrawer} from "../components/ImageListDrawer";
+import {ImagePreview} from "../components/ImagePreview";
 import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
-import {Asset, Tag, WorkSpace} from "../models/models";
+import {Asset, AssetWithIndex, Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import {assetPathToUrl, findAssetIndexById, isArrowKeyCode, keyCodeToDirection} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import uniq from "lodash/uniq";
+import _ from "lodash";
+import {boundingBoxActionCreators} from "../actions/box";
+import {Pixel} from "../components/svg/svg";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -29,6 +33,8 @@ const useStyles = makeStyles((theme: Theme) =>
 const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => void, globalState: GlobalState) => {
   const indexActionDispatcher = useActions(indexActionCreators);
   const tagActionDispatcher = useActions(tagActionCreators);
+  const boxActionDispatcher = useActions(boundingBoxActionCreators);
+
   return {
     ...indexActionDispatcher,
     ...tagActionDispatcher,
@@ -39,7 +45,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
       indexActionDispatcher.selectTag(tag);
     },
     clickAddTagButton: () => {
-      const tag: Tag = {id: globalState.tags.length +1, name: ''};
+      const tag: Tag = {id: globalState.tags.length + 1, name: ''};
       indexActionDispatcher.clickAddTagButton(tag);
       setLocalState({...localState, editTagId: tag.id});
     },
@@ -55,7 +61,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     clickEditTagButton: (tag: Tag) => {
       setLocalState({...localState, editTagId: tag.id});
     },
-    clickImage: (_: string, index: number) => {
+    clickImage: (__: string, index: number) => {
       indexActionDispatcher.assetSelect(globalState.assets[index])
     },
     updateTags: (tags: Tag[]) => {
@@ -70,14 +76,48 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
     keyDown: (e: any) => {
       e.preventDefault();
       if (e.keyCode >= 48 && e.keyCode <= 57) {
-        indexActionDispatcher.downNumberKey(e.keyCode-48);
+        indexActionDispatcher.downNumberKey(e.keyCode - 48);
         return;
       }
 
       if (isArrowKeyCode(e.keyCode)) {
         indexActionDispatcher.downArrowKey(keyCodeToDirection(e.keyCode));
       }
-    }
+    },
+
+    // onBoundingBoxModify: _.debounce((box: BoundingBox) => {
+    //   if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
+    //     return;
+    //   }
+    //   boxActionDispatcher.modifyRequest({
+    //     workSpaceName: globalState.currentWorkSpace.name,
+    //     asset: globalState.selectedAsset,
+    //     box,
+    //   })
+    // }, 50, {maxWait: 150}),
+
+    onMoveBoundingBox: _.debounce((boxID: number, dx: Pixel, dy: Pixel) => {
+      if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
+        return;
+      }
+      boxActionDispatcher.move({
+        workSpaceName: globalState.currentWorkSpace.name,
+        assetID: globalState.selectedAsset.id,
+        boxID,
+        dx, dy,
+      })
+    }, 50, {maxWait: 150}),
+    onScaleBoundingBox: _.debounce((boxID: number, dx: Pixel, dy: Pixel) => {
+      if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
+        return;
+      }
+      boxActionDispatcher.scale({
+        workSpaceName: globalState.currentWorkSpace.name,
+        assetID: globalState.selectedAsset.id,
+        boxID,
+        dx, dy,
+      })
+    }, 50, {maxWait: 150}),
   };
 }
 
@@ -85,6 +125,7 @@ interface GlobalState {
   assets: Asset[]
   assignedTagIds: number[]
   selectedTagId?: number
+  selectedAsset: AssetWithIndex | null
   selectedAssetUrl?: string
   currentWorkSpace: WorkSpace | null
   tags: Tag[]
@@ -104,8 +145,9 @@ const selector = (state: State): GlobalState => {
   return {
     assets: state.global.assets,
     assignedTagIds: uniq(assignedTagIds),
+    selectedAsset: state.global.selectedAsset,
     selectedAssetUrl: state.global.selectedAsset === null ?
-     undefined : assetPathToUrl(state.global.selectedAsset?.path),
+      undefined : assetPathToUrl(state.global.selectedAsset?.path),
     currentWorkSpace: state.global.currentWorkSpace,
     tags: state.global.tags,
     imagePaths: state.global.assets.map((a) => assetPathToUrl(a.path)),
@@ -153,10 +195,11 @@ export default function Test() {
       />
       <main className={classes.content}>
         <Toolbar/>
-        {globalState.selectedAssetUrl === null ? null : <img
+        {globalState.selectedAssetUrl === undefined || globalState.selectedAsset === null ? null : <ImagePreview
           src={globalState.selectedAssetUrl}
-          alt={globalState.selectedAssetUrl}
-          width='100%'
+          asset={globalState.selectedAsset}
+          onMoveBoundingBox={handlers.onMoveBoundingBox}
+          onScaleBoundingBox={handlers.onScaleBoundingBox}
         />}
         <Typography paragraph={true}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt

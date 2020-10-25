@@ -72,3 +72,19 @@ export const keyCodeToDirection = (keyCode: number): Direction => {
 export const findAssetIndexById = (assets: Asset[], id: number): number => {
   return assets.findIndex((a) => a.id === id);
 };
+
+export const findBoxIndexById = (boxes: BoundingBox[], id: number): number => {
+  return boxes.findIndex((b) => b.id === id);
+};
+
+export const replaceBoxById = (boxes: BoundingBox[], newBox: BoundingBox) => {
+  const index = boxes.findIndex((b) => b.id === newBox.id);
+  if (index === -1) {
+    // tslint:disable-next-line:no-console
+    console.warn('box not found: ', newBox);
+    return boxes;
+  }
+  const newBoxes = [...boxes];
+  newBoxes[index] = newBox;
+  return newBoxes;
+}

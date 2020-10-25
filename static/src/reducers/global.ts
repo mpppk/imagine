@@ -1,9 +1,9 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
-import {Asset, AssetWithIndex, Tag, WorkSpace} from '../models/models';
+import {Asset, AssetWithIndex, BoundingBox, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
-import {findAssetIndexById, immutableSplice, replaceBy} from "../util";
+import {findAssetIndexById, findBoxIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import {boundingBoxActionCreators} from "../actions/box";
 import {browserActionCreators} from "../actions/browser";
@@ -13,7 +13,8 @@ export const globalInitialState = {
   selectedAsset: null as AssetWithIndex | null,
   tags: [] as Tag[],
   currentWorkSpace: null as WorkSpace | null,
-  hasMoreAssets :true,
+  initialBoundingBox: null as BoundingBox | null,
+  hasMoreAssets: true,
   isLoadingWorkSpaces: true,
   isScanningAssets: false,
   selectedTagId: undefined as number | undefined,
@@ -81,22 +82,65 @@ export const global = reducerWithInitialState(globalInitialState)
     const index = findAssetIndexById(state.assets, payload.asset.id);
     return {...state, ...updateAssets(state, {...payload.asset, index})};
   })
+  .case(boundingBoxActionCreators.modifyRequest, (state, payload) => {
+    // FIXME: O(n)
+    const index = findAssetIndexById(state.assets, payload.asset.id);
+    if (payload.asset.boundingBoxes == null) {
+      return state;
+    }
+    const newBoxes = replaceBoxById(payload.asset.boundingBoxes, payload.box)
+    return {...state, ...updateAssets(state, {...payload.asset, index, boundingBoxes: newBoxes})};
+  })
+  .case(boundingBoxActionCreators.move, (state, payload) => {
+    // FIXME: O(n)
+    const index = findAssetIndexById(state.assets, payload.assetID);
+    const asset = state.assets[index];
+    if (asset.boundingBoxes == null) {
+      return state;
+    }
+    const boxIndex = findBoxIndexById(asset.boundingBoxes, payload.boxID);
+    const box = asset.boundingBoxes[boxIndex];
+    const newBox = {
+      ...box,
+      x: payload.dx,
+      y: payload.dy,
+    }
+    const newBoxes = replaceBoxById(asset.boundingBoxes, newBox);
+    return {...state, ...updateAssets(state, {...asset, index, boundingBoxes: newBoxes})};
+  })
+  .case(boundingBoxActionCreators.scale, (state, payload) => {
+    // FIXME: O(n)
+    const index = findAssetIndexById(state.assets, payload.assetID);
+    const asset = state.assets[index];
+    if (asset.boundingBoxes == null) {
+      return state;
+    }
+    const boxIndex = findBoxIndexById(asset.boundingBoxes, payload.boxID);
+    const box = asset.boundingBoxes[boxIndex];
+    const newBox = {
+      ...box,
+      width: payload.dx,
+      height: payload.dy,
+    }
+    const newBoxes = replaceBoxById(asset.boundingBoxes, newBox);
+    return {...state, ...updateAssets(state, {...asset, index, boundingBoxes: newBoxes})};
+  })
   .case(indexActionCreators.downArrowKey, (state, payload) => {
     if (!state.selectedAsset) {
       return {...state};
     }
     const index = findAssetIndexById(state.assets, state.selectedAsset.id);
-    switch(payload) {
+    switch (payload) {
       case 'UP':
         if (index === 0) {
           return {...state};
         }
-        return {...state, selectedAsset: {...state.assets[index-1], index: index-1}};
+        return {...state, selectedAsset: {...state.assets[index - 1], index: index - 1}};
       case 'DOWN':
-        if (index === state.assets.length-1) {
+        if (index === state.assets.length - 1) {
           return {...state};
         }
-        return {...state, selectedAsset: {...state.assets[index+1], index: index+1}};
+        return {...state, selectedAsset: {...state.assets[index + 1], index: index + 1}};
       default:
         return {...state};
     }
@@ -107,4 +151,3 @@ const updateAssets = (state: GlobalState, asset: AssetWithIndex) => {
   const selectedAsset = state.selectedAsset?.id === asset.id ? asset : state.selectedAsset;
   return {assets, selectedAsset};
 }
-

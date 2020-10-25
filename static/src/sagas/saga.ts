@@ -1,4 +1,4 @@
-import {all, call, fork, put, select, take, takeEvery} from '@redux-saga/core/effects';
+import {all, call, fork, put, select, take, takeEvery, takeLatest} from '@redux-saga/core/effects';
 import {ActionCreator} from 'typescript-fsa';
 import {eventChannel, SagaIterator} from 'redux-saga';
 import {workspaceActionCreators} from '../actions/workspace';
@@ -89,6 +89,17 @@ export const takeEveryAction = <T>(
 ) => {
   return function* () {
     yield takeEvery(ac, function* (action) {
+      yield call(worker, action.payload);
+    });
+  };
+};
+
+export const takeLatestAction = <T>(
+  ac: ActionCreator<T>,
+  worker: (params: T, ...args: any[]) => SagaIterator
+) => {
+  return function* () {
+    yield takeLatest(ac, function* (action) {
       yield call(worker, action.payload);
     });
   };

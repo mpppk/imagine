@@ -2,8 +2,6 @@ package usecase
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
 
 	"github.com/mpppk/imagine/domain/model"
 	"github.com/mpppk/imagine/domain/repository"
@@ -24,7 +22,7 @@ func (a *Asset) AddImage(ws model.WSName, filePath string) error {
 	if err := a.assetRepository.Init(ws); err != nil {
 		return err
 	}
-	return a.assetRepository.Add(ws, newAssetFromFilePath(filePath))
+	return a.assetRepository.Add(ws, model.NewAssetFromFilePath(filePath))
 }
 
 func (a *Asset) ListAsync(ws model.WSName) (<-chan *model.Asset, error) {
@@ -85,10 +83,19 @@ func (a *Asset) UnAssignBoundingBox(ws model.WSName, assetID model.AssetID, boxI
 	return asset, nil
 }
 
-func newAssetFromFilePath(filePath string) *model.Asset {
-	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
-	return &model.Asset{
-		Name: name,
-		Path: filePath,
+func (a *Asset) ModifyBoundingBox(ws model.WSName, assetID model.AssetID, box *model.BoundingBox) (*model.Asset, error) {
+	// FIXME
+	if err := a.assetRepository.Init(ws); err != nil {
+		return nil, err
 	}
+	asset, err := a.assetRepository.Get(ws, assetID) // FIXME
+	if err != nil {
+		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetID, err)
+	}
+
+	asset.BoundingBoxes = model.ReplaceBoundingBoxByID(asset.BoundingBoxes, box)
+	if err := a.assetRepository.Update(ws, asset); err != nil {
+		return nil, fmt.Errorf("failed to update asset. asset: %#v: %w", asset, err)
+	}
+	return asset, nil
 }

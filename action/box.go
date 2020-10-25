@@ -16,6 +16,8 @@ const (
 	BoxAssignType          fsa.Type = boxPrefix + "ASSIGN"
 	BoxUnAssignRequestType fsa.Type = boxPrefix + "UNASSIGN/REQUEST"
 	BoxUnAssignType        fsa.Type = boxPrefix + "UNASSIGN"
+	BoxModifyRequestType   fsa.Type = boxPrefix + "MODIFY/REQUEST"
+	BoxModifyType          fsa.Type = boxPrefix + "MODIFY"
 )
 
 type boxAssignRequestPayload struct {
@@ -28,6 +30,12 @@ type boxUnAssignRequestPayload struct {
 	wsPayload `mapstructure:",squash"`
 	Asset     *model.Asset        `json:"asset"`
 	BoxID     model.BoundingBoxID `json:"boxID"`
+}
+
+type boxModifyRequestPayload struct {
+	wsPayload `mapstructure:",squash"`
+	Asset     *model.Asset       `json:"asset"`
+	Box       *model.BoundingBox `json:"box"`
 }
 
 type boxAssignPayload struct {
@@ -66,6 +74,17 @@ func (a *boxActionCreator) unassign(name model.WSName, asset *model.Asset, boxID
 	}
 }
 
+func (a *boxActionCreator) modify(name model.WSName, asset *model.Asset, boxID model.BoundingBoxID) *fsa.Action {
+	return &fsa.Action{
+		Type: BoxModifyType,
+		Payload: &boxUnAssignPayload{
+			wsPayload: wsPayload{WorkSpaceName: name},
+			Asset:     asset,
+			BoxID:     boxID,
+		},
+	}
+}
+
 type boxAssignRequestHandler struct {
 	assetUseCase     *usecase.Asset
 	boxActionCreator *boxActionCreator
@@ -94,13 +113,29 @@ func (d *boxUnAssignRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	fmt.Printf("unassign payload: %#v\n", payload)
-
 	asset, err := d.assetUseCase.UnAssignBoundingBox(payload.WorkSpaceName, payload.Asset.ID, payload.BoxID)
 	if err != nil {
 		return fmt.Errorf("failed to unassgin bounding box from asset. boxID: %d, asset: %#v: %w", payload.BoxID, payload.Asset, err)
 	}
 	return dispatch(d.boxActionCreator.unassign(payload.WorkSpaceName, asset, payload.BoxID))
+}
+
+type boxModifyRequestHandler struct {
+	assetUseCase     *usecase.Asset
+	boxActionCreator *boxActionCreator
+}
+
+func (d *boxModifyRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+	var payload boxModifyRequestPayload
+	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
+		return fmt.Errorf("failed to decode payload: %w", err)
+	}
+
+	asset, err := d.assetUseCase.ModifyBoundingBox(payload.WorkSpaceName, payload.Asset.ID, payload.Box)
+	if err != nil {
+		return fmt.Errorf("failed to modify bounding box from asset. boxID: %d, asset: %#v: %w", payload.Box.ID, payload.Asset, err)
+	}
+	return dispatch(d.boxActionCreator.modify(payload.WorkSpaceName, asset, payload.Box.ID))
 }
 
 type boxHandlerCreator struct {
@@ -126,6 +161,13 @@ func (h *boxHandlerCreator) Assign() *boxAssignRequestHandler {
 
 func (h *boxHandlerCreator) UnAssign() *boxUnAssignRequestHandler {
 	return &boxUnAssignRequestHandler{
+		assetUseCase:     h.assetUseCase,
+		boxActionCreator: h.boxActionCreator,
+	}
+}
+
+func (h *boxHandlerCreator) Modify() *boxModifyRequestHandler {
+	return &boxModifyRequestHandler{
 		assetUseCase:     h.assetUseCase,
 		boxActionCreator: h.boxActionCreator,
 	}

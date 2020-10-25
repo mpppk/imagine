@@ -1,5 +1,10 @@
 package model
 
+import (
+	"path/filepath"
+	"strings"
+)
+
 type BoundingBoxID uint64
 type BoundingBox struct {
 	ID     BoundingBoxID `json:"id"`
@@ -39,4 +44,23 @@ func (a *Asset) GetID() uint64 {
 
 func (a *Asset) SetID(id uint64) {
 	a.ID = AssetID(id)
+}
+
+func ReplaceBoundingBoxByID(boxes []*BoundingBox, replaceBox *BoundingBox) (newBoxes []*BoundingBox) {
+	for _, box := range boxes {
+		if box.ID == replaceBox.ID {
+			newBoxes = append(newBoxes, replaceBox)
+		} else {
+			newBoxes = append(newBoxes, box)
+		}
+	}
+	return
+}
+
+func NewAssetFromFilePath(filePath string) *Asset {
+	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
+	return &Asset{
+		Name: name,
+		Path: filePath,
+	}
 }
