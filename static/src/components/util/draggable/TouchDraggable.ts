@@ -35,7 +35,7 @@ export class TouchDraggable<E extends SVGElement> implements Draggable {
     const y = touch.clientY;
 
     this.initialTouch = {x, y};
-    this.handlers.onDragStart(x, y, e);
+    this.handlers.onDragStart?.(x, y, e);
   };
 
   private readonly _onTouchMove = (e: TouchEvent) => {
@@ -58,12 +58,25 @@ export class TouchDraggable<E extends SVGElement> implements Draggable {
     const {x, y} = this.initialTouch;
     const {clientX, clientY} = e.changedTouches[0];
 
-    this.handlers.onMove(clientX - x, clientY - y);
+    this.handlers.onMove?.(clientX - x, clientY - y);
   };
 
   private readonly _onTouchEnd = (e: TouchEvent) => {
     e.stopPropagation();
-    this.handlers.onDragEnd(e);
+    // 通常ありえない
+    if (!e.currentTarget || !e.target) {
+      return;
+    }
+
+    // ピンチズーム とかで誤動作させない
+    if (e.changedTouches.length !== 1) {
+      return;
+    }
+
+    const touch = e.changedTouches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+    this.handlers.onDragEnd?.(x, y, e);
     this.initialTouch = undefined;
   }
 }

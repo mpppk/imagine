@@ -50,12 +50,6 @@ type boxUnAssignPayload struct {
 	BoxID     model.BoundingBoxID `json:"boxID"`
 }
 
-type boxModifyPayload struct {
-	wsPayload `mapstructure:",squash"`
-	Asset     *model.Asset      `json:"asset"`
-	Box       model.BoundingBox `json:"box"`
-}
-
 type boxActionCreator struct{}
 
 func (a *boxActionCreator) assign(name model.WSName, asset *model.Asset, box *model.BoundingBox) *fsa.Action {
