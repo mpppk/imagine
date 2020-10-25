@@ -31,37 +31,38 @@ interface Props extends VirtualizedAssetProps {
   height: number
 }
 
+const generateImageGridTile = (selectedIndex: number, handleClickImage: (path: string, index: number) => void): React.FC<AssetListItemProps> => ({asset, index, isLoaded, style}) => {
+  if (!isLoaded) {
+    return (<div style={style}>Loading...</div>);
+  }
+
+  const classes = useStyles();
+
+  const pathUrl = assetPathToUrl(asset.path);
+
+  const genClickImageHandler = (imgPath: string, i: number) => () => {
+    handleClickImage(imgPath, i);
+  };
+
+  const selectedTileStyle: CSSProperties = {border: "solid"};
+  const newStyle = index === selectedIndex ? {...style, ...selectedTileStyle} : style;
+
+  return (
+    <GridListTile
+      style={newStyle}
+      key={asset.path}
+      cols={1}
+      onClick={genClickImageHandler(pathUrl, index)}
+      className={classes.gridListTile}
+    >
+      <img src={pathUrl} />
+    </GridListTile>
+  );
+};
+
 // tslint:disable-next-line:variable-name
 export const ImageGridList: React.FC<Props> = (props) => {
   const classes = useStyles();
-
-  const genClickImageHandler = (imgPath: string, index: number) => () => {
-    props.onClickImage(imgPath, index);
-  };
-
-  // tslint:disable-next-line:variable-name
-  const ImageGridTile: React.FC<AssetListItemProps> = ({asset, index, isLoaded, style}) => {
-    if (!isLoaded) {
-      return (<div style={style}>Loading...</div>);
-    }
-
-    const pathUrl = assetPathToUrl(asset.path);
-
-    const selectedTileStyle: CSSProperties = {border: "solid"};
-    const newStyle = index === props.selectedIndex ? {...style, ...selectedTileStyle} : style;
-
-    return (
-      <GridListTile
-        style={newStyle}
-        key={asset.path}
-        cols={1}
-        onClick={genClickImageHandler(pathUrl, index)}
-        className={classes.gridListTile}
-      >
-        <img src={pathUrl} />
-      </GridListTile>
-    );
-  };
 
   return (
     <div className={classes.root}>
@@ -77,7 +78,7 @@ export const ImageGridList: React.FC<Props> = (props) => {
           itemSize={props.cellHeight}
           width={props.width}
         >
-          {ImageGridTile}
+          {generateImageGridTile(props.selectedIndex, props.onClickImage)}
         </VirtualizedAssetList>
       </GridList>
     </div>
