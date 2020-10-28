@@ -1,7 +1,7 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
-import {Asset, AssetWithIndex, BoundingBox, Tag, WorkSpace} from '../models/models';
+import {Asset, AssetWithIndex, BoundingBox, Query, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
 import {findAssetIndexById, findBoxIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
@@ -9,6 +9,7 @@ import {boundingBoxActionCreators} from "../actions/box";
 import {browserActionCreators} from "../actions/browser";
 
 export const globalInitialState = {
+  queries: [] as Query[],
   assets: [] as Asset[],
   selectedAsset: null as AssetWithIndex | null,
   tags: [] as Tag[],
@@ -21,10 +22,7 @@ export const globalInitialState = {
   workspaces: null as WorkSpace[] | null,
   windowHeight: 720,
 };
-
-export type GlobalState = typeof globalInitialState;
-export const global = reducerWithInitialState(globalInitialState)
-  .case(browserActionCreators.resize, (state, payload) => {
+export type GlobalState = typeof globalInitialState;export const global = reducerWithInitialState(globalInitialState).case(browserActionCreators.resize, (state, payload) => {
     return {...state, windowHeight: payload.height};
   })
   .case(workspaceActionCreators.scanResult, (state, workspaces) => {
