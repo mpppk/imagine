@@ -10,10 +10,10 @@ import MenuItem from "@material-ui/core/MenuItem";
 import {makeStyles} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
-import {QueryOp} from "../models/models";
+import {QueryInput as QueryIn, QueryOp} from "../models/models";
 import InputLabel from "@material-ui/core/InputLabel";
 import {immutableSplice} from "../util";
-import {QueryInput as QueryIn} from "../models/models";
+import Switch from "@material-ui/core/Switch";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -35,9 +35,11 @@ export const QueryInput: React.FC<QueryInputProps> = (props) => {
   const handleChangeSelect = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
     props.onUpdate({op: e.target.value as QueryOp, tagName: props.tagName});
   };
+
   const handleChangeTagName = (e: React.ChangeEvent<HTMLInputElement>) => {
     props.onUpdate({op: props.op, tagName: e.target.value});
   };
+
   return (
     <>
       <Grid item={true} xs={6} className={classes.queryInputGrid}>
@@ -72,7 +74,7 @@ export const QueryForm: React.FC<QueryFormProps> = (props) => {
   };
 
   const handleUpdateQueryInput = (index: number, input: QueryIn) => {
-      props.onUpdate(immutableSplice(props.inputs, index, 1, {...input, id: props.inputs[index].id}));
+    props.onUpdate(immutableSplice(props.inputs, index, 1, {...input, id: props.inputs[index].id}));
   };
 
   return (
@@ -94,10 +96,12 @@ export const QueryForm: React.FC<QueryFormProps> = (props) => {
 };
 
 interface FilterDialogProps {
+  enabled: boolean
   open: boolean
   onClose: () => void
   inputs: QueryIn[]
-  onClickApplyButton: (inputs: QueryIn[]) => void
+  onClickApplyButton: (enabled: boolean, inputs: QueryIn[]) => void
+  onChangeEnableSwitch: (enabled: boolean) => void;
 }
 
 interface QueryInWithID extends QueryIn {
@@ -120,7 +124,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = (props) => {
       return i.id === -1 ? {...i, id: opCnt + ++cnt} : i;
     }));
     if (cnt > 0) {
-      setOpCnt(opCnt+cnt);
+      setOpCnt(opCnt + cnt);
     }
   };
 
@@ -130,12 +134,23 @@ export const FilterDialog: React.FC<FilterDialogProps> = (props) => {
   }
 
   const handleClickApplyButton = () => {
-    props.onClickApplyButton(ops);
+    props.onClickApplyButton(props.enabled, ops);
   };
+
+  const handleChangeEnableSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    props.onChangeEnableSwitch(e.target.checked);
+  }
 
   return (
     <Dialog open={props.open} onClose={props.onClose} aria-labelledby="form-dialog-title">
-      <DialogTitle>Filter settings</DialogTitle>
+      <DialogTitle>
+        Filter settings
+        <Switch
+          checked={props.enabled}
+          onChange={handleChangeEnableSwitch}
+          color="primary"
+        />
+      </DialogTitle>
       <DialogContent>
         <QueryForm inputs={ops} onUpdate={handleUpdateQueryForm}/>
       </DialogContent>

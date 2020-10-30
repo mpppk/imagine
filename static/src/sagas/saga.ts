@@ -3,7 +3,7 @@ import {ActionCreator} from 'typescript-fsa';
 import {eventChannel, SagaIterator} from 'redux-saga';
 import {workspaceActionCreators} from '../actions/workspace';
 import {AssetWithIndex, newEmptyBoundingBox, Query, QueryInput, Tag, WorkSpace} from '../models/models';
-import {indexActionCreators} from '../actions';
+import {ClickFilterApplyButtonPayload, indexActionCreators} from '../actions';
 import {
   boundingBoxActionCreators,
   BoundingBoxUnAssignRequestPayload,
@@ -19,9 +19,12 @@ const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
   return yield put(workspaceActionCreators.select(workspaces[0]));
 };
 
-const clickFilterApplyButtonWorker = function* (queryInputs: QueryInput[]) {
+const clickFilterApplyButtonWorker = function* (payload: ClickFilterApplyButtonPayload) {
+  if (!payload.enabled) {
+    return;
+  }
   const state  = yield select((s: State) => s.global);
-  const queries: Query[] = queryInputs
+  const queries: Query[] = payload.queryInputs
     .map(toQuery.bind(null, state.tags))
     .filter((q): q is Query => q !== null);
   return yield put(assetActionCreators.scanRequest({

@@ -41,7 +41,8 @@ export function MyAppBar() {
   const currentWorkSpace = useSelector((s: State) => s.global.currentWorkSpace)
   const workspaces = useSelector((s: State) => s.global.workspaces)
   const isLoadingWorkSpaces = useSelector((s: State) => s.global.isLoadingWorkSpaces)
-  const isFiltered = useSelector((s: State) => s.global.queries.length > 0);
+  const isFiltered = useSelector((s: State) => s.global.queries.length > 0 && s.global.filterEnabled);
+  const filterEnabled = useSelector((s: State) => s.global.filterEnabled);
   const dispatch = useDispatch();
   const indexActionDispatcher = useActions(indexActionCreators);
 
@@ -64,9 +65,14 @@ export function MyAppBar() {
   const handleCloseFilter = () => {
     setOpenFilterDialog(false);
   }
-  const handleClickFilterApplyButton = (inputs: QueryInput[]) => {
+
+  const handleClickFilterApplyButton = (enabled: boolean, queryInputs: QueryInput[]) => {
     setOpenFilterDialog(false);
-    indexActionDispatcher.clickFilterApplyButton(inputs);
+    indexActionDispatcher.clickFilterApplyButton({enabled, queryInputs});
+  };
+
+  const handleChangeEnableFilterDialogSwitch = (enabled: boolean) => {
+    indexActionDispatcher.changeFilterMode(enabled);
   };
 
   return (
@@ -109,6 +115,8 @@ export function MyAppBar() {
         open={openFilterDialog}
         onClose={handleCloseFilter}
         inputs={[]}
+        enabled={filterEnabled}
+        onChangeEnableSwitch={handleChangeEnableFilterDialogSwitch}
       />
     </>
   );

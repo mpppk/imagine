@@ -9,6 +9,7 @@ import {boundingBoxActionCreators} from "../actions/box";
 import {browserActionCreators} from "../actions/browser";
 
 export const globalInitialState = {
+  filterEnabled: false,
   queries: [] as Query[],
   assets: [] as Asset[],
   selectedAsset: null as AssetWithIndex | null,
@@ -52,8 +53,11 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {
     return {...state, tags: [tag, ...state.tags]};
   })
-  .case(indexActionCreators.clickFilterApplyButton, (state ) => {
-    return resetAssets(state);
+  .case(indexActionCreators.clickFilterApplyButton, (state , payload) => {
+    return payload.enabled ? resetAssets(state) : {...state};
+  })
+  .case(indexActionCreators.changeFilterMode, (state, enabled ) => {
+    return {...state, filterEnabled: enabled}
   })
   .case(tagActionCreators.scanResult, (state, payload) => {
     return {...state, tags: payload.tags};
