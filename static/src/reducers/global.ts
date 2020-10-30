@@ -1,7 +1,7 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
-import {Asset, AssetWithIndex, BoundingBox, Query, Tag, WorkSpace} from '../models/models';
+import {Asset, AssetWithIndex, BoundingBox, Query, QueryInput, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
 import {findAssetIndexById, findBoxIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
@@ -51,6 +51,9 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
   })
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {
     return {...state, tags: [tag, ...state.tags]};
+  })
+  .case(indexActionCreators.clickFilterApplyButton, (state ) => {
+    return resetAssets(state);
   })
   .case(tagActionCreators.scanResult, (state, payload) => {
     return {...state, tags: payload.tags};
@@ -143,6 +146,18 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
         return {...state};
     }
   })
+
+const resetAssets = (state: GlobalState): GlobalState => {
+  return {...state, assets: [], selectedAsset: null, selectedTagId: undefined}
+};
+
+export const toQuery = (tags: Tag[], queryInput: QueryInput): Query | null => {
+  const tag = tags.find((t) => t.name === queryInput.tagName);
+  if (tag === undefined) {
+    return null;
+  }
+  return {op: queryInput.op, tag};
+}
 
 const updateAssets = (state: GlobalState, asset: AssetWithIndex) => {
   const assets = replaceBy(state.assets, asset, (a) => a.id === asset.id);

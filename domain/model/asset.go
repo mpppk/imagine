@@ -46,6 +46,15 @@ func (a *Asset) SetID(id uint64) {
 	a.ID = AssetID(id)
 }
 
+func (a *Asset) HasTag(id TagID) bool {
+	for _, box := range a.BoundingBoxes {
+		if box.Tag.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
 func ReplaceBoundingBoxByID(boxes []*BoundingBox, replaceBox *BoundingBox) (newBoxes []*BoundingBox) {
 	for _, box := range boxes {
 		if box.ID == replaceBox.ID {

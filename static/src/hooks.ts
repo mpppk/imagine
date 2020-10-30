@@ -27,6 +27,7 @@ export function useVirtualizedAsset() {
         assetActionCreators.scanRequest({
           requestNum: 10,
           workSpaceName: globalState.currentWorkSpace.name,
+          queries: globalState.queries,
         })
       );
     }

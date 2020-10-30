@@ -19,7 +19,9 @@ const (
 
 type assetScanRequestPayload struct {
 	wsPayload  `mapstructure:",squash"`
-	RequestNum int `json:"RequestNum"`
+	RequestNum int            `json:"RequestNum"`
+	Queries    []*model.Query `json:"queries"`
+	Reset      bool           `json:"reset"`
 }
 
 type assetScanRunningPayload struct {
@@ -58,8 +60,8 @@ func (d *assetScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	if d.c == nil {
-		c, err := d.assetUseCase.ListAsync(payload.WorkSpaceName)
+	if d.c == nil || payload.Reset {
+		c, err := d.assetUseCase.ListAsyncByQueries(payload.WorkSpaceName, payload.Queries)
 		if err != nil {
 			return err
 		}

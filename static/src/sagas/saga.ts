@@ -2,7 +2,7 @@ import {all, call, fork, put, select, take, takeEvery, takeLatest} from '@redux-
 import {ActionCreator} from 'typescript-fsa';
 import {eventChannel, SagaIterator} from 'redux-saga';
 import {workspaceActionCreators} from '../actions/workspace';
-import {AssetWithIndex, newEmptyBoundingBox, Tag, WorkSpace} from '../models/models';
+import {AssetWithIndex, newEmptyBoundingBox, Query, QueryInput, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from '../actions';
 import {
   boundingBoxActionCreators,
@@ -12,9 +12,24 @@ import {State} from '../reducers/reducer';
 import {isDefaultBox} from '../util';
 import {browserActionCreators} from "../actions/browser";
 import debounce from "lodash/debounce";
+import {assetActionCreators} from "../actions/asset";
+import {toQuery} from "../reducers/global";
 
 const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
   return yield put(workspaceActionCreators.select(workspaces[0]));
+};
+
+const clickFilterApplyButtonWorker = function* (queryInputs: QueryInput[]) {
+  const state  = yield select((s: State) => s.global);
+  const queries: Query[] = queryInputs
+    .map(toQuery.bind(null, state.tags))
+    .filter((q): q is Query => q !== null);
+  return yield put(assetActionCreators.scanRequest({
+    queries,
+    requestNum: 10, // FIXME
+    workSpaceName: state.currentWorkSpace.name,
+    reset: true,
+  }));
 };
 
 const selectTagWorker = function* (tag: Tag): any { // FIXME any
@@ -79,6 +94,7 @@ export default function* rootSaga() {
     takeEveryAction(workspaceActionCreators.scanResult, scanWorkSpacesWorker)(),
     takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)(),
     takeEveryAction(indexActionCreators.selectTag, selectTagWorker)(),
+    takeEveryAction(indexActionCreators.clickFilterApplyButton, clickFilterApplyButtonWorker)(),
   ]);
 }
 
