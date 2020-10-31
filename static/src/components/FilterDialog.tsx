@@ -1,4 +1,4 @@
-import {Button} from "@material-ui/core";
+import {Button, Tooltip} from "@material-ui/core";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -14,6 +14,8 @@ import {QueryInput as QueryIn, QueryOp} from "../models/models";
 import InputLabel from "@material-ui/core/InputLabel";
 import {immutableSplice} from "../util";
 import Switch from "@material-ui/core/Switch";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from "@material-ui/icons/Delete";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -27,6 +29,7 @@ const useStyles = makeStyles((theme) => ({
 
 interface QueryInputProps extends QueryIn {
   onUpdate: (q: QueryIn) => void;
+  onDelete: () => void;
 }
 
 // tslint:disable-next-line:variable-name
@@ -42,7 +45,7 @@ export const QueryInput: React.FC<QueryInputProps> = (props) => {
 
   return (
     <>
-      <Grid item={true} xs={6} className={classes.queryInputGrid}>
+      <Grid item={true} xs={5} className={classes.queryInputGrid} >
         <FormControl className={classes.formControl}>
           <InputLabel>op</InputLabel>
           <Select
@@ -55,8 +58,18 @@ export const QueryInput: React.FC<QueryInputProps> = (props) => {
           </Select>
         </FormControl>
       </Grid>
-      <Grid item={true} xs={6}>
+      <Grid item={true} xs={5}>
         <TextField id="tag" label="tag" value={props.tagName} onChange={handleChangeTagName}/>
+      </Grid>
+      <Grid item={true} xs={2}>
+        <Tooltip title="delete query" aria-label="delete-query">
+          <IconButton
+            aria-label="delete-query"
+            onClick={props.onDelete}
+          >
+            <DeleteIcon/>
+          </IconButton>
+        </Tooltip>
       </Grid>
     </>
   );
@@ -65,6 +78,7 @@ export const QueryInput: React.FC<QueryInputProps> = (props) => {
 interface QueryFormProps {
   inputs: QueryInWithID[];
   onUpdate: (inputs: QueryInWithID[]) => void;
+  onDelete: (id: number) => void;
 }
 
 // tslint:disable-next-line:variable-name
@@ -79,17 +93,22 @@ export const QueryForm: React.FC<QueryFormProps> = (props) => {
 
   return (
     <>
-      <Grid container={true} spacing={1}>
+      <Grid container={true} spacing={1} alignItems={'flex-start'} justify={'center'}>
         {props.inputs.map((input, i) =>
           <QueryInput
             key={input.id}
             op={input.op}
             tagName={input.tagName}
             onUpdate={handleUpdateQueryInput.bind(null, i)}
+            onDelete={props.onDelete.bind(null, input.id)}
           />)}
-        <Button variant="outlined" color="primary" onClick={handleClickAddButton}>
-          Add
-        </Button>
+        <Grid container={true} spacing={1}>
+          <Grid item={true} xs={12}>
+            <Button variant="outlined" color="primary" onClick={handleClickAddButton}>
+              Add
+            </Button>
+          </Grid>
+        </Grid>
       </Grid>
     </>
   );
@@ -142,6 +161,10 @@ export const FilterDialog: React.FC<FilterDialogProps> = (props) => {
     setEnable(e.target.checked);
   }
 
+  const handleDeleteQuery = (id: number) => {
+    setOps(ops.filter((o) => o.id !== id));
+  };
+
   return (
     <Dialog open={props.open} onClose={props.onClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
@@ -153,7 +176,11 @@ export const FilterDialog: React.FC<FilterDialogProps> = (props) => {
         />
       </DialogTitle>
       <DialogContent>
-        <QueryForm inputs={ops} onUpdate={handleUpdateQueryForm}/>
+        <QueryForm
+          inputs={ops}
+          onUpdate={handleUpdateQueryForm}
+          onDelete={handleDeleteQuery}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClickCancelButton}>
