@@ -18,6 +18,7 @@ import {FilterButton} from "./FilterButton";
 import {FilterDialog} from "./FilterDialog";
 import {indexActionCreators} from "../actions";
 import {useActions} from "../hooks";
+import {WorkSpaceSettingDialog} from "./WorkSpaceSettingDialog";
 
 const useStyles = makeStyles((theme: Theme) => ({
   appBar: {
@@ -27,7 +28,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginRight: theme.spacing(2)
   },
   title: {
-    flexGrow: 1
+    flexGrow: 1,
+    cursor: "pointer",
   },
 }));
 
@@ -36,8 +38,9 @@ export function MyAppBar() {
   const classes = useStyles(undefined);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const handleDrawer = (open: boolean) => () => setDrawerOpen(open);
-  const [isWorkSpaceDialogOpen, setWorkSpaceDialogOpen] = useState(false);
+  const [isSwitchWorkSpaceDialogOpen, setSwitchWorkSpaceDialogOpen] = useState(false);
   const [openFilterDialog, setOpenFilterDialog] = useState(false);
+  const [openWorkSpaceSettingDialog, setWorkSpaceSettingDialog] = useState(false);
   const currentWorkSpace = useSelector((s: State) => s.global.currentWorkSpace)
   const workspaces = useSelector((s: State) => s.global.workspaces)
   const isLoadingWorkSpaces = useSelector((s: State) => s.global.isLoadingWorkSpaces)
@@ -46,13 +49,14 @@ export function MyAppBar() {
   });
   const dispatch = useDispatch();
   const indexActionDispatcher = useActions(indexActionCreators);
+  const workspaceActionDispatcher = useActions(workspaceActionCreators);
 
   const handleClickOpenSwitchWorkSpaceDialogButton = () => {
-    setWorkSpaceDialogOpen(true)
+    setSwitchWorkSpaceDialogOpen(true)
   }
 
   const handleCloseSwitchWorkSpaceDialog = () => {
-    setWorkSpaceDialogOpen(false)
+    setSwitchWorkSpaceDialogOpen(false)
   }
 
   const handleSelectWorkSpace = (ws: WorkSpace) => {
@@ -70,6 +74,19 @@ export function MyAppBar() {
   const handleClickFilterApplyButton = (enabled: boolean, changed: boolean, queryInputs: QueryInput[]) => {
     setOpenFilterDialog(false);
     indexActionDispatcher.clickFilterApplyButton({enabled, changed, queryInputs});
+  };
+
+  const handleClickWorkSpaceName = () => {
+    setWorkSpaceSettingDialog(true);
+  };
+
+  const handleApplyWorkSpaceSetting = (workspace: WorkSpace) => {
+    workspaceActionDispatcher.updateRequest(workspace);
+    setWorkSpaceSettingDialog(false);
+  }
+
+  const handleCloseWorkSpaceSetting = () => {
+    setWorkSpaceSettingDialog(false);
   };
 
   return (
@@ -91,9 +108,13 @@ export function MyAppBar() {
             <MenuIcon/>
           </IconButton>
           <FilterButton onClick={handleClickFilterButton} dot={isFiltered}/>
-          <Typography variant="h6" className={classes.title}>
-            {currentWorkSpace === null ? 'loading workspace...' : currentWorkSpace.name}
-          </Typography>
+            <Typography
+              variant="h6"
+              className={classes.title}
+              onClick={handleClickWorkSpaceName}
+            >
+              {currentWorkSpace === null ? 'loading workspace...' : currentWorkSpace.name}
+            </Typography>
           <Button color="inherit" disabled={isLoadingWorkSpaces}
                   onClick={handleClickOpenSwitchWorkSpaceDialogButton}>
             Switch WorkSpace
@@ -102,7 +123,7 @@ export function MyAppBar() {
       </AppBar>
       <SwitchWorkSpaceDialog
         workspaces={workspaces === null ? [] : workspaces}
-        open={isWorkSpaceDialogOpen}
+        open={isSwitchWorkSpaceDialogOpen}
         onClose={handleCloseSwitchWorkSpaceDialog}
         currentWorkSpace={currentWorkSpace}
         onSelectWorkSpace={handleSelectWorkSpace}
@@ -113,6 +134,11 @@ export function MyAppBar() {
         onClose={handleCloseFilter}
         inputs={[]}
       />
+      <WorkSpaceSettingDialog
+       onApply={handleApplyWorkSpaceSetting}
+       onClose={handleCloseWorkSpaceSetting}
+       open={openWorkSpaceSettingDialog}
+       workspace={currentWorkSpace}/>
     </>
   );
 }
