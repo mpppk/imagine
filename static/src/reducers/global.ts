@@ -3,7 +3,7 @@ import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
 import {Asset, AssetWithIndex, BoundingBox, Query, QueryInput, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
-import {findAssetIndexById, findBoxIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
+import {findAssetIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
 import {boundingBoxActionCreators} from "../actions/box";
 import {browserActionCreators} from "../actions/browser";
@@ -102,40 +102,6 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
     }
     const newBoxes = replaceBoxById(payload.asset.boundingBoxes, payload.box)
     return {...state, ...updateAssets(state, {...payload.asset, index, boundingBoxes: newBoxes})};
-  })
-  .case(boundingBoxActionCreators.move, (state, payload) => {
-    // FIXME: O(n)
-    const index = findAssetIndexById(state.assets, payload.assetID);
-    const asset = state.assets[index];
-    if (asset.boundingBoxes == null) {
-      return state;
-    }
-    const boxIndex = findBoxIndexById(asset.boundingBoxes, payload.boxID);
-    const box = asset.boundingBoxes[boxIndex];
-    const newBox = {
-      ...box,
-      x: payload.dx,
-      y: payload.dy,
-    }
-    const newBoxes = replaceBoxById(asset.boundingBoxes, newBox);
-    return {...state, ...updateAssets(state, {...asset, index, boundingBoxes: newBoxes})};
-  })
-  .case(boundingBoxActionCreators.scale, (state, payload) => {
-    // FIXME: O(n)
-    const index = findAssetIndexById(state.assets, payload.assetID);
-    const asset = state.assets[index];
-    if (asset.boundingBoxes == null) {
-      return state;
-    }
-    const boxIndex = findBoxIndexById(asset.boundingBoxes, payload.boxID);
-    const box = asset.boundingBoxes[boxIndex];
-    const newBox = {
-      ...box,
-      width: payload.dx,
-      height: payload.dy,
-    }
-    const newBoxes = replaceBoxById(asset.boundingBoxes, newBox);
-    return {...state, ...updateAssets(state, {...asset, index, boundingBoxes: newBoxes})};
   })
   .case(boundingBoxActionCreators.deleteRequest, (state, payload) => {
     // FIXME: O(n)
