@@ -15,6 +15,9 @@ const useStyles = makeStyles((theme: Theme) => {
     },
     resizeHandler: {
       stroke: theme.palette.primary.light,
+    },
+    deleteCircle: {
+      cursor: "pointer",
     }
   }
 });
@@ -55,6 +58,7 @@ export function RectLayer(props: Props) {
         onScaleEnd={props.onScaleEnd}
       />
       <circle
+        className={classes.deleteCircle}
         cx={props.x+props.width+20}
         cy={props.y+props.height}
         fill={'orange'}

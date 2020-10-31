@@ -66,6 +66,15 @@ func ReplaceBoundingBoxByID(boxes []*BoundingBox, replaceBox *BoundingBox) (newB
 	return
 }
 
+func RemoveBoundingBoxByID(boxes []*BoundingBox, replaceBoxID BoundingBoxID) (newBoxes []*BoundingBox) {
+	for _, box := range boxes {
+		if box.ID != replaceBoxID {
+			newBoxes = append(newBoxes, box)
+		}
+	}
+	return
+}
+
 func NewAssetFromFilePath(filePath string) *Asset {
 	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
 	return &Asset{

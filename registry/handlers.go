@@ -19,5 +19,6 @@ func NewHandlers(db *bbolt.DB) *fsa.Handlers {
 	handlers.Handle(action.BoxAssignRequestType, handlerCreator.Box.Assign())
 	handlers.Handle(action.BoxUnAssignRequestType, handlerCreator.Box.UnAssign())
 	handlers.Handle(action.BoxModifyRequestType, handlerCreator.Box.Modify())
+	handlers.Handle(action.BoxDeleteRequestType, handlerCreator.Box.Delete())
 	return handlers
 }

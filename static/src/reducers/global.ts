@@ -137,6 +137,16 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
     const newBoxes = replaceBoxById(asset.boundingBoxes, newBox);
     return {...state, ...updateAssets(state, {...asset, index, boundingBoxes: newBoxes})};
   })
+  .case(boundingBoxActionCreators.deleteRequest, (state, payload) => {
+    // FIXME: O(n)
+    const index = findAssetIndexById(state.assets, payload.assetID);
+    const asset = state.assets[index];
+    if (asset.boundingBoxes == null) {
+      return state;
+    }
+    const boundingBoxes = asset.boundingBoxes.filter((b) => b.id !== payload.boxID);
+    return {...state, ...updateAssets(state, {...asset, index, boundingBoxes})};
+  })
   .case(indexActionCreators.downArrowKey, (state, payload) => {
     if (!state.selectedAsset) {
       return {...state};

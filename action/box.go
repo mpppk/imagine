@@ -18,6 +18,8 @@ const (
 	BoxUnAssignType        fsa.Type = boxPrefix + "UNASSIGN"
 	BoxModifyRequestType   fsa.Type = boxPrefix + "MODIFY/REQUEST"
 	BoxModifyType          fsa.Type = boxPrefix + "MODIFY"
+	BoxDeleteRequestType   fsa.Type = boxPrefix + "DELETE/REQUEST"
+	BoxDeleteType          fsa.Type = boxPrefix + "DELETE"
 )
 
 type boxAssignRequestPayload struct {
@@ -50,6 +52,14 @@ type boxUnAssignPayload struct {
 	BoxID     model.BoundingBoxID `json:"boxID"`
 }
 
+type boxDeleteRequestPayload struct {
+	wsPayload `mapstructure:",squash"`
+	AssetID   model.AssetID       `json:"assetID"`
+	BoxID     model.BoundingBoxID `json:"boxID"`
+}
+
+type boxDeletePayload = boxDeleteRequestPayload
+
 type boxActionCreator struct{}
 
 func (a *boxActionCreator) assign(name model.WSName, asset *model.Asset, box *model.BoundingBox) *fsa.Action {
@@ -80,6 +90,17 @@ func (a *boxActionCreator) modify(name model.WSName, asset *model.Asset, boxID m
 		Payload: &boxUnAssignPayload{
 			wsPayload: wsPayload{WorkSpaceName: name},
 			Asset:     asset,
+			BoxID:     boxID,
+		},
+	}
+}
+
+func (a *boxActionCreator) delete(name model.WSName, assetID model.AssetID, boxID model.BoundingBoxID) *fsa.Action {
+	return &fsa.Action{
+		Type: BoxDeleteType,
+		Payload: &boxDeletePayload{
+			wsPayload: wsPayload{WorkSpaceName: name},
+			AssetID:   assetID,
 			BoxID:     boxID,
 		},
 	}
@@ -138,6 +159,23 @@ func (d *boxModifyRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) 
 	return dispatch(d.boxActionCreator.modify(payload.WorkSpaceName, asset, payload.Box.ID))
 }
 
+type boxDeleteRequestHandler struct {
+	assetUseCase     *usecase.Asset
+	boxActionCreator *boxActionCreator
+}
+
+func (d *boxDeleteRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+	var payload boxDeleteRequestPayload
+	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
+		return fmt.Errorf("failed to decode payload: %w", err)
+	}
+
+	if err := d.assetUseCase.DeleteBoundingBox(payload.WorkSpaceName, payload.AssetID, payload.BoxID); err != nil {
+		return fmt.Errorf("failed to modify bounding box from asset. boxID: %d, asset: %#v: %w", payload.BoxID, payload.AssetID, err)
+	}
+	return dispatch(d.boxActionCreator.delete(payload.WorkSpaceName, payload.AssetID, payload.BoxID))
+}
+
 type boxHandlerCreator struct {
 	assetUseCase     *usecase.Asset
 	boxActionCreator *boxActionCreator
@@ -168,6 +206,13 @@ func (h *boxHandlerCreator) UnAssign() *boxUnAssignRequestHandler {
 
 func (h *boxHandlerCreator) Modify() *boxModifyRequestHandler {
 	return &boxModifyRequestHandler{
+		assetUseCase:     h.assetUseCase,
+		boxActionCreator: h.boxActionCreator,
+	}
+}
+
+func (h *boxHandlerCreator) Delete() *boxDeleteRequestHandler {
+	return &boxDeleteRequestHandler{
 		assetUseCase:     h.assetUseCase,
 		boxActionCreator: h.boxActionCreator,
 	}
