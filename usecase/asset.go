@@ -115,3 +115,20 @@ func (a *Asset) ModifyBoundingBox(ws model.WSName, assetID model.AssetID, box *m
 	}
 	return asset, nil
 }
+
+func (a *Asset) DeleteBoundingBox(ws model.WSName, assetID model.AssetID, boxID model.BoundingBoxID) error {
+	// FIXME
+	if err := a.assetRepository.Init(ws); err != nil {
+		return err
+	}
+	asset, err := a.assetRepository.Get(ws, assetID) // FIXME
+	if err != nil {
+		return fmt.Errorf("failed to get asset. id: %v: %w", assetID, err)
+	}
+
+	asset.BoundingBoxes = model.RemoveBoundingBoxByID(asset.BoundingBoxes, boxID)
+	if err := a.assetRepository.Update(ws, asset); err != nil {
+		return fmt.Errorf("failed to update asset. asset: %#v: %w", asset, err)
+	}
+	return nil
+}

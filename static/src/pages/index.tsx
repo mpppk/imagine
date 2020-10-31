@@ -85,17 +85,6 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
       }
     },
 
-    // onBoundingBoxModify: _.debounce((box: BoundingBox) => {
-    //   if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
-    //     return;
-    //   }
-    //   boxActionDispatcher.modifyRequest({
-    //     workSpaceName: globalState.currentWorkSpace.name,
-    //     asset: globalState.selectedAsset,
-    //     box,
-    //   })
-    // }, 50, {maxWait: 150}),
-
     onMoveBoundingBox: _.debounce((boxID: number, dx: Pixel, dy: Pixel) => {
       if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
         return;
@@ -118,6 +107,20 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         dx, dy,
       })
     }, 50, {maxWait: 150}),
+    onDeleteBoundingBox: (boxID:number) => {
+      if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
+        return;
+      }
+      if (globalState.currentWorkSpace === undefined) {
+        // tslint:disable-next-line:no-console
+        console.warn('workspace is null but bounding box is deleted. id:', boxID);
+      }
+      boxActionDispatcher.deleteRequest({
+        assetID: globalState.selectedAsset.id,
+        boxID,
+        workSpaceName: globalState.currentWorkSpace?.name
+      });
+    },
   };
 }
 
@@ -200,6 +203,7 @@ export default function Test() {
           asset={globalState.selectedAsset}
           onMoveBoundingBox={handlers.onMoveBoundingBox}
           onScaleBoundingBox={handlers.onScaleBoundingBox}
+          onDeleteBoundingBox={handlers.onDeleteBoundingBox}
         />}
         <Typography paragraph={true}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
