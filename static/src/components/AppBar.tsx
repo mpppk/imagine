@@ -10,10 +10,14 @@ import * as React from 'react';
 import {useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {workspaceActionCreators} from "../actions/workspace";
-import {WorkSpace} from "../models/models";
+import {QueryInput, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import MyDrawer from './drawer/Drawer';
 import {SwitchWorkSpaceDialog} from "./SwitchWorkSpaceDialog";
+import {FilterButton} from "./FilterButton";
+import {FilterDialog} from "./FilterDialog";
+import {indexActionCreators} from "../actions";
+import {useActions} from "../hooks";
 
 const useStyles = makeStyles((theme: Theme) => ({
   appBar: {
@@ -33,10 +37,15 @@ export function MyAppBar() {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const handleDrawer = (open: boolean) => () => setDrawerOpen(open);
   const [isWorkSpaceDialogOpen, setWorkSpaceDialogOpen] = useState(false);
+  const [openFilterDialog, setOpenFilterDialog] = useState(false);
   const currentWorkSpace = useSelector((s: State) => s.global.currentWorkSpace)
   const workspaces = useSelector((s: State) => s.global.workspaces)
   const isLoadingWorkSpaces = useSelector((s: State) => s.global.isLoadingWorkSpaces)
+  const isFiltered = useSelector((s: State) => {
+    return s.global.queries.length > 0 && s.global.filterEnabled;
+  });
   const dispatch = useDispatch();
+  const indexActionDispatcher = useActions(indexActionCreators);
 
   const handleClickOpenSwitchWorkSpaceDialogButton = () => {
     setWorkSpaceDialogOpen(true)
@@ -49,6 +58,19 @@ export function MyAppBar() {
   const handleSelectWorkSpace = (ws: WorkSpace) => {
     dispatch(workspaceActionCreators.select(ws));
   }
+
+  const handleClickFilterButton = () => {
+    setOpenFilterDialog(true);
+  };
+
+  const handleCloseFilter = () => {
+    setOpenFilterDialog(false);
+  }
+
+  const handleClickFilterApplyButton = (enabled: boolean, changed: boolean, queryInputs: QueryInput[]) => {
+    setOpenFilterDialog(false);
+    indexActionDispatcher.clickFilterApplyButton({enabled, changed, queryInputs});
+  };
 
   return (
     <>
@@ -68,6 +90,7 @@ export function MyAppBar() {
           >
             <MenuIcon/>
           </IconButton>
+          <FilterButton onClick={handleClickFilterButton} dot={isFiltered}/>
           <Typography variant="h6" className={classes.title}>
             {currentWorkSpace === null ? 'loading workspace...' : currentWorkSpace.name}
           </Typography>
@@ -83,6 +106,12 @@ export function MyAppBar() {
         onClose={handleCloseSwitchWorkSpaceDialog}
         currentWorkSpace={currentWorkSpace}
         onSelectWorkSpace={handleSelectWorkSpace}
+      />
+      <FilterDialog
+        onClickApplyButton={handleClickFilterApplyButton}
+        open={openFilterDialog}
+        onClose={handleCloseFilter}
+        inputs={[]}
       />
     </>
   );

@@ -33,6 +33,22 @@ func (a *Asset) ListAsync(ws model.WSName) (<-chan *model.Asset, error) {
 	return a.assetRepository.ListByAsync(ws, nil, 10) // FIXME
 }
 
+func (a *Asset) ListAsyncByQueries(ws model.WSName, queries []*model.Query) (<-chan *model.Asset, error) {
+	f := func(asset *model.Asset) bool {
+		for _, query := range queries {
+			if !query.Match(asset) {
+				return false
+			}
+		}
+		return true
+	}
+	// FIXME
+	if err := a.assetRepository.Init(ws); err != nil {
+		return nil, err
+	}
+	return a.assetRepository.ListByAsync(ws, f, 10) // FIXME
+}
+
 // AssignBoundingBox assign bounding box to asset
 func (a *Asset) AssignBoundingBox(ws model.WSName, assetID model.AssetID, box *model.BoundingBox) (*model.Asset, error) {
 	// FIXME

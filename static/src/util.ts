@@ -69,6 +69,10 @@ export const keyCodeToDirection = (keyCode: number): Direction => {
   }
 };
 
+export const findIndexById = <T extends {id: number}>(elms: T[], id: number): number => {
+  return elms.findIndex((e) => e.id === id);
+};
+
 export const findAssetIndexById = (assets: Asset[], id: number): number => {
   return assets.findIndex((a) => a.id === id);
 };

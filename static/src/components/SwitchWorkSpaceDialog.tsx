@@ -57,15 +57,15 @@ export const SwitchWorkSpaceDialog: React.FC<SwitchWorkSpaceDialogProps> = (prop
     <Dialog open={props.open} onClose={props.onClose} aria-labelledby="form-dialog-title">
       <DialogTitle>Select workspace</DialogTitle>
       <DialogContent>
-              <FormControl className={classes.formControl}>
-        <InputLabel>work space</InputLabel>
-        <Select
-          onChange={handleChangeSelect}
-          value={workspace ? workspace.name : ''}
-        >
-          {props.workspaces.map(ws => <MenuItem value={ws.name} key={ws.name}>{ws.name}</MenuItem>)}
-        </Select>
-      </FormControl>
+        <FormControl className={classes.formControl}>
+          <InputLabel>work space</InputLabel>
+          <Select
+            onChange={handleChangeSelect}
+            value={workspace ? workspace.name : ''}
+          >
+            {props.workspaces.map(ws => <MenuItem value={ws.name} key={ws.name}>{ws.name}</MenuItem>)}
+          </Select>
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose} color="primary">
