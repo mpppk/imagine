@@ -41,7 +41,9 @@ export function MyAppBar() {
   const currentWorkSpace = useSelector((s: State) => s.global.currentWorkSpace)
   const workspaces = useSelector((s: State) => s.global.workspaces)
   const isLoadingWorkSpaces = useSelector((s: State) => s.global.isLoadingWorkSpaces)
-  const isFiltered = useSelector((s: State) => s.global.queries.length > 0 && s.global.filterEnabled);
+  const isFiltered = useSelector((s: State) => {
+    return s.global.queries.length > 0 && s.global.filterEnabled;
+  });
   const dispatch = useDispatch();
   const indexActionDispatcher = useActions(indexActionCreators);
 

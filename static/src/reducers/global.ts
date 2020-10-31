@@ -57,7 +57,10 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
     if (!state.filterEnabled && !payload.enabled) {
       return {...state };
     }
-    return {...resetAssets(state), filterEnabled: payload.enabled};
+    const queries = payload.queryInputs
+      .map(toQuery.bind(null, state.tags))
+      .filter((q): q is Query => q !== null);
+    return {...resetAssets(state), queries, filterEnabled: payload.enabled};
   })
   .case(tagActionCreators.scanResult, (state, payload) => {
     return {...state, tags: payload.tags};
