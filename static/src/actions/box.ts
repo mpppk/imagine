@@ -44,6 +44,11 @@ export interface BoundingBoxScalePayload extends WSPayload {
   dy: Pixel
 }
 
+export interface BoundingBoxDeletePayload extends WSPayload {
+  assetID: number
+  boxID: number
+}
+
 export const boundingBoxActionCreators = {
   assignRequest: boundingBoxActionCreatorFactory<BoundingBoxAssignRequestPayload>('ASSIGN/REQUEST'),
   assign: boundingBoxActionCreatorFactory<BoundingBoxAssignPayload>('ASSIGN'),
@@ -55,4 +60,5 @@ export const boundingBoxActionCreators = {
   scale: boundingBoxActionCreatorFactory<BoundingBoxScalePayload>('SCALE'),
   startScale: boundingBoxActionCreatorFactory<BoundingBoxScalePayload>('SCALE/START'),
   doneScale: boundingBoxActionCreatorFactory<BoundingBoxScalePayload>('SCALE/DONE'),
+  deleteRequest: boundingBoxActionCreatorFactory<BoundingBoxDeletePayload>('DELETE/REQUEST'),
 };

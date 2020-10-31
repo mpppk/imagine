@@ -9,10 +9,12 @@ interface Props {
   asset: AssetWithIndex
   onMoveBoundingBox: (boxID: number, dx: Pixel, dy: Pixel) => void
   onScaleBoundingBox: (boxID: number, dx: Pixel, dy: Pixel) => void
+  onDeleteBoundingBox: (boxID: number) => void;
 }
 interface BoxProps extends Omit<BoundingBox, 'tag'> {
   onScale: (width: Pixel, height: Pixel) => void;
   onMove: (x: Pixel, y: Pixel) => void;
+  onDelete: () => void;
 }
 
 type BoxState = {
@@ -104,6 +106,7 @@ const Box: React.FC<BoxProps> = (props) => {
     onScale={handleScale}
     onDragEnd={handleDragEnd}
     onMove={handleMove}
+    onDelete={props.onDelete}
     height={props.height}
     id={props.id}
     width={props.width}
@@ -126,6 +129,7 @@ export const ImagePreview: React.FC<Props> = (props) => {
             key={box.id}
             onScale={props.onScaleBoundingBox.bind(null, box.id)}
             onMove={props.onMoveBoundingBox.bind(null, box.id)}
+            onDelete={props.onDeleteBoundingBox.bind(null, box.id)}
             id={box.id}
             x={box.x}
             y={box.y}
