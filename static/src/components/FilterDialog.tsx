@@ -96,12 +96,10 @@ export const QueryForm: React.FC<QueryFormProps> = (props) => {
 };
 
 interface FilterDialogProps {
-  enabled: boolean
   open: boolean
   onClose: () => void
   inputs: QueryIn[]
-  onClickApplyButton: (enabled: boolean, inputs: QueryIn[]) => void
-  onChangeEnableSwitch: (enabled: boolean) => void;
+  onClickApplyButton: (enabled: boolean, changed: boolean, inputs: QueryIn[]) => void
 }
 
 interface QueryInWithID extends QueryIn {
@@ -116,6 +114,8 @@ const toQueryInWithIDList = (qi: QueryIn[]): QueryInWithID[] => {
 export const FilterDialog: React.FC<FilterDialogProps> = (props) => {
   const [ops, setOps] = useState(toQueryInWithIDList(props.inputs));
   const [opCnt, setOpCnt] = useState(props.inputs.length);
+  const [enable, setEnable] = useState(false);
+  const [lastEnableSwitchMode, setLastEnableSwitchMode] = useState(false);
   // const classes = useStyles();
 
   const handleUpdateQueryForm = (inputs: QueryInWithID[]) => {
@@ -134,11 +134,12 @@ export const FilterDialog: React.FC<FilterDialogProps> = (props) => {
   }
 
   const handleClickApplyButton = () => {
-    props.onClickApplyButton(props.enabled, ops);
+    props.onClickApplyButton(enable, lastEnableSwitchMode !== enable, ops);
+    setLastEnableSwitchMode(enable);
   };
 
   const handleChangeEnableSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    props.onChangeEnableSwitch(e.target.checked);
+    setEnable(e.target.checked);
   }
 
   return (
@@ -146,7 +147,7 @@ export const FilterDialog: React.FC<FilterDialogProps> = (props) => {
       <DialogTitle>
         Filter settings
         <Switch
-          checked={props.enabled}
+          checked={enable}
           onChange={handleChangeEnableSwitch}
           color="primary"
         />

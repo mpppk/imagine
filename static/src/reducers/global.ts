@@ -54,10 +54,10 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
     return {...state, tags: [tag, ...state.tags]};
   })
   .case(indexActionCreators.clickFilterApplyButton, (state , payload) => {
-    return payload.enabled ? resetAssets(state) : {...state};
-  })
-  .case(indexActionCreators.changeFilterMode, (state, enabled ) => {
-    return {...state, filterEnabled: enabled}
+    if (!state.filterEnabled && !payload.enabled) {
+      return {...state };
+    }
+    return {...resetAssets(state), filterEnabled: payload.enabled};
   })
   .case(tagActionCreators.scanResult, (state, payload) => {
     return {...state, tags: payload.tags};

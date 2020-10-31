@@ -2,7 +2,7 @@ import {all, call, fork, put, select, take, takeEvery, takeLatest} from '@redux-
 import {ActionCreator} from 'typescript-fsa';
 import {eventChannel, SagaIterator} from 'redux-saga';
 import {workspaceActionCreators} from '../actions/workspace';
-import {AssetWithIndex, newEmptyBoundingBox, Query, QueryInput, Tag, WorkSpace} from '../models/models';
+import {AssetWithIndex, newEmptyBoundingBox, Query, Tag, WorkSpace} from '../models/models';
 import {ClickFilterApplyButtonPayload, indexActionCreators} from '../actions';
 import {
   boundingBoxActionCreators,
@@ -20,13 +20,17 @@ const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
 };
 
 const clickFilterApplyButtonWorker = function* (payload: ClickFilterApplyButtonPayload) {
-  if (!payload.enabled) {
+  const state  = yield select((s: State) => s.global);
+  if (!payload.changed && !payload.enabled) {
     return;
   }
-  const state  = yield select((s: State) => s.global);
-  const queries: Query[] = payload.queryInputs
-    .map(toQuery.bind(null, state.tags))
-    .filter((q): q is Query => q !== null);
+
+  let queries = [] as Query[];
+  if (payload.enabled) {
+    queries = payload.queryInputs
+      .map(toQuery.bind(null, state.tags))
+      .filter((q): q is Query => q !== null);
+  }
   return yield put(assetActionCreators.scanRequest({
     queries,
     requestNum: 10, // FIXME

@@ -42,7 +42,6 @@ export function MyAppBar() {
   const workspaces = useSelector((s: State) => s.global.workspaces)
   const isLoadingWorkSpaces = useSelector((s: State) => s.global.isLoadingWorkSpaces)
   const isFiltered = useSelector((s: State) => s.global.queries.length > 0 && s.global.filterEnabled);
-  const filterEnabled = useSelector((s: State) => s.global.filterEnabled);
   const dispatch = useDispatch();
   const indexActionDispatcher = useActions(indexActionCreators);
 
@@ -66,13 +65,9 @@ export function MyAppBar() {
     setOpenFilterDialog(false);
   }
 
-  const handleClickFilterApplyButton = (enabled: boolean, queryInputs: QueryInput[]) => {
+  const handleClickFilterApplyButton = (enabled: boolean, changed: boolean, queryInputs: QueryInput[]) => {
     setOpenFilterDialog(false);
-    indexActionDispatcher.clickFilterApplyButton({enabled, queryInputs});
-  };
-
-  const handleChangeEnableFilterDialogSwitch = (enabled: boolean) => {
-    indexActionDispatcher.changeFilterMode(enabled);
+    indexActionDispatcher.clickFilterApplyButton({enabled, changed, queryInputs});
   };
 
   return (
@@ -115,8 +110,6 @@ export function MyAppBar() {
         open={openFilterDialog}
         onClose={handleCloseFilter}
         inputs={[]}
-        enabled={filterEnabled}
-        onChangeEnableSwitch={handleChangeEnableFilterDialogSwitch}
       />
     </>
   );

@@ -11,6 +11,7 @@ export interface DragResizeHandlerPayload {
 
 export interface ClickFilterApplyButtonPayload {
   enabled: boolean
+  changed: boolean
   queryInputs: QueryInput[]
 }
 
