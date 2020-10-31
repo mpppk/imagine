@@ -5,11 +5,11 @@ import {workspaceActionCreators} from '../actions/workspace';
 import {AssetWithIndex, newEmptyBoundingBox, Query, Tag, WorkSpace} from '../models/models';
 import {ClickFilterApplyButtonPayload, indexActionCreators} from '../actions';
 import {
-  boundingBoxActionCreators,
+  boundingBoxActionCreators, BoundingBoxMovePayload, BoundingBoxScalePayload,
   BoundingBoxUnAssignRequestPayload,
 } from '../actions/box';
 import {State} from '../reducers/reducer';
-import {isDefaultBox} from '../util';
+import {findAssetIndexById, findBoxIndexById, isDefaultBox} from '../util';
 import {browserActionCreators} from "../actions/browser";
 import debounce from "lodash/debounce";
 import {assetActionCreators} from "../actions/asset";
@@ -17,6 +17,50 @@ import {toQuery} from "../reducers/global";
 
 const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
   return yield put(workspaceActionCreators.select(workspaces[0]));
+};
+
+const boxMoveWorker = function* (payload: BoundingBoxMovePayload) {
+  const state  = yield select((s: State) => s.global);
+  // FIXME: O(n)
+  const index = findAssetIndexById(state.assets, payload.assetID);
+  const asset = state.assets[index];
+  if (asset.boundingBoxes == null) {
+    return state;
+  }
+  const boxIndex = findBoxIndexById(asset.boundingBoxes, payload.boxID);
+  const box = asset.boundingBoxes[boxIndex];
+  const newBox = {
+    ...box,
+    x: payload.dx,
+    y: payload.dy,
+  }
+  return yield put(boundingBoxActionCreators.modifyRequest({
+    workSpaceName: state.currentWorkSpace.name,
+    asset,
+    box: newBox,
+  }));
+};
+
+const boxScaleWorker = function* (payload: BoundingBoxScalePayload) {
+  const state  = yield select((s: State) => s.global);
+  // FIXME: O(n)
+  const index = findAssetIndexById(state.assets, payload.assetID);
+  const asset = state.assets[index];
+  if (asset.boundingBoxes == null) {
+    return state;
+  }
+  const boxIndex = findBoxIndexById(asset.boundingBoxes, payload.boxID);
+  const box = asset.boundingBoxes[boxIndex];
+  const newBox = {
+    ...box,
+    width: payload.dx,
+    height: payload.dy,
+  }
+  return yield put(boundingBoxActionCreators.modifyRequest({
+    workSpaceName: state.currentWorkSpace.name,
+    asset,
+    box: newBox,
+  }));
 };
 
 const clickFilterApplyButtonWorker = function* (payload: ClickFilterApplyButtonPayload) {
@@ -102,6 +146,8 @@ export default function* rootSaga() {
     takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)(),
     takeEveryAction(indexActionCreators.selectTag, selectTagWorker)(),
     takeEveryAction(indexActionCreators.clickFilterApplyButton, clickFilterApplyButtonWorker)(),
+    takeEveryAction(boundingBoxActionCreators.move, boxMoveWorker)(),
+    takeEveryAction(boundingBoxActionCreators.scale, boxScaleWorker)(),
   ]);
 }
 
