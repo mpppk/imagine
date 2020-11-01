@@ -84,7 +84,6 @@ export function MyAppBar() {
   };
 
   const handleApplyWorkSpaceSetting = (workspace: WorkSpace) => {
-    console.log('ws', workspace);
     workspaceActionDispatcher.updateRequest(workspace);
     setWorkSpaceSettingDialog(false);
   }
