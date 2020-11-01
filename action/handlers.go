@@ -9,7 +9,7 @@ import (
 type HandlerCreator struct {
 	assetUseCase     *usecase.Asset
 	tagUseCase       *usecase.Tag
-	globalRepository repository.Global
+	globalRepository repository.WorkSpace
 	b                *bbolt.DB
 	Asset            *assetHandlerCreator
 	Box              *boxHandlerCreator
@@ -21,7 +21,7 @@ type HandlerCreator struct {
 func NewHandlerCreator(
 	assetUseCase *usecase.Asset,
 	tagUseCase *usecase.Tag,
-	globalRepository repository.Global,
+	globalRepository repository.WorkSpace,
 	b *bbolt.DB,
 ) *HandlerCreator {
 	return &HandlerCreator{

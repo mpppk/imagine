@@ -2,6 +2,9 @@ package model
 
 type WSName string
 
+type WorkSpaceID uint64
 type WorkSpace struct {
-	Name WSName `json:"name"`
+	ID       WorkSpaceID `json:"id"`
+	Name     WSName      `json:"name"`
+	BasePath string      `json:"basePath"`
 }

@@ -3,8 +3,9 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import React from "react";
+import React, {useState} from "react";
 import {WorkSpace} from "../models/models";
+import TextField from "@material-ui/core/TextField";
 
 interface WorkSpaceSettingDialogProps {
   open: boolean
@@ -19,7 +20,6 @@ interface WorkSpaceSettingDialogProps {
 // tslint:disable-next-line:variable-name
 export const WorkSpaceSettingDialog: React.FC<WorkSpaceSettingDialogProps> = (props) => {
   // const classes = useStyles();
-
   if (props.workspace === null) {
     return (
       <Dialog open={props.open} onClose={props.onClose} aria-labelledby="form-dialog-title">
@@ -34,16 +34,21 @@ export const WorkSpaceSettingDialog: React.FC<WorkSpaceSettingDialogProps> = (pr
   }
 
   const workspace = props.workspace as WorkSpace;
+  const [basePath, setBasePath] = useState(workspace.basePath);
 
   const handleClickApplyButton = () => {
-    props.onApply(workspace);
+    props.onApply({...workspace, basePath});
   }
 
+  const handleUpdateBasePath = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBasePath(e.target.value);
+  };
+
   return (
-    <Dialog open={props.open} onClose={props.onClose} aria-labelledby="form-dialog-title">
+    <Dialog open={props.open} onClose={props.onClose}>
       <DialogTitle>workspace settings</DialogTitle>
       <DialogContent>
-        xxx
+        <TextField label="base path" value={basePath} onChange={handleUpdateBasePath}/>
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>

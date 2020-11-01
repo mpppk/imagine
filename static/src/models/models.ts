@@ -1,4 +1,5 @@
 export interface WorkSpace {
+  id: number
   name: string
   basePath: string
 }

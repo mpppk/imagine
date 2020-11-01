@@ -19,6 +19,8 @@ import {FilterDialog} from "./FilterDialog";
 import {indexActionCreators} from "../actions";
 import {useActions} from "../hooks";
 import {WorkSpaceSettingDialog} from "./WorkSpaceSettingDialog";
+import {Tooltip} from "@material-ui/core";
+import SettingsIcon from '@material-ui/icons/Settings';
 
 const useStyles = makeStyles((theme: Theme) => ({
   appBar: {
@@ -29,8 +31,13 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   title: {
     flexGrow: 1,
-    cursor: "pointer",
   },
+  workspaceSettingButton: {
+    marginLeft: theme.spacing(-1) // FIXME
+  },
+  filterButton: {
+    marginLeft: theme.spacing(0) // FIXME
+  }
 }));
 
 // tslint:disable-next-line variable-name
@@ -76,17 +83,18 @@ export function MyAppBar() {
     indexActionDispatcher.clickFilterApplyButton({enabled, changed, queryInputs});
   };
 
-  const handleClickWorkSpaceName = () => {
-    setWorkSpaceSettingDialog(true);
-  };
-
   const handleApplyWorkSpaceSetting = (workspace: WorkSpace) => {
+    console.log('ws', workspace);
     workspaceActionDispatcher.updateRequest(workspace);
     setWorkSpaceSettingDialog(false);
   }
 
   const handleCloseWorkSpaceSetting = () => {
     setWorkSpaceSettingDialog(false);
+  };
+
+  const handleClickWorkSpaceSettingButton = () => {
+    setWorkSpaceSettingDialog(true);
   };
 
   return (
@@ -107,14 +115,29 @@ export function MyAppBar() {
           >
             <MenuIcon/>
           </IconButton>
-          <FilterButton onClick={handleClickFilterButton} dot={isFiltered}/>
-            <Typography
-              variant="h6"
-              className={classes.title}
-              onClick={handleClickWorkSpaceName}
+          <Typography
+            variant="h6"
+            className={classes.title}
+          >
+            <span>
+            {currentWorkSpace === null ? 'loading workspace...' : currentWorkSpace.name}
+            </span>
+            <FilterButton className={classes.filterButton} onClick={handleClickFilterButton} dot={isFiltered}/>
+            <Tooltip
+              title="Edit WorkSpace settings"
+              aria-label="edit-workspace-settings"
+              className={classes.workspaceSettingButton}
             >
-              {currentWorkSpace === null ? 'loading workspace...' : currentWorkSpace.name}
-            </Typography>
+              <IconButton
+                edge="start"
+                color="inherit"
+                aria-label="workspace-setting"
+                onClick={handleClickWorkSpaceSettingButton}
+              >
+                <SettingsIcon/>
+              </IconButton>
+            </Tooltip>
+          </Typography>
           <Button color="inherit" disabled={isLoadingWorkSpaces}
                   onClick={handleClickOpenSwitchWorkSpaceDialogButton}>
             Switch WorkSpace
@@ -135,10 +158,10 @@ export function MyAppBar() {
         inputs={[]}
       />
       <WorkSpaceSettingDialog
-       onApply={handleApplyWorkSpaceSetting}
-       onClose={handleCloseWorkSpaceSetting}
-       open={openWorkSpaceSettingDialog}
-       workspace={currentWorkSpace}/>
+        onApply={handleApplyWorkSpaceSetting}
+        onClose={handleCloseWorkSpaceSetting}
+        open={openWorkSpaceSettingDialog}
+        workspace={currentWorkSpace}/>
     </>
   );
 }

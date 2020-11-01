@@ -9,29 +9,29 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-const globalBucketName = "Global"
+const globalBucketName = "WorkSpace"
 
 var workSpacesKey = []byte("WorkSpaces")
 
 var globalBucketNames = []string{globalBucketName}
 
-type BBoltGlobal struct {
+type BBoltWorkSpace struct {
 	base           *boltRepository
 	pathRepository *pathRepository
 }
 
-func NewBBoltGlobal(b *bolt.DB) repository.Global {
-	return &BBoltGlobal{
+func NewBBoltWorkSpace(b *bolt.DB) repository.WorkSpace {
+	return &BBoltWorkSpace{
 		base:           newBoltRepository(b),
 		pathRepository: newPathRepository(b),
 	}
 }
 
-func (b *BBoltGlobal) globalBucketFunc(f func(bucket *bolt.Bucket) error) error {
+func (b *BBoltWorkSpace) globalBucketFunc(f func(bucket *bolt.Bucket) error) error {
 	return b.base.bucketFunc(globalBucketNames, f)
 }
 
-func (b *BBoltGlobal) getWorkSpacesFromBucket(bucket *bolt.Bucket) (workspaces []*model.WorkSpace, err error) {
+func (b *BBoltWorkSpace) getWorkSpacesFromBucket(bucket *bolt.Bucket) (workspaces []*model.WorkSpace, err error) {
 	workSpacesBytes := bucket.Get(workSpacesKey)
 	if workSpacesBytes == nil {
 		return nil, nil
@@ -40,7 +40,7 @@ func (b *BBoltGlobal) getWorkSpacesFromBucket(bucket *bolt.Bucket) (workspaces [
 	return
 }
 
-func (b *BBoltGlobal) setWorkSpaces(bucket *bolt.Bucket, workspaces []*model.WorkSpace) error {
+func (b *BBoltWorkSpace) setWorkSpaces(bucket *bolt.Bucket, workspaces []*model.WorkSpace) error {
 	workspacesBytes, err := json.Marshal(workspaces)
 	if err != nil {
 		return fmt.Errorf("failed to marshal workspaces: %w", err)
@@ -48,7 +48,7 @@ func (b *BBoltGlobal) setWorkSpaces(bucket *bolt.Bucket, workspaces []*model.Wor
 	return bucket.Put(workSpacesKey, workspacesBytes)
 }
 
-func (b *BBoltGlobal) updateWorkSpaces(f func(workspaces []*model.WorkSpace) ([]*model.WorkSpace, error)) error {
+func (b *BBoltWorkSpace) updateWorkSpaces(f func(workspaces []*model.WorkSpace) ([]*model.WorkSpace, error)) error {
 	return b.globalBucketFunc(func(bucket *bolt.Bucket) error {
 		workspaces, err := b.getWorkSpacesFromBucket(bucket)
 		if err != nil {
@@ -62,7 +62,7 @@ func (b *BBoltGlobal) updateWorkSpaces(f func(workspaces []*model.WorkSpace) ([]
 	})
 }
 
-func (b *BBoltGlobal) ListWorkSpace() (workspaces []*model.WorkSpace, err error) {
+func (b *BBoltWorkSpace) List() (workspaces []*model.WorkSpace, err error) {
 	err = b.globalBucketFunc(func(bucket *bolt.Bucket) error {
 		workspaces, err = b.getWorkSpacesFromBucket(bucket)
 		return err
@@ -70,8 +70,25 @@ func (b *BBoltGlobal) ListWorkSpace() (workspaces []*model.WorkSpace, err error)
 	return
 }
 
-func (b *BBoltGlobal) AddWorkSpace(ws *model.WorkSpace) error {
+func (b *BBoltWorkSpace) Add(ws *model.WorkSpace) error {
 	return b.updateWorkSpaces(func(workspaces []*model.WorkSpace) ([]*model.WorkSpace, error) {
 		return append(workspaces, ws), nil
 	})
+}
+
+func (b *BBoltWorkSpace) Update(ws *model.WorkSpace) error {
+	return b.updateWorkSpaces(func(workspaces []*model.WorkSpace) ([]*model.WorkSpace, error) {
+		return replaceWorkSpaceByName(workspaces, ws), nil
+	})
+}
+
+func replaceWorkSpaceByName(workspaces []*model.WorkSpace, ws *model.WorkSpace) (newWorkspaces []*model.WorkSpace) {
+	for _, workspace := range workspaces {
+		if workspace.Name == ws.Name {
+			newWorkspaces = append(newWorkspaces, ws)
+		} else {
+			newWorkspaces = append(newWorkspaces, workspace)
+		}
+	}
+	return
 }

@@ -22,7 +22,7 @@ func InitializeHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 		usecase.NewTag,
 		repoimpl.NewBBoltTag,
 
-		repoimpl.NewBBoltGlobal,
+		repoimpl.NewBBoltWorkSpace,
 	)
 	return nil
 }
