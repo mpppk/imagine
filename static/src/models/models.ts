@@ -1,5 +1,7 @@
 export interface WorkSpace {
+  id: number
   name: string
+  basePath: string
 }
 
 export interface Tag {

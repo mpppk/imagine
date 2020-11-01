@@ -47,6 +47,15 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
   .case(workspaceActionCreators.select, (state, workspace) => {
     return {...state, currentWorkSpace: workspace};
   })
+  .case(workspaceActionCreators.updateRequest, (state, workspace) => {
+    if (state.workspaces === null) {
+      return { ...state, workspaces: [workspace]};
+    }
+    const workspaces = replaceBy(state.workspaces, workspace, (w) => w.name === workspace.name);
+    const currentWorkSpace = state.currentWorkSpace === null || state.currentWorkSpace.name !== workspace.name ?
+      state.currentWorkSpace : workspace;
+    return {...state, currentWorkSpace, workspaces};
+  })
   .case(indexActionCreators.selectTag, (state, tag) => {
     return {...state, selectedTagId: tag.id};
   })
