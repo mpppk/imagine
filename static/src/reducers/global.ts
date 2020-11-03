@@ -36,6 +36,9 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
     const workspaces = replaceBy(state.workspaces, currentWorkSpace, (w) => w.name === currentWorkSpace.name);
     return {...state, assets: [], currentWorkSpace, workspaces};
   })
+  // .case(fsActionCreators.scanRunning, (state) => {
+  //   return {...state, hasMoreAssets: state.assets.length === 0 ? true : state.hasMoreAssets}
+  // })
   .case(workspaceActionCreators.scanResult, (state, workspaces) => {
     return {...state, workspaces, isLoadingWorkSpaces: false};
   })

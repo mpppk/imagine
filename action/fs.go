@@ -106,6 +106,10 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return dispatch(f.action.scanCancel(payload.WorkSpaceName))
 	}
 
+	if err := f.assetUseCase.Init(payload.WorkSpaceName); err != nil {
+		return fmt.Errorf("failed to initialize asset usecase :%w", err)
+	}
+
 	if err := dispatch(f.action.scanStart(payload.WorkSpaceName, directory)); err != nil {
 		return err
 	}
