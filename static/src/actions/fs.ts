@@ -7,7 +7,7 @@ interface FSScanRunningPayload extends WSPayload{
   paths: string[]
 }
 
-interface FSScanStartPayload extends WSPayload{
+export interface FSScanStartPayload extends WSPayload{
   basePath: string
 }
 

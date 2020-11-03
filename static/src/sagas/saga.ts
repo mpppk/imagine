@@ -16,27 +16,16 @@ import {browserActionCreators} from "../actions/browser";
 import debounce from "lodash/debounce";
 import {assetActionCreators} from "../actions/asset";
 import {toQuery} from "../reducers/global";
+import {saveBasePath} from "../components/util/store";
+import {fsActionCreators, FSScanStartPayload} from "../actions/fs";
 
 const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
   return yield put(workspaceActionCreators.select(workspaces[0]));
 };
 
-// const fsScanStartWorkSpacesWorker = function* () {
-//   const p = yield select((s: State) => ({
-//     queries: s.global.queries,
-//     workSpaceName: s.global.currentWorkSpace?.name,
-//   }));
-//
-//   if (p.workSpaceName === undefined) {
-//     return;
-//   }
-//
-//   return yield put(assetActionCreators.scanRequest({
-//     ...p,
-//     requestNum: 10, // FIXME
-//     reset: true,
-//   }));
-// };
+const fsScanStartWorkSpacesWorker = function* (payload: FSScanStartPayload) {
+  saveBasePath(payload.workSpaceName, payload.basePath);
+};
 
 const boxMoveWorker = function* (payload: BoundingBoxMovePayload) {
   const state = yield select((s: State) => s.global);
@@ -162,7 +151,7 @@ export default function* rootSaga() {
   yield fork(resizeSaga);
   yield all([
     takeEveryAction(workspaceActionCreators.scanResult, scanWorkSpacesWorker)(),
-    // takeEveryAction(fsActionCreators.scanStart, fsScanStartWorkSpacesWorker)(),
+    takeEveryAction(fsActionCreators.scanStart, fsScanStartWorkSpacesWorker)(),
     takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)(),
     takeEveryAction(indexActionCreators.selectTag, selectTagWorker)(),
     takeEveryAction(indexActionCreators.clickFilterApplyButton, clickFilterApplyButtonWorker)(),
