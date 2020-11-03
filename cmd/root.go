@@ -51,6 +51,12 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("failed to open DB: %w", err)
 		}
 
+		defer func() {
+			if err := db.Close(); err != nil {
+				panic(err)
+			}
+		}()
+
 		logger := colog.NewCoLog(os.Stdout, "", 0).NewLogger()
 
 		handlers := registry.NewHandlers(db)

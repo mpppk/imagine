@@ -128,15 +128,13 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 				continue
 			}
 
-			if _, added, err := f.assetUseCase.AddAssetFromImagePathIfDoesNotExist(payload.WorkSpaceName, relP); err != nil {
-				dispatchScanFailActionAndLogOrPanic(err)
-				continue
-			} else if !added {
-				continue
-			}
-
 			paths = append(paths, filepath.Clean(relP))
-			if len(paths) >= 100 {
+			if len(paths) >= 1000 {
+				if _, err := f.assetUseCase.AddAssetFromImagePathListIfDoesNotExist(payload.WorkSpaceName, paths); err != nil {
+					dispatchScanFailActionAndLogOrPanic(err)
+					continue
+				}
+
 				if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
 					dispatchScanFailActionAndLogOrPanic(err)
 					continue

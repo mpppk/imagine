@@ -17,6 +17,10 @@ func NewAsset(assetRepository repository.Asset) *Asset {
 	}
 }
 
+func (a *Asset) AddAssetFromImagePathListIfDoesNotExist(ws model.WSName, filePathList []string) ([]model.AssetID, error) {
+	return a.assetRepository.AddByFilePathListIfDoesNotExist(ws, filePathList)
+}
+
 func (a *Asset) AddAssetFromImagePathIfDoesNotExist(ws model.WSName, filePath string) (model.AssetID, bool, error) {
 	return a.assetRepository.AddByFilePathIfDoesNotExist(ws, filePath)
 }
