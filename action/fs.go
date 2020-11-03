@@ -27,12 +27,20 @@ type ScanningImagesPayload struct {
 	Paths []string `json:"paths"`
 }
 
+type FsScanStartPayload struct {
+	*wsPayload
+	BasePath string `json:"basePath"`
+}
+
 type fsActionCreator struct{}
 
-func (f *fsActionCreator) scanStart(wsName model.WSName) *fsa.Action {
+func (f *fsActionCreator) scanStart(wsName model.WSName, basePath string) *fsa.Action {
 	return &fsa.Action{
-		Type:    FSScanStartType,
-		Payload: newWSPayload(wsName),
+		Type: FSScanStartType,
+		Payload: FsScanStartPayload{
+			wsPayload: newWSPayload(wsName),
+			BasePath:  basePath,
+		},
 	}
 }
 
@@ -80,7 +88,7 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return dispatch(f.action.scanCancel(payload.WorkSpaceName))
 	}
 
-	if err := dispatch(f.action.scanStart(payload.WorkSpaceName)); err != nil {
+	if err := dispatch(f.action.scanStart(payload.WorkSpaceName, directory)); err != nil {
 		return err
 	}
 

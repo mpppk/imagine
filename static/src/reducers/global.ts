@@ -27,8 +27,13 @@ export const globalInitialState = {
 export type GlobalState = typeof globalInitialState;export const global = reducerWithInitialState(globalInitialState).case(browserActionCreators.resize, (state, payload) => {
     return {...state, windowHeight: payload.height};
   })
-  .case(fsActionCreators.scanStart, (state) => {
-    return {...state, assets: []};
+  .case(fsActionCreators.scanStart, (state, payload) => {
+    if (state.currentWorkSpace === null || state.workspaces === null) {
+      return {...state};
+    }
+    const currentWorkSpace: WorkSpace = {...state.currentWorkSpace, basePath: payload.basePath};
+    const workspaces = replaceBy(state.workspaces, currentWorkSpace, (w) => w.name === currentWorkSpace.name);
+    return {...state, assets: [], currentWorkSpace, workspaces};
   })
   .case(workspaceActionCreators.scanResult, (state, workspaces) => {
     return {...state, workspaces, isLoadingWorkSpaces: false};
