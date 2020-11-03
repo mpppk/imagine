@@ -41,13 +41,12 @@ var rootCmd = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		//devMode := false
-		//if len(os.Args) > 1 && os.Args[1] == "dev" {
-		//	devMode = true
-		//}
-		devMode := true
+		conf, err := option.NewRootCmdConfigFromViper()
+		if err != nil {
+			return err
+		}
 
-		db, err := bbolt.Open("test.db", 0600, nil)
+		db, err := bbolt.Open(conf.DB, 0600, nil)
 		if err != nil {
 			return fmt.Errorf("failed to open DB: %w", err)
 		}
@@ -60,7 +59,7 @@ var rootCmd = &cobra.Command{
 			Url:              "http://localhost:3000",
 			Width:            1080,
 			Height:           720,
-			EnableExtensions: devMode,
+			EnableExtensions: conf.Dev,
 			Handlers:         handlers,
 			Logger:           logger,
 		}
@@ -105,9 +104,22 @@ func registerFlags(cmd *cobra.Command) error {
 	flags := []option.Flag{
 		&option.StringFlag{
 			BaseFlag: &option.BaseFlag{
+				Name:         "db",
+				Usage:        "db file path",
+				IsRequired:   true,
+				IsPersistent: true,
+			},
+		},
+		&option.StringFlag{
+			BaseFlag: &option.BaseFlag{
 				Name:         "config",
 				IsPersistent: true,
 				Usage:        "config file (default is $HOME/.imagine.yaml)",
+			}},
+		&option.BoolFlag{
+			BaseFlag: &option.BaseFlag{
+				Name:  "dev",
+				Usage: "Launch as developer mode",
 			}},
 		&option.BoolFlag{
 			BaseFlag: &option.BaseFlag{

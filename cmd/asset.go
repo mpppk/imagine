@@ -19,14 +19,6 @@ func newAssetCmd(fs afero.Fs) (*cobra.Command, error) {
 		flags := []option.Flag{
 			&option.StringFlag{
 				BaseFlag: &option.BaseFlag{
-					Name:         "db",
-					Usage:        "db file path",
-					IsRequired:   true,
-					IsPersistent: true,
-				},
-			},
-			&option.StringFlag{
-				BaseFlag: &option.BaseFlag{
 					Name:         "workspace",
 					Usage:        "workspace name",
 					IsPersistent: true,
