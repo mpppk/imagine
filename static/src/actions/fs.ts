@@ -4,7 +4,7 @@ import {WSPayload} from "./workspace";
 const fsActionCreatorFactory = actionCreatorFactory('FS');
 
 interface FSScanRunningPayload extends WSPayload{
-  paths: string[]
+  foundedAssetsNum: number
 }
 
 export interface FSScanStartPayload extends WSPayload{

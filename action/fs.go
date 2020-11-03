@@ -27,7 +27,7 @@ const (
 
 type ScanningImagesPayload struct {
 	*wsPayload
-	Paths []string `json:"paths"`
+	FoundedAssetsNum int `json:"foundedAssetsNum"`
 }
 
 type FsScanStartPayload struct {
@@ -70,8 +70,8 @@ func (f *fsActionCreator) scanRunning(wsName model.WSName, paths []string) *fsa.
 	return &fsa.Action{
 		Type: FSScanRunningType,
 		Payload: &ScanningImagesPayload{
-			wsPayload: newWSPayload(wsName),
-			Paths:     paths,
+			wsPayload:        newWSPayload(wsName),
+			FoundedAssetsNum: len(paths),
 		},
 	}
 }
@@ -106,6 +106,10 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return dispatch(f.action.scanCancel(payload.WorkSpaceName))
 	}
 
+	if err := f.assetUseCase.Init(payload.WorkSpaceName); err != nil {
+		return fmt.Errorf("failed to initialize asset usecase :%w", err)
+	}
+
 	if err := dispatch(f.action.scanStart(payload.WorkSpaceName, directory)); err != nil {
 		return err
 	}
@@ -129,7 +133,7 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 			}
 
 			paths = append(paths, filepath.Clean(relP))
-			if len(paths) >= 1000 {
+			if len(paths) >= 10000 {
 				if _, err := f.assetUseCase.AddAssetFromImagePathListIfDoesNotExist(payload.WorkSpaceName, paths); err != nil {
 					dispatchScanFailActionAndLogOrPanic(err)
 					continue

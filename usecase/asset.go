@@ -17,6 +17,10 @@ func NewAsset(assetRepository repository.Asset) *Asset {
 	}
 }
 
+func (a *Asset) Init(ws model.WSName) error {
+	return a.assetRepository.Init(ws)
+}
+
 func (a *Asset) AddAssetFromImagePathListIfDoesNotExist(ws model.WSName, filePathList []string) ([]model.AssetID, error) {
 	return a.assetRepository.AddByFilePathListIfDoesNotExist(ws, filePathList)
 }
@@ -34,11 +38,7 @@ func (a *Asset) AddAssetFromImagePath(ws model.WSName, filePath string) (model.A
 }
 
 func (a *Asset) ListAsync(ws model.WSName) (<-chan *model.Asset, error) {
-	// FIXME
-	if err := a.assetRepository.Init(ws); err != nil {
-		return nil, err
-	}
-	return a.assetRepository.ListByAsync(ws, nil, 10) // FIXME
+	return a.assetRepository.ListByAsync(ws, nil, 50) // FIXME
 }
 
 func (a *Asset) ListAsyncByQueries(ws model.WSName, queries []*model.Query) (<-chan *model.Asset, error) {
@@ -50,11 +50,7 @@ func (a *Asset) ListAsyncByQueries(ws model.WSName, queries []*model.Query) (<-c
 		}
 		return true
 	}
-	// FIXME
-	if err := a.assetRepository.Init(ws); err != nil {
-		return nil, err
-	}
-	return a.assetRepository.ListByAsync(ws, f, 10) // FIXME
+	return a.assetRepository.ListByAsync(ws, f, 50) // FIXME
 }
 
 // AssignBoundingBox assign bounding box to asset
