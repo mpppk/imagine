@@ -86,14 +86,17 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 
 	var paths []string
 	for p := range util.LoadImagesFromDir(directory, 10) {
-		if err := f.assetUseCase.AddAssetFromImagePath(payload.WorkSpaceName, p); err != nil {
+		if added, err := f.assetUseCase.AddAssetFromImagePathIfDoesNotExist(payload.WorkSpaceName, p); err != nil {
 			return err
+		} else if added {
+			fmt.Println("image added", p)
 		}
 		paths = append(paths, p)
 		if len(paths) >= 20 {
 			if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
 				return err
 			}
+			paths = []string{}
 		}
 	}
 	if len(paths) > 0 {

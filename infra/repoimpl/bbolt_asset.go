@@ -30,6 +30,21 @@ func (b *BBoltAsset) Init(ws model.WSName) error {
 	return nil
 }
 
+func (b *BBoltAsset) AddIfDoesNotExist(ws model.WSName, asset *model.Asset) (bool, error) {
+	_, exist, err := b.base.getByPath(createAssetBucketNames(ws), asset.Path)
+	if err != nil {
+		return false, err
+	}
+	if exist {
+		return false, nil
+	}
+
+	if err := b.base.add(createAssetBucketNames(ws), asset); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) error {
 	return b.base.update(createAssetBucketNames(ws), asset)
 }

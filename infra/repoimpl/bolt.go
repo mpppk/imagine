@@ -139,6 +139,14 @@ func (b *boltRepository) get(bucketNames []string, id uint64) (data []byte, exis
 	return data, data != nil, err
 }
 
+func (b *boltRepository) getByPath(bucketNames []string, path string) (data []byte, exist bool, err error) {
+	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		data = bucket.Get([]byte(path))
+		return nil
+	})
+	return data, data != nil, err
+}
+
 func (b *boltRepository) update(bucketNames []string, data boltData) error {
 	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		s, err := json.Marshal(data)
