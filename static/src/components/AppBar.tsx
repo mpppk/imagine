@@ -54,6 +54,10 @@ export function MyAppBar() {
   const isFiltered = useSelector((s: State) => {
     return s.global.queries.length > 0 && s.global.filterEnabled;
   });
+  const scanStatus = useSelector((s: State) => ({
+    running: s.indexPage.scanning,
+    count: s.indexPage.scanCount,
+  }))
   const dispatch = useDispatch();
   const indexActionDispatcher = useActions(indexActionCreators);
   const workspaceActionDispatcher = useActions(workspaceActionCreators);
@@ -96,6 +100,11 @@ export function MyAppBar() {
     setWorkSpaceSettingDialog(true);
   };
 
+  let scanMsg = scanStatus.count === 0 ? null : `🔎 ${scanStatus.count}`;
+  if (scanStatus.count !== 0 && !scanStatus.running) {
+    scanMsg = `✔ ${scanStatus.count}`;
+  }
+
   return (
     <>
       <AppBar position="fixed" className={classes.appBar}>
@@ -137,6 +146,7 @@ export function MyAppBar() {
               </IconButton>
             </Tooltip>
           </Typography>
+          {scanMsg}
           <Button color="inherit" disabled={isLoadingWorkSpaces}
                   onClick={handleClickOpenSwitchWorkSpaceDialogButton}>
             Switch WorkSpace
