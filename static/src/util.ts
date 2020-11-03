@@ -34,7 +34,9 @@ export const isDupNamedTag = (tags: Tag[], newTag: Tag) => {
   return tagNameSet.has(newTag.name);
 };
 
-export const assetPathToUrl = (p: string) => `http://localhost:1323/static${p}`;
+export const assetPathToUrl = (basePath: string, p: string) => {
+  return `http://localhost:1323/static/${basePath}/${p}`;// FIXME
+}
 
 export const replaceBy = <T>(array: T[], newElm: T, f: (v: T) => boolean) => {
   const newArray = [] as T[];

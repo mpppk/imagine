@@ -23,6 +23,7 @@ const useStyles = makeStyles(() => {
 });
 
 interface ImageListDrawerProps extends VirtualizedAssetProps {
+  basePath: string
   imagePaths: string[]
   onClickImage: (path: string, index: number) => void
   selectedIndex: number
@@ -45,6 +46,7 @@ export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = pr
       <div className={classes.drawerContainer}>
         <ImageGridList
           {...props}
+          basePath={props.basePath}
           paths={props.imagePaths}
           onClickImage={props.onClickImage}
           cellHeight={200}

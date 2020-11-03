@@ -145,15 +145,19 @@ const selector = (state: State): GlobalState => {
   const selectedAssetIndex = state.global.selectedAsset ?
     findAssetIndexById(state.global.assets, state.global.selectedAsset.id) :
     -1;
+
+  // FIXME
+  const basePath = state.global.currentWorkSpace === null ? '' : state.global.currentWorkSpace.basePath;
+  const toAssetPath = assetPathToUrl.bind(null, basePath);
+
   return {
     assets: state.global.assets,
     assignedTagIds: uniq(assignedTagIds),
     selectedAsset: state.global.selectedAsset,
-    selectedAssetUrl: state.global.selectedAsset === null ?
-      undefined : assetPathToUrl(state.global.selectedAsset?.path),
+    selectedAssetUrl: state.global.selectedAsset === null ? undefined : toAssetPath(state.global.selectedAsset.path),
     currentWorkSpace: state.global.currentWorkSpace,
     tags: state.global.tags,
-    imagePaths: state.global.assets.map((a) => assetPathToUrl(a.path)),
+    imagePaths: state.global.assets.map((a) => toAssetPath(a.path)),
     isLoadingWorkSpace: state.global.isLoadingWorkSpaces,
     isScanningDirectories: state.indexPage.scanning,
     selectedTagId: state.global.selectedTagId,
@@ -191,6 +195,7 @@ export default function Test() {
     <div className={classes.root} onKeyDown={handlers.keyDown} tabIndex={0}>
       <ImageListDrawer
         {...virtualizedAssetProps}
+        basePath={globalState.currentWorkSpace === null ? 'workspace-not-found' : globalState.currentWorkSpace.basePath}
         imagePaths={globalState.imagePaths}
         onClickImage={handlers.clickImage}
         selectedIndex={globalState.selectedAssetIndex}

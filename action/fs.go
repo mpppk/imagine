@@ -2,6 +2,7 @@ package action
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -94,12 +95,18 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 
 	var paths []string
 	for p := range util.LoadImagesFromDir(directory, 10) {
-		if added, err := f.assetUseCase.AddAssetFromImagePathIfDoesNotExist(payload.WorkSpaceName, p); err != nil {
+		relP, err := util.ToRelPath(directory, p)
+		if err != nil {
+			return err
+		}
+
+		if added, err := f.assetUseCase.AddAssetFromImagePathIfDoesNotExist(payload.WorkSpaceName, relP); err != nil {
 			return err
 		} else if !added {
 			continue
 		}
-		paths = append(paths, p)
+
+		paths = append(paths, filepath.Clean(relP))
 		if len(paths) >= 20 {
 			if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
 				return err

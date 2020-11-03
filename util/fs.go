@@ -1,10 +1,19 @@
 package util
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 )
+
+func ToRelPath(basePath, path string) (string, error) {
+	relP, err := filepath.Rel(basePath, path)
+	if err != nil {
+		return "", fmt.Errorf("failed to convert path to rel path(%s) from base path(%s): %w", path, basePath, err)
+	}
+	return filepath.Clean(relP), nil
+}
 
 func LoadImagesFromDir(dirPath string, cap int) <-chan string {
 	c := make(chan string, cap)
