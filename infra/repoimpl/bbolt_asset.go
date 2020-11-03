@@ -33,21 +33,63 @@ func (b *BBoltAsset) Init(ws model.WSName) error {
 	return nil
 }
 
-func (b *BBoltAsset) AddIfDoesNotExist(ws model.WSName, asset *model.Asset) (bool, error) {
-	if added, err := b.pathRepository.AddIfNotExist(ws, asset.Path, asset.ID); err != nil {
-		return false, fmt.Errorf("failed to register asset path: %w", err)
-	} else if !added {
-		return false, nil
+func (b *BBoltAsset) AddByFilePathListIfDoesNotExist(ws model.WSName, filePathList []string) ([]model.AssetID, error) {
+	notExistPaths, err := b.pathRepository.FilterExistPath(ws, filePathList)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := b.base.addByID(createAssetBucketNames(ws), asset); err != nil {
-		return false, err
+	var assets []*model.Asset
+	for _, p := range notExistPaths {
+		assets = append(assets, model.NewAssetFromFilePath(p))
 	}
-	return true, nil
+
+	idList, err := b.AddList(ws, assets)
+	if err != nil {
+		return nil, err
+	}
+
+	return idList, b.pathRepository.AddList(ws, notExistPaths, idList)
 }
 
-func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) error {
-	return b.base.updateByID(createAssetBucketNames(ws), asset)
+func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath string) (model.AssetID, bool, error) {
+	if _, exist, err := b.pathRepository.Get(ws, filePath); err != nil {
+		return 0, false, fmt.Errorf("failed to register asset path: %w", err)
+	} else if exist {
+		return 0, false, nil
+	}
+
+	id, err := b.Add(ws, model.NewAssetFromFilePath(filePath))
+	if err != nil {
+		return 0, false, err
+	}
+	return id, true, b.pathRepository.Add(ws, filePath, id)
+}
+
+func (b *BBoltAsset) AddList(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
+	var dataList []boltData
+	for _, asset := range assets {
+		dataList = append(dataList, asset)
+	}
+	idList, err := b.base.addListByID(createAssetBucketNames(ws), dataList)
+	if err != nil {
+		return nil, err
+	}
+
+	var assetIDList []model.AssetID
+	for _, id := range idList {
+		assetIDList = append(assetIDList, model.AssetID(id))
+	}
+
+	return assetIDList, nil
+}
+
+func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, error) {
+	id, err := b.base.addByID(createAssetBucketNames(ws), asset)
+	if err != nil {
+		return 0, err
+	}
+	return model.AssetID(id), nil
 }
 
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error) {

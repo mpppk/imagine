@@ -16,6 +16,12 @@ func itob(v uint64) []byte {
 	return b
 }
 
+func btoi(bytes []byte) uint64 {
+	padding := make([]byte, 8-len(bytes))
+	i := binary.BigEndian.Uint64(append(padding, bytes...))
+	return i
+}
+
 type boltRepository struct {
 	bolt *bolt.DB
 }
@@ -104,11 +110,29 @@ func (b *boltRepository) internalLOBucketFunc(bucketNames []string, f func(bucke
 }
 
 func (b *boltRepository) bucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
-	return b.bolt.Update(b.internalBucketFunc(bucketNames, f))
+	f2 := func(bucket *bolt.Bucket) error {
+		e := f(bucket)
+		return e
+	}
+	e := b.bolt.Update(b.internalBucketFunc(bucketNames, f2))
+	return e
+}
+
+func (b *boltRepository) batchBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
+	f2 := func(bucket *bolt.Bucket) error {
+		e := f(bucket)
+		return e
+	}
+	e := b.bolt.Batch(b.internalBucketFunc(bucketNames, f2))
+	return e
 }
 
 func (b *boltRepository) loBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
-	return b.bolt.View(b.internalLOBucketFunc(bucketNames, f))
+	f2 := func(bucket *bolt.Bucket) error {
+		e := f(bucket)
+		return e
+	}
+	return b.bolt.View(b.internalLOBucketFunc(bucketNames, f2))
 }
 
 type boltData interface {
@@ -122,12 +146,52 @@ func (b *boltRepository) addWithStringKey(bucketNames []string, k string, v inte
 		if err != nil {
 			return fmt.Errorf("failed to marshal data to json: %w", err)
 		}
-		return bucket.Put([]byte(k), s)
+		e := bucket.Put([]byte(k), s)
+		return e
 	})
 }
 
-func (b *boltRepository) addByID(bucketNames []string, data boltData) error {
-	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+func (b *boltRepository) addListWithStringKey(bucketNames []string, keys []string, values []interface{}) error {
+	return b.batchBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		for i, key := range keys {
+			value := values[i]
+			s, err := json.Marshal(value)
+			if err != nil {
+				return fmt.Errorf("failed to marshal data to json: %w", err)
+			}
+			if err := bucket.Put([]byte(key), s); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (b *boltRepository) addListByID(bucketNames []string, dataList []boltData) (idList []uint64, err error) {
+	e := b.batchBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		for _, data := range dataList {
+			id, err := bucket.NextSequence()
+			if err != nil {
+				return err
+			}
+			data.SetID(id)
+			s, err := json.Marshal(data)
+			if err != nil {
+				return fmt.Errorf("failed to marshal data to json: %w", err)
+			}
+			idList = append(idList, id)
+			if err := bucket.Put(itob(data.GetID()), s); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return idList, e
+}
+
+func (b *boltRepository) addByID(bucketNames []string, data boltData) (uint64, error) {
+	var retId uint64
+	e := b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		id, err := bucket.NextSequence()
 		if err != nil {
 			return err
@@ -137,8 +201,10 @@ func (b *boltRepository) addByID(bucketNames []string, data boltData) error {
 		if err != nil {
 			return fmt.Errorf("failed to marshal data to json: %w", err)
 		}
+		retId = id
 		return bucket.Put(itob(data.GetID()), s)
 	})
+	return retId, e
 }
 
 func (b *boltRepository) get(bucketNames []string, id uint64) (data []byte, exist bool, err error) {
@@ -149,9 +215,19 @@ func (b *boltRepository) get(bucketNames []string, id uint64) (data []byte, exis
 	return data, data != nil, err
 }
 
-func (b *boltRepository) getByString(bucketNames []string, path string) (data []byte, exist bool, err error) {
+func (b *boltRepository) multipleGetByString(bucketNames []string, keys []string) (dataList [][]byte, err error) {
 	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		data = bucket.Get([]byte(path))
+		for _, key := range keys {
+			dataList = append(dataList, bucket.Get([]byte(key)))
+		}
+		return nil
+	})
+	return dataList, err
+}
+
+func (b *boltRepository) getByString(bucketNames []string, key string) (data []byte, exist bool, err error) {
+	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		data = bucket.Get([]byte(key))
 		return nil
 	})
 	return data, data != nil, err

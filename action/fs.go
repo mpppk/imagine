@@ -2,6 +2,7 @@ package action
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 
 	"github.com/mitchellh/mapstructure"
@@ -21,6 +22,7 @@ const (
 	FSScanStartType   fsa.Type = fsPrefix + "SCAN/START"
 	FSScanFinishType  fsa.Type = fsPrefix + "SCAN/FINISH"
 	FSScanRunningType fsa.Type = fsPrefix + "SCAN/RUNNING"
+	FSScanFailType    fsa.Type = fsPrefix + "SCAN/FAIL"
 )
 
 type ScanningImagesPayload struct {
@@ -31,6 +33,11 @@ type ScanningImagesPayload struct {
 type FsScanStartPayload struct {
 	*wsPayload
 	BasePath string `json:"basePath"`
+}
+
+type FsScanFailPayload struct {
+	*wsPayload
+	err error
 }
 
 type fsActionCreator struct{}
@@ -69,6 +76,16 @@ func (f *fsActionCreator) scanRunning(wsName model.WSName, paths []string) *fsa.
 	}
 }
 
+func (f *fsActionCreator) scanFail(wsName model.WSName, err error) *fsa.Action {
+	return &fsa.Action{
+		Type: FSScanFailType,
+		Payload: &FsScanFailPayload{
+			wsPayload: newWSPayload(wsName),
+			err:       err,
+		},
+	}
+}
+
 type fsScanHandler struct {
 	assetUseCase *usecase.Asset
 	action       *fsActionCreator
@@ -93,34 +110,49 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return err
 	}
 
-	var paths []string
-	for p := range util.LoadImagesFromDir(directory, 10) {
-		relP, err := util.ToRelPath(directory, p)
-		if err != nil {
-			return err
+	dispatchScanFailActionAndLogOrPanic := func(err error) {
+		if e := dispatch(f.action.scanFail(payload.WorkSpaceName, err)); e != nil {
+			panic(e)
 		}
+		log.Printf("warning: %s", err)
+	}
 
-		if added, err := f.assetUseCase.AddAssetFromImagePathIfDoesNotExist(payload.WorkSpaceName, relP); err != nil {
-			return err
-		} else if !added {
-			continue
-		}
-
-		paths = append(paths, filepath.Clean(relP))
-		if len(paths) >= 20 {
-			if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
-				return err
+	go func() {
+		var paths []string
+		cnt := 0
+		for p := range util.LoadImagesFromDir(directory, 500) {
+			cnt++
+			relP, err := util.ToRelPath(directory, p)
+			if err != nil {
+				dispatchScanFailActionAndLogOrPanic(err)
+				continue
 			}
-			paths = []string{}
-		}
-	}
-	if len(paths) > 0 {
-		if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
-			return err
-		}
-	}
 
-	return dispatch(f.action.scanFinish(payload.WorkSpaceName))
+			paths = append(paths, filepath.Clean(relP))
+			if len(paths) >= 1000 {
+				if _, err := f.assetUseCase.AddAssetFromImagePathListIfDoesNotExist(payload.WorkSpaceName, paths); err != nil {
+					dispatchScanFailActionAndLogOrPanic(err)
+					continue
+				}
+
+				if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
+					dispatchScanFailActionAndLogOrPanic(err)
+					continue
+				}
+				paths = []string{}
+			}
+		}
+		if len(paths) > 0 {
+			if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
+				dispatchScanFailActionAndLogOrPanic(err)
+			}
+		}
+
+		if err := dispatch(f.action.scanFinish(payload.WorkSpaceName)); err != nil {
+			dispatchScanFailActionAndLogOrPanic(err)
+		}
+	}()
+	return nil
 }
 
 type fsHandlerCreator struct {

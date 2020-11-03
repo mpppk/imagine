@@ -107,7 +107,7 @@ func TestBBoltAsset_SearchByTags(t *testing.T) {
 			repo, db := newRepository(t, wsName, fileName)
 			defer teardown(t, fileName, db)
 			for _, asset := range assets {
-				if err := repo.Add(wsName, asset); err != nil {
+				if _, err := repo.Add(wsName, asset); err != nil {
 					t.Errorf("failed to addByID asset:%v, error:%v", asset, err)
 				}
 			}
@@ -170,7 +170,7 @@ func TestBBoltAsset_Update(t *testing.T) {
 			defer teardown(t, fileName, db)
 
 			for _, asset := range tt.oldAssets {
-				if err := repo.Add(wsName, asset); (err != nil) != tt.wantErr {
+				if _, err := repo.Add(wsName, asset); (err != nil) != tt.wantErr {
 					t.Errorf("failed to addByID assets: %#v", asset)
 				}
 			}
@@ -217,7 +217,7 @@ func TestBBoltAsset_Add(t *testing.T) {
 			repo, db := newRepository(t, wsName, fileName)
 			defer teardown(t, fileName, db)
 
-			if err := repo.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
+			if _, err := repo.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			got, err := repo.Get(wsName, tt.args.asset.ID)

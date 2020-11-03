@@ -8,6 +8,7 @@ import {tagActionCreators} from "../actions/tag";
 import {boundingBoxActionCreators} from "../actions/box";
 import {browserActionCreators} from "../actions/browser";
 import {fsActionCreators} from "../actions/fs";
+import {loadBasePath} from "../components/util/store";
 
 export const globalInitialState = {
   filterEnabled: false,
@@ -54,7 +55,9 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
     return {...state, isScanningAssets: false, hasMoreAssets: false}
   })
   .case(workspaceActionCreators.select, (state, workspace) => {
-    return {...state, currentWorkSpace: workspace};
+    // FIXME
+    const basePath = loadBasePath(workspace.name) ?? workspace.basePath;
+    return {...state, currentWorkSpace: {...workspace, basePath}};
   })
   .case(workspaceActionCreators.updateRequest, (state, workspace) => {
     if (state.workspaces === null) {
