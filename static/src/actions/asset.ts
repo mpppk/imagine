@@ -4,7 +4,7 @@ import {WSPayload} from "./workspace";
 
 const assetActionCreatorFactory = actionCreatorFactory('ASSET');
 
-interface AssetScanRequest extends WSPayload {
+export interface AssetScanRequestPayload extends WSPayload {
   requestNum: number
   queries: Query[]
   reset: boolean
@@ -15,7 +15,7 @@ interface ScanRunningPayload extends WSPayload{
 }
 
 export const assetActionCreators = {
-  scanRequest: assetActionCreatorFactory<AssetScanRequest>('SCAN/REQUEST'),
+  scanRequest: assetActionCreatorFactory<AssetScanRequestPayload>('SCAN/REQUEST'),
   scanRunning: assetActionCreatorFactory<ScanRunningPayload>('SCAN/RUNNING'),
   scanFinish: assetActionCreatorFactory<WSPayload>('SCAN/FINISH'),
 };

@@ -116,7 +116,17 @@ type boltData interface {
 	SetID(id uint64)
 }
 
-func (b *boltRepository) add(bucketNames []string, data boltData) error {
+func (b *boltRepository) addWithStringKey(bucketNames []string, k string, v interface{}) error {
+	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		s, err := json.Marshal(v)
+		if err != nil {
+			return fmt.Errorf("failed to marshal data to json: %w", err)
+		}
+		return bucket.Put([]byte(k), s)
+	})
+}
+
+func (b *boltRepository) addByID(bucketNames []string, data boltData) error {
 	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		id, err := bucket.NextSequence()
 		if err != nil {
@@ -139,7 +149,15 @@ func (b *boltRepository) get(bucketNames []string, id uint64) (data []byte, exis
 	return data, data != nil, err
 }
 
-func (b *boltRepository) update(bucketNames []string, data boltData) error {
+func (b *boltRepository) getByString(bucketNames []string, path string) (data []byte, exist bool, err error) {
+	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		data = bucket.Get([]byte(path))
+		return nil
+	})
+	return data, data != nil, err
+}
+
+func (b *boltRepository) updateByID(bucketNames []string, data boltData) error {
 	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		s, err := json.Marshal(data)
 		if err != nil {
@@ -173,5 +191,3 @@ func (b *boltRepository) recreateBucket(bucketNames []string) error {
 		return nil
 	})
 }
-
-// TODO: 次はこれを使ってtagを滅ぼし、再度登録するsetTagsをusecaseとして実装

@@ -7,9 +7,14 @@ interface FSScanRunningPayload extends WSPayload{
   paths: string[]
 }
 
+interface FSScanStartPayload extends WSPayload{
+  basePath: string
+}
+
+
 export const fsActionCreators = {
   scanCancel: fsActionCreatorFactory<WSPayload>('SCAN/CANCEL'),
   scanFinish: fsActionCreatorFactory<WSPayload>('SCAN/FINISH'),
-  scanStart: fsActionCreatorFactory<WSPayload>('SCAN/START'),
+  scanStart: fsActionCreatorFactory<FSScanStartPayload>('SCAN/START'),
   scanRunning: fsActionCreatorFactory<FSScanRunningPayload>('SCAN/RUNNING'),
 };

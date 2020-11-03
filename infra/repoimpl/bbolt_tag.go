@@ -29,7 +29,7 @@ func (b *BBoltTag) Init(ws model.WSName) error {
 }
 
 func (b *BBoltTag) Add(ws model.WSName, tag *model.Tag) error {
-	return b.base.add(createTagBucketNames(ws), tag)
+	return b.base.addByID(createTagBucketNames(ws), tag)
 }
 
 func (b *BBoltTag) Get(ws model.WSName, id model.TagID) (tag *model.Tag, exist bool, err error) {
@@ -49,7 +49,7 @@ func (b *BBoltTag) RecreateBucket(ws model.WSName) error {
 }
 
 func (b *BBoltTag) Update(ws model.WSName, tag *model.Tag) error {
-	return b.base.update(createTagBucketNames(ws), tag)
+	return b.base.updateByID(createTagBucketNames(ws), tag)
 }
 
 func (b *BBoltTag) ListByAsync(ws model.WSName, f func(tag *model.Tag) bool, cap int) (assetChan <-chan *model.Tag, err error) {

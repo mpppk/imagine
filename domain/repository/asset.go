@@ -9,6 +9,7 @@ import (
 type Asset interface {
 	Init(ws model.WSName) error
 	Add(ws model.WSName, asset *model.Asset) error
+	AddIfDoesNotExist(ws model.WSName, asset *model.Asset) (added bool, err error)
 	Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error)
 	Has(ws model.WSName, id model.AssetID) (ok bool, err error)
 	Update(ws model.WSName, asset *model.Asset) error

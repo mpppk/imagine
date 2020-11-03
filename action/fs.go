@@ -2,6 +2,7 @@ package action
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -27,12 +28,20 @@ type ScanningImagesPayload struct {
 	Paths []string `json:"paths"`
 }
 
+type FsScanStartPayload struct {
+	*wsPayload
+	BasePath string `json:"basePath"`
+}
+
 type fsActionCreator struct{}
 
-func (f *fsActionCreator) scanStart(wsName model.WSName) *fsa.Action {
+func (f *fsActionCreator) scanStart(wsName model.WSName, basePath string) *fsa.Action {
 	return &fsa.Action{
-		Type:    FSScanStartType,
-		Payload: newWSPayload(wsName),
+		Type: FSScanStartType,
+		Payload: FsScanStartPayload{
+			wsPayload: newWSPayload(wsName),
+			BasePath:  basePath,
+		},
 	}
 }
 
@@ -71,10 +80,6 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	if err := dispatch(f.action.scanStart(payload.WorkSpaceName)); err != nil {
-		return err
-	}
-
 	directory, selected, err := dlgs.File("Select file", "", true)
 	if err != nil {
 		return fmt.Errorf("failed to open file selector: %w", err)
@@ -84,16 +89,29 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return dispatch(f.action.scanCancel(payload.WorkSpaceName))
 	}
 
+	if err := dispatch(f.action.scanStart(payload.WorkSpaceName, directory)); err != nil {
+		return err
+	}
+
 	var paths []string
 	for p := range util.LoadImagesFromDir(directory, 10) {
-		if err := f.assetUseCase.AddAssetFromImagePath(payload.WorkSpaceName, p); err != nil {
+		relP, err := util.ToRelPath(directory, p)
+		if err != nil {
 			return err
 		}
-		paths = append(paths, p)
+
+		if added, err := f.assetUseCase.AddAssetFromImagePathIfDoesNotExist(payload.WorkSpaceName, relP); err != nil {
+			return err
+		} else if !added {
+			continue
+		}
+
+		paths = append(paths, filepath.Clean(relP))
 		if len(paths) >= 20 {
 			if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
 				return err
 			}
+			paths = []string{}
 		}
 	}
 	if len(paths) > 0 {

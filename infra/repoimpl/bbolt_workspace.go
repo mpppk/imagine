@@ -17,13 +17,13 @@ var globalBucketNames = []string{globalBucketName}
 
 type BBoltWorkSpace struct {
 	base           *boltRepository
-	pathRepository *pathRepository
+	pathRepository *bboltPathRepository
 }
 
 func NewBBoltWorkSpace(b *bolt.DB) repository.WorkSpace {
 	return &BBoltWorkSpace{
 		base:           newBoltRepository(b),
-		pathRepository: newPathRepository(b),
+		pathRepository: newBBoltPathRepository(b),
 	}
 }
 

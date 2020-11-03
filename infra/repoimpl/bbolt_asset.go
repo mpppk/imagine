@@ -13,13 +13,13 @@ import (
 
 type BBoltAsset struct {
 	base           *boltRepository
-	pathRepository *pathRepository
+	pathRepository *bboltPathRepository
 }
 
 func NewBBoltAsset(b *bolt.DB) repository.Asset {
 	return &BBoltAsset{
 		base:           newBoltRepository(b),
-		pathRepository: newPathRepository(b),
+		pathRepository: newBBoltPathRepository(b),
 	}
 }
 
@@ -27,11 +27,27 @@ func (b *BBoltAsset) Init(ws model.WSName) error {
 	if err := b.base.createBucketIfNotExist(createAssetBucketNames(ws)); err != nil {
 		return fmt.Errorf("failed to create asset bucket: %w", err)
 	}
+	if err := b.base.createBucketIfNotExist(createPathBucketNames(ws)); err != nil {
+		return fmt.Errorf("failed to create path bucket: %w", err)
+	}
 	return nil
 }
 
+func (b *BBoltAsset) AddIfDoesNotExist(ws model.WSName, asset *model.Asset) (bool, error) {
+	if added, err := b.pathRepository.AddIfNotExist(ws, asset.Path, asset.ID); err != nil {
+		return false, fmt.Errorf("failed to register asset path: %w", err)
+	} else if !added {
+		return false, nil
+	}
+
+	if err := b.base.addByID(createAssetBucketNames(ws), asset); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) error {
-	return b.base.update(createAssetBucketNames(ws), asset)
+	return b.base.updateByID(createAssetBucketNames(ws), asset)
 }
 
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error) {
@@ -52,7 +68,7 @@ func (b *BBoltAsset) Has(ws model.WSName, id model.AssetID) (ok bool, err error)
 }
 
 func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
-	return b.base.update(createAssetBucketNames(ws), asset)
+	return b.base.updateByID(createAssetBucketNames(ws), asset)
 }
 
 func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {

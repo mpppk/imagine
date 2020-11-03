@@ -26,6 +26,7 @@ const useStyles = makeStyles((theme) => ({
 interface Props extends VirtualizedAssetProps {
   cellHeight: number;
   width: number;
+  basePath: string
   paths: string[]
   onClickImage: (path: string, index: number) => void
   selectedIndex: number
@@ -35,14 +36,14 @@ interface Props extends VirtualizedAssetProps {
 // tslint:disable-next-line:variable-name
 const MemoizedImg = React.memo((props: {src: string}) => <img src={props.src} height={'100%'}/>);
 
-const generateImageGridTile = (selectedIndex: number, handleClickImage: (path: string, index: number) => void): React.FC<AssetListItemProps> => ({asset, index, isLoaded, style}) => {
+const generateImageGridTile = (basePath: string, selectedIndex: number, handleClickImage: (path: string, index: number) => void): React.FC<AssetListItemProps> => ({asset, index, isLoaded, style}) => {
   if (!isLoaded) {
     return (<div style={style}>Loading...</div>);
   }
 
   const classes = useStyles();
 
-  const pathUrl = assetPathToUrl(asset.path);
+  const pathUrl = assetPathToUrl(basePath, asset.path);
 
   const genClickImageHandler = (imgPath: string, i: number) => () => {
     handleClickImage(imgPath, i);
@@ -83,7 +84,7 @@ export const ImageGridList: React.FC<Props> = (props) => {
           itemSize={props.cellHeight}
           width={props.width}
         >
-          {generateImageGridTile(props.selectedIndex, props.onClickImage)}
+          {generateImageGridTile(props.basePath, props.selectedIndex, props.onClickImage)}
         </VirtualizedAssetList>
       </GridList>
     </div>
