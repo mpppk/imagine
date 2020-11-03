@@ -71,10 +71,6 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	if err := dispatch(f.action.scanStart(payload.WorkSpaceName)); err != nil {
-		return err
-	}
-
 	directory, selected, err := dlgs.File("Select file", "", true)
 	if err != nil {
 		return fmt.Errorf("failed to open file selector: %w", err)
@@ -84,12 +80,16 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return dispatch(f.action.scanCancel(payload.WorkSpaceName))
 	}
 
+	if err := dispatch(f.action.scanStart(payload.WorkSpaceName)); err != nil {
+		return err
+	}
+
 	var paths []string
 	for p := range util.LoadImagesFromDir(directory, 10) {
 		if added, err := f.assetUseCase.AddAssetFromImagePathIfDoesNotExist(payload.WorkSpaceName, p); err != nil {
 			return err
-		} else if added {
-			fmt.Println("image added", p)
+		} else if !added {
+			continue
 		}
 		paths = append(paths, p)
 		if len(paths) >= 20 {

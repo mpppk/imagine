@@ -7,6 +7,7 @@ import {findAssetIndexById, immutableSplice, replaceBoxById, replaceBy} from "..
 import {tagActionCreators} from "../actions/tag";
 import {boundingBoxActionCreators} from "../actions/box";
 import {browserActionCreators} from "../actions/browser";
+import {fsActionCreators} from "../actions/fs";
 
 export const globalInitialState = {
   filterEnabled: false,
@@ -26,11 +27,14 @@ export const globalInitialState = {
 export type GlobalState = typeof globalInitialState;export const global = reducerWithInitialState(globalInitialState).case(browserActionCreators.resize, (state, payload) => {
     return {...state, windowHeight: payload.height};
   })
+  .case(fsActionCreators.scanStart, (state) => {
+    return {...state, assets: []};
+  })
   .case(workspaceActionCreators.scanResult, (state, workspaces) => {
     return {...state, workspaces, isLoadingWorkSpaces: false};
   })
   .case(assetActionCreators.scanRequest, (state) => {
-    return {...state, isScanningAssets: true}
+    return {...state, isScanningAssets: true, hasMoreAssets: true}
   })
   .case(assetActionCreators.scanRunning, (state, payload) => {
     const assets = {...state.assets};
