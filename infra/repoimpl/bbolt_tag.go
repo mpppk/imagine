@@ -28,8 +28,9 @@ func (b *BBoltTag) Init(ws model.WSName) error {
 	return b.base.createBucketIfNotExist(createTagBucketNames(ws))
 }
 
-func (b *BBoltTag) Add(ws model.WSName, tag *model.Tag) error {
-	return b.base.addByID(createTagBucketNames(ws), tag)
+func (b *BBoltTag) Add(ws model.WSName, tag *model.Tag) (model.TagID, error) {
+	id, err := b.base.addByID(createTagBucketNames(ws), tag)
+	return model.TagID(id), err
 }
 
 func (b *BBoltTag) Get(ws model.WSName, id model.TagID) (tag *model.Tag, exist bool, err error) {

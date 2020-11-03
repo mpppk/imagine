@@ -17,19 +17,14 @@ func NewAsset(assetRepository repository.Asset) *Asset {
 	}
 }
 
-func (a *Asset) AddAssetFromImagePathIfDoesNotExist(ws model.WSName, filePath string) (bool, error) {
-	// FIXME
-	if err := a.assetRepository.Init(ws); err != nil {
-		return false, err
-	}
-
-	return a.assetRepository.AddIfDoesNotExist(ws, model.NewAssetFromFilePath(filePath))
+func (a *Asset) AddAssetFromImagePathIfDoesNotExist(ws model.WSName, filePath string) (model.AssetID, bool, error) {
+	return a.assetRepository.AddByFilePathIfDoesNotExist(ws, filePath)
 }
 
-func (a *Asset) AddAssetFromImagePath(ws model.WSName, filePath string) error {
+func (a *Asset) AddAssetFromImagePath(ws model.WSName, filePath string) (model.AssetID, error) {
 	// FIXME
 	if err := a.assetRepository.Init(ws); err != nil {
-		return err
+		return 0, err
 	}
 	return a.assetRepository.Add(ws, model.NewAssetFromFilePath(filePath))
 }

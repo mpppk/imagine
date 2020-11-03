@@ -2,6 +2,7 @@ package action
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 
 	"github.com/mitchellh/mapstructure"
@@ -109,46 +110,48 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return err
 	}
 
+	dispatchScanFailActionAndLogOrPanic := func(err error) {
+		if e := dispatch(f.action.scanFail(payload.WorkSpaceName, err)); e != nil {
+			panic(e)
+		}
+		log.Printf("warning: %s", err)
+	}
+
 	go func() {
 		var paths []string
-		for p := range util.LoadImagesFromDir(directory, 10) {
+		cnt := 0
+		for p := range util.LoadImagesFromDir(directory, 500) {
+			cnt++
 			relP, err := util.ToRelPath(directory, p)
 			if err != nil {
-				if e := dispatch(f.action.scanFail(payload.WorkSpaceName, err)); e != nil {
-					panic(e)
-				}
+				dispatchScanFailActionAndLogOrPanic(err)
+				continue
 			}
 
-			if added, err := f.assetUseCase.AddAssetFromImagePathIfDoesNotExist(payload.WorkSpaceName, relP); err != nil {
-				if e := dispatch(f.action.scanFail(payload.WorkSpaceName, err)); e != nil {
-					panic(e)
-				}
+			if _, added, err := f.assetUseCase.AddAssetFromImagePathIfDoesNotExist(payload.WorkSpaceName, relP); err != nil {
+				dispatchScanFailActionAndLogOrPanic(err)
+				continue
 			} else if !added {
 				continue
 			}
 
 			paths = append(paths, filepath.Clean(relP))
-			if len(paths) >= 20 {
+			if len(paths) >= 100 {
 				if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
-					if e := dispatch(f.action.scanFail(payload.WorkSpaceName, err)); e != nil {
-						panic(e)
-					}
+					dispatchScanFailActionAndLogOrPanic(err)
+					continue
 				}
 				paths = []string{}
 			}
 		}
 		if len(paths) > 0 {
 			if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
-				if e := dispatch(f.action.scanFail(payload.WorkSpaceName, err)); e != nil {
-					panic(e)
-				}
+				dispatchScanFailActionAndLogOrPanic(err)
 			}
 		}
 
 		if err := dispatch(f.action.scanFinish(payload.WorkSpaceName)); err != nil {
-			if e := dispatch(f.action.scanFail(payload.WorkSpaceName, err)); e != nil {
-				panic(e)
-			}
+			dispatchScanFailActionAndLogOrPanic(err)
 		}
 	}()
 	return nil

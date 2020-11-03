@@ -16,6 +16,12 @@ func itob(v uint64) []byte {
 	return b
 }
 
+func btoi(bytes []byte) uint64 {
+	padding := make([]byte, 8-len(bytes))
+	i := binary.BigEndian.Uint64(append(padding, bytes...))
+	return i
+}
+
 type boltRepository struct {
 	bolt *bolt.DB
 }
@@ -104,11 +110,20 @@ func (b *boltRepository) internalLOBucketFunc(bucketNames []string, f func(bucke
 }
 
 func (b *boltRepository) bucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
-	return b.bolt.Update(b.internalBucketFunc(bucketNames, f))
+	f2 := func(bucket *bolt.Bucket) error {
+		e := f(bucket)
+		return e
+	}
+	e := b.bolt.Update(b.internalBucketFunc(bucketNames, f2))
+	return e
 }
 
 func (b *boltRepository) loBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
-	return b.bolt.View(b.internalLOBucketFunc(bucketNames, f))
+	f2 := func(bucket *bolt.Bucket) error {
+		e := f(bucket)
+		return e
+	}
+	return b.bolt.View(b.internalLOBucketFunc(bucketNames, f2))
 }
 
 type boltData interface {
@@ -122,12 +137,14 @@ func (b *boltRepository) addWithStringKey(bucketNames []string, k string, v inte
 		if err != nil {
 			return fmt.Errorf("failed to marshal data to json: %w", err)
 		}
-		return bucket.Put([]byte(k), s)
+		e := bucket.Put([]byte(k), s)
+		return e
 	})
 }
 
-func (b *boltRepository) addByID(bucketNames []string, data boltData) error {
-	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+func (b *boltRepository) addByID(bucketNames []string, data boltData) (uint64, error) {
+	var retId uint64
+	e := b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		id, err := bucket.NextSequence()
 		if err != nil {
 			return err
@@ -137,8 +154,10 @@ func (b *boltRepository) addByID(bucketNames []string, data boltData) error {
 		if err != nil {
 			return fmt.Errorf("failed to marshal data to json: %w", err)
 		}
+		retId = id
 		return bucket.Put(itob(data.GetID()), s)
 	})
+	return retId, e
 }
 
 func (b *boltRepository) get(bucketNames []string, id uint64) (data []byte, exist bool, err error) {

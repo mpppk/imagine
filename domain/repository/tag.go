@@ -4,7 +4,7 @@ import "github.com/mpppk/imagine/domain/model"
 
 type Tag interface {
 	Init(ws model.WSName) error
-	Add(ws model.WSName, tag *model.Tag) error
+	Add(ws model.WSName, tag *model.Tag) (model.TagID, error)
 	Get(ws model.WSName, id model.TagID) (tag *model.Tag, exist bool, err error)
 	Update(ws model.WSName, tag *model.Tag) error
 	RecreateBucket(ws model.WSName) error

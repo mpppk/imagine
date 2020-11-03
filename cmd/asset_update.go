@@ -46,7 +46,7 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 						log.Printf("warning: image path is empty: %s", scanner.Text())
 						continue
 					}
-					if err := assetUseCase.AddAssetFromImagePath(conf.WorkSpace, asset.Path); err != nil {
+					if _, err := assetUseCase.AddAssetFromImagePath(conf.WorkSpace, asset.Path); err != nil {
 						return fmt.Errorf("failed to add asset. image path: %s: %w", asset.Path, err)
 					}
 					log.Printf("debug: asset added: %#v", asset)
@@ -56,7 +56,7 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 						return fmt.Errorf("failed to check asset. image path: %s: %w", asset.Path, err)
 					} else if !ok {
 						if conf.New {
-							if err := assetRepository.Add(conf.WorkSpace, &asset); err != nil {
+							if _, err := assetRepository.Add(conf.WorkSpace, &asset); err != nil {
 								return fmt.Errorf("failed to add asset: %w", err)
 							}
 							log.Printf("debug: asset added: %#v", asset)

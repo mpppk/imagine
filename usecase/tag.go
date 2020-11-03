@@ -39,7 +39,7 @@ func (a *Tag) SetTags(ws model.WSName, tags []*model.Tag) error {
 				return fmt.Errorf("failed to set tags: %w", err)
 			}
 		} else {
-			if err := a.tagRepository.Add(ws, tag); err != nil {
+			if _, err := a.tagRepository.Add(ws, tag); err != nil {
 				return fmt.Errorf("failed to set tags: %w", err)
 			}
 		}

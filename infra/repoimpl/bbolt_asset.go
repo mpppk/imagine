@@ -33,21 +33,26 @@ func (b *BBoltAsset) Init(ws model.WSName) error {
 	return nil
 }
 
-func (b *BBoltAsset) AddIfDoesNotExist(ws model.WSName, asset *model.Asset) (bool, error) {
-	if added, err := b.pathRepository.AddIfNotExist(ws, asset.Path, asset.ID); err != nil {
-		return false, fmt.Errorf("failed to register asset path: %w", err)
-	} else if !added {
-		return false, nil
+func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath string) (model.AssetID, bool, error) {
+	if _, exist, err := b.pathRepository.Get(ws, filePath); err != nil {
+		return 0, false, fmt.Errorf("failed to register asset path: %w", err)
+	} else if exist {
+		return 0, false, nil
 	}
 
-	if err := b.base.addByID(createAssetBucketNames(ws), asset); err != nil {
-		return false, err
+	id, err := b.Add(ws, model.NewAssetFromFilePath(filePath))
+	if err != nil {
+		return 0, false, err
 	}
-	return true, nil
+	return id, true, b.pathRepository.Add(ws, filePath, id)
 }
 
-func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) error {
-	return b.base.updateByID(createAssetBucketNames(ws), asset)
+func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, error) {
+	id, err := b.base.addByID(createAssetBucketNames(ws), asset)
+	if err != nil {
+		return 0, err
+	}
+	return model.AssetID(id), nil
 }
 
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error) {
