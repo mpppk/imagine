@@ -22,7 +22,7 @@ interface Props {
 // tslint:disable-next-line:variable-name
 export const AssetInfoTable: React.FC<Props> = ({asset}) => {
   const classes = useStyles();
-  const tags = (asset.boundingBoxes ?? []).map((b) => b.tag);
+  const tags = (asset.boundingBoxes ?? []).map((b) => b.tag.name).join(', ');
 
   return (
     <TableContainer component={Paper}>
