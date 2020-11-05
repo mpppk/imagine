@@ -38,9 +38,13 @@ func (b *BBoltTag) Get(ws model.WSName, id model.TagID) (tag *model.Tag, exist b
 	if err != nil {
 		return nil, exist, err
 	}
+	if !exist {
+		return nil, false, nil
+	}
+
 	var a model.Tag
 	if err := json.Unmarshal(data, &a); err != nil {
-		return nil, exist, err
+		return nil, exist, fmt.Errorf("failed to unmarshal json to tag. contents: %s: %w", string(data), err)
 	}
 	return &a, exist, nil
 }
