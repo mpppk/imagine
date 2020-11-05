@@ -91,8 +91,11 @@ const clickFilterApplyButtonWorker = function* (payload: ClickFilterApplyButtonP
   }));
 };
 
-const fsScanFinishWorker = function* () {
+const fsScanRunningWorker = function* () {
   const state = yield select((s: State) => s.global);
+  if (state.assets.length !== 0) {
+    return;
+  }
   return yield put(assetActionCreators.scanRequest({
     queries: state.queries,
     requestNum: 50, // FIXME
@@ -162,7 +165,7 @@ export default function* rootSaga() {
   yield all([
     takeEveryAction(workspaceActionCreators.scanResult, scanWorkSpacesWorker)(),
     takeEveryAction(fsActionCreators.scanStart, fsScanStartWorkSpacesWorker)(),
-    takeEveryAction(fsActionCreators.scanFinish, fsScanFinishWorker)(),
+    takeEveryAction(fsActionCreators.scanRunning, fsScanRunningWorker)(),
     takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)(),
     takeEveryAction(indexActionCreators.selectTag, selectTagWorker)(),
     takeEveryAction(indexActionCreators.clickFilterApplyButton, clickFilterApplyButtonWorker)(),
