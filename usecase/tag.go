@@ -18,10 +18,6 @@ func NewTag(tagRepository repository.Tag) *Tag {
 }
 
 func (a *Tag) List(ws model.WSName) ([]*model.Tag, error) {
-	// FIXME
-	if err := a.tagRepository.Init(ws); err != nil {
-		return nil, err
-	}
 	return a.tagRepository.ListAll(ws)
 }
 
