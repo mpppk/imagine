@@ -10,7 +10,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import {makeStyles} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
-import {QueryInput as QueryIn, QueryOp} from "../models/models";
+import {Query, QueryOp} from "../models/models";
 import InputLabel from "@material-ui/core/InputLabel";
 import {immutableSplice} from "../util";
 import Switch from "@material-ui/core/Switch";
@@ -27,8 +27,10 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-interface QueryInputProps extends QueryIn {
-  onUpdate: (q: QueryIn) => void;
+interface QueryInputProps {
+  op: QueryOp;
+  tagName: string
+  onUpdate: (q: Query) => void;
   onDelete: () => void;
 }
 
@@ -87,7 +89,7 @@ export const QueryForm: React.FC<QueryFormProps> = (props) => {
     props.onUpdate([...props.inputs, {op: 'equals', tagName: '', id: -1}]);
   };
 
-  const handleUpdateQueryInput = (index: number, input: QueryIn) => {
+  const handleUpdateQueryInput = (index: number, input: Query) => {
     props.onUpdate(immutableSplice(props.inputs, index, 1, {...input, id: props.inputs[index].id}));
   };
 
@@ -117,15 +119,17 @@ export const QueryForm: React.FC<QueryFormProps> = (props) => {
 interface FilterDialogProps {
   open: boolean
   onClose: () => void
-  inputs: QueryIn[]
-  onClickApplyButton: (enabled: boolean, changed: boolean, inputs: QueryIn[]) => void
+  inputs: Query[]
+  onClickApplyButton: (enabled: boolean, changed: boolean, inputs: Query[]) => void
 }
 
-interface QueryInWithID extends QueryIn {
+interface QueryInWithID {
+  op: QueryOp;
+  tagName: string;
   id: number;
 }
 
-const toQueryInWithIDList = (qi: QueryIn[]): QueryInWithID[] => {
+const toQueryInWithIDList = (qi: Query[]): QueryInWithID[] => {
   return qi.map((i, ind): QueryInWithID => ({...i, id: ind}));
 }
 

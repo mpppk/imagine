@@ -1,7 +1,7 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
-import {Asset, AssetWithIndex, BoundingBox, Query, QueryInput, Tag, WorkSpace} from '../models/models';
+import {Asset, AssetWithIndex, BoundingBox, Query, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
 import {findAssetIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
@@ -81,11 +81,8 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
     if (!state.filterEnabled && !payload.enabled) {
       return {...state };
     }
-    const queries = payload.queryInputs
-      .map(toQuery.bind(null, state.tags))
-      .filter((q): q is Query => q !== null);
     return {...resetAssets(state),
-      queries,
+      queries: payload.queries,
       filterEnabled: payload.enabled,
       hasMoreAssets: true
     };
@@ -161,14 +158,6 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
 const resetAssets = (state: GlobalState): GlobalState => {
   return {...state, assets: [], selectedAsset: null, selectedTagId: undefined}
 };
-
-export const toQuery = (tags: Tag[], queryInput: QueryInput): Query | null => {
-  const tag = tags.find((t) => t.name === queryInput.tagName);
-  if (tag === undefined) {
-    return null;
-  }
-  return {op: queryInput.op, tag};
-}
 
 const updateAssets = (state: GlobalState, asset: AssetWithIndex) => {
   const assets = replaceBy(state.assets, asset, (a) => a.id === asset.id);

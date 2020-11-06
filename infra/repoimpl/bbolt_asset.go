@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -118,7 +119,7 @@ func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
 	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
 
-func (b *BBoltAsset) ListByAsync(ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error) {
+func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error) {
 	c := make(chan *model.Asset, cap)
 	ec := make(chan error, 1)
 	f2 := f
@@ -130,8 +131,9 @@ func (b *BBoltAsset) ListByAsync(ws model.WSName, f func(asset *model.Asset) boo
 
 	// FIXME: goroutine leak
 	go func() {
-		batchNum := 100
+		batchNum := 50
 		min := itob(0)
+	L:
 		for {
 			var assets []*model.Asset
 			err := b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
@@ -162,7 +164,11 @@ func (b *BBoltAsset) ListByAsync(ws model.WSName, f func(asset *model.Asset) boo
 			}
 
 			for _, asset := range assets {
-				c <- asset
+				select {
+				case <-ctx.Done():
+					break L
+				case c <- asset:
+				}
 			}
 			min = itob(uint64(assets[len(assets)-1].ID))
 		}

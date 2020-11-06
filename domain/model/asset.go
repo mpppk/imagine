@@ -46,9 +46,9 @@ func (a *Asset) SetID(id uint64) {
 	a.ID = AssetID(id)
 }
 
-func (a *Asset) HasTag(id TagID) bool {
+func (a *Asset) HasTag(tagName string) bool {
 	for _, box := range a.BoundingBoxes {
-		if box.Tag.ID == id {
+		if box.Tag.Name == tagName {
 			return true
 		}
 	}

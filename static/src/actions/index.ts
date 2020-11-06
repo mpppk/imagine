@@ -1,5 +1,5 @@
 import actionCreatorFactory from 'typescript-fsa';
-import {Asset, Direction, QueryInput, Tag, WorkSpace} from "../models/models";
+import {Asset, Direction, Query, Tag, WorkSpace} from "../models/models";
 import {WSPayload} from "./workspace";
 
 const indexActionCreatorFactory = actionCreatorFactory('INDEX');
@@ -12,7 +12,7 @@ export interface DragResizeHandlerPayload {
 export interface ClickFilterApplyButtonPayload {
   enabled: boolean
   changed: boolean
-  queryInputs: QueryInput[]
+  queries: Query[]
 }
 
 export const indexActionCreators = {
