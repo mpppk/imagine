@@ -2,7 +2,7 @@ import {all, call, fork, put, select, take, takeEvery, takeLatest} from '@redux-
 import {ActionCreator} from 'typescript-fsa';
 import {eventChannel, SagaIterator} from 'redux-saga';
 import {workspaceActionCreators} from '../actions/workspace';
-import {AssetWithIndex, newEmptyBoundingBox, Query, Tag, WorkSpace} from '../models/models';
+import {AssetWithIndex, newEmptyBoundingBox, Tag, WorkSpace} from '../models/models';
 import {ClickFilterApplyButtonPayload, indexActionCreators} from '../actions';
 import {
   boundingBoxActionCreators,
@@ -15,7 +15,6 @@ import {findAssetIndexById, findBoxIndexById, isDefaultBox} from '../util';
 import {browserActionCreators} from "../actions/browser";
 import debounce from "lodash/debounce";
 import {assetActionCreators} from "../actions/asset";
-import {toQuery} from "../reducers/global";
 import {saveBasePath} from "../components/util/store";
 import {fsActionCreators, FSScanStartPayload} from "../actions/fs";
 
@@ -77,22 +76,19 @@ const clickFilterApplyButtonWorker = function* (payload: ClickFilterApplyButtonP
     return;
   }
 
-  let queries = [] as Query[];
-  if (payload.enabled) {
-    queries = payload.queryInputs
-      .map(toQuery.bind(null, state.tags))
-      .filter((q): q is Query => q !== null);
-  }
   return yield put(assetActionCreators.scanRequest({
-    queries,
+    queries: payload.queries,
     requestNum: 50, // FIXME
     workSpaceName: state.currentWorkSpace.name,
     reset: true,
   }));
 };
 
-const fsScanFinishWorker = function* () {
+const fsScanRunningWorker = function* () {
   const state = yield select((s: State) => s.global);
+  if (state.assets.length !== 0) {
+    return;
+  }
   return yield put(assetActionCreators.scanRequest({
     queries: state.queries,
     requestNum: 50, // FIXME
@@ -162,7 +158,7 @@ export default function* rootSaga() {
   yield all([
     takeEveryAction(workspaceActionCreators.scanResult, scanWorkSpacesWorker)(),
     takeEveryAction(fsActionCreators.scanStart, fsScanStartWorkSpacesWorker)(),
-    takeEveryAction(fsActionCreators.scanFinish, fsScanFinishWorker)(),
+    takeEveryAction(fsActionCreators.scanRunning, fsScanRunningWorker)(),
     takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)(),
     takeEveryAction(indexActionCreators.selectTag, selectTagWorker)(),
     takeEveryAction(indexActionCreators.clickFilterApplyButton, clickFilterApplyButtonWorker)(),

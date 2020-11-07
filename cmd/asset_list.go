@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -28,7 +29,7 @@ func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
 			}
 			assetRepository := repoimpl.NewBBoltAsset(db)
 			assetUseCase := usecase.NewAsset(assetRepository)
-			assetChan, err := assetUseCase.ListAsync(conf.WorkSpace)
+			assetChan, err := assetUseCase.ListAsync(context.Background(), conf.WorkSpace)
 			if err != nil {
 				return err
 			}

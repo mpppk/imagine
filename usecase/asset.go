@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -37,11 +38,11 @@ func (a *Asset) AddAssetFromImagePath(ws model.WSName, filePath string) (model.A
 	return a.assetRepository.Add(ws, model.NewAssetFromFilePath(filePath))
 }
 
-func (a *Asset) ListAsync(ws model.WSName) (<-chan *model.Asset, error) {
-	return a.assetRepository.ListByAsync(ws, nil, 50) // FIXME
+func (a *Asset) ListAsync(ctx context.Context, ws model.WSName) (<-chan *model.Asset, error) {
+	return a.assetRepository.ListByAsync(ctx, ws, nil, 50) // FIXME
 }
 
-func (a *Asset) ListAsyncByQueries(ws model.WSName, queries []*model.Query) (<-chan *model.Asset, error) {
+func (a *Asset) ListAsyncByQueries(ctx context.Context, ws model.WSName, queries []*model.Query) (<-chan *model.Asset, error) {
 	f := func(asset *model.Asset) bool {
 		for _, query := range queries {
 			if !query.Match(asset) {
@@ -50,7 +51,7 @@ func (a *Asset) ListAsyncByQueries(ws model.WSName, queries []*model.Query) (<-c
 		}
 		return true
 	}
-	return a.assetRepository.ListByAsync(ws, f, 50) // FIXME
+	return a.assetRepository.ListByAsync(ctx, ws, f, 50) // FIXME
 }
 
 // AssignBoundingBox assign bounding box to asset

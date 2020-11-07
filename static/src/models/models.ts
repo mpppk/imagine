@@ -44,16 +44,10 @@ export type Query = EqualsQuery | NotEqualsQuery;
 export type QueryOp = 'equals' | 'not-equals';
 export interface EqualsQuery {
   op: 'equals'
-  tag: Tag
+  tagName: string
 }
 
 export interface NotEqualsQuery {
   op: 'not-equals'
-  tag: Tag
-}
-
-export interface QueryInput {
-  op: QueryOp
   tagName: string
 }
-

@@ -1,6 +1,8 @@
 package repoimpl
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -117,7 +119,7 @@ func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
 	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
 
-func (b *BBoltAsset) ListByAsync(ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error) {
+func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error) {
 	c := make(chan *model.Asset, cap)
 	ec := make(chan error, 1)
 	f2 := f
@@ -126,16 +128,49 @@ func (b *BBoltAsset) ListByAsync(ws model.WSName, f func(asset *model.Asset) boo
 			return true
 		}
 	}
-	eachF := func(asset *model.Asset) error {
-		if f2(asset) {
-			c <- asset
-		}
-		return nil
-	}
 
+	// FIXME: goroutine leak
 	go func() {
-		if err := b.ForEach(ws, eachF); err != nil {
-			ec <- fmt.Errorf("failed to list assets: %w", err)
+		batchNum := 50
+		min := itob(0)
+	L:
+		for {
+			var assets []*model.Asset
+			err := b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
+				cursor := bucket.Cursor()
+				cnt := 0
+				for k, v := cursor.Seek(min); k != nil && cnt < batchNum; k, v = cursor.Next() {
+					if bytes.Equal(k, min) {
+						continue
+					}
+					cnt++
+					var asset model.Asset
+					if err := json.Unmarshal(v, &asset); err != nil {
+						return fmt.Errorf("failed to unmarshal asset: %w", err)
+					}
+					if f2(&asset) {
+						assets = append(assets, &asset)
+					}
+				}
+				return nil
+			})
+
+			if err != nil {
+				ec <- fmt.Errorf("failed to list assets: %w", err)
+			}
+
+			if len(assets) == 0 {
+				break
+			}
+
+			for _, asset := range assets {
+				select {
+				case <-ctx.Done():
+					break L
+				case c <- asset:
+				}
+			}
+			min = itob(uint64(assets[len(assets)-1].ID))
 		}
 		close(c)
 		close(ec)

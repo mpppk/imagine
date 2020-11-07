@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -50,6 +51,7 @@ func (a *assetActionCreator) scanFinish(wsName model.WSName) *fsa.Action {
 
 type assetScanHandler struct {
 	c                  <-chan *model.Asset
+	queryCancel        context.CancelFunc
 	assetUseCase       *usecase.Asset
 	assetActionCreator *assetActionCreator
 }
@@ -60,8 +62,14 @@ func (d *assetScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
+	b := context.Background()
 	if d.c == nil || payload.Reset {
-		c, err := d.assetUseCase.ListAsyncByQueries(payload.WorkSpaceName, payload.Queries)
+		if d.c != nil {
+			d.queryCancel()
+		}
+		ctx, cancel := context.WithCancel(b)
+		d.queryCancel = cancel
+		c, err := d.assetUseCase.ListAsyncByQueries(ctx, payload.WorkSpaceName, payload.Queries)
 		if err != nil {
 			return err
 		}

@@ -10,7 +10,7 @@ import * as React from 'react';
 import {useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {workspaceActionCreators} from "../actions/workspace";
-import {QueryInput, WorkSpace} from "../models/models";
+import {Query, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import MyDrawer from './drawer/Drawer';
 import {SwitchWorkSpaceDialog} from "./SwitchWorkSpaceDialog";
@@ -82,9 +82,9 @@ export function MyAppBar() {
     setOpenFilterDialog(false);
   }
 
-  const handleClickFilterApplyButton = (enabled: boolean, changed: boolean, queryInputs: QueryInput[]) => {
+  const handleClickFilterApplyButton = (enabled: boolean, changed: boolean, queries: Query[]) => {
     setOpenFilterDialog(false);
-    indexActionDispatcher.clickFilterApplyButton({enabled, changed, queryInputs});
+    indexActionDispatcher.clickFilterApplyButton({enabled, changed, queries: enabled ? queries : []});
   };
 
   const handleApplyWorkSpaceSetting = (workspace: WorkSpace) => {
