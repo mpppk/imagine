@@ -110,7 +110,7 @@ export const TagListItem: React.FC<Props> = (props) => {
         className={genPaperClassName(snapshot.isDragging)}
         style={{...provided.draggableProps.style}}
       >
-        {props.tag.name}
+        {props.index < 10 ? `${props.index+1}: ${props.tag.name}` : props.tag.name}
         <IconButton
           disabled={props.disabled}
           aria-label="delete"
