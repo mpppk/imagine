@@ -81,6 +81,10 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         return;
       }
 
+      if ([189,187,0].includes(e.keyCode as number)) {
+        indexActionDispatcher.downSymbolKey(e.keyCode);
+      }
+
       if (isArrowKeyCode(e.keyCode)) {
         indexActionDispatcher.downArrowKey(keyCodeToDirection(e.keyCode));
       }

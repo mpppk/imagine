@@ -154,6 +154,39 @@ const downNumberKeyWorker = function* (key: number) {
   yield put(indexActionCreators.selectTag(tag));
 };
 
+const downSymbolKeyWorker = function* (code: number) {
+  const state: State = yield select();
+  if (!state.global.selectedAsset) {
+    return;
+  }
+
+  if (!state.global.currentWorkSpace) {
+    // tslint:disable-next-line:no-console
+    console.info(
+      'bounding box assign/unassign request is not sent because workspace is not selected'
+    );
+    return;
+  }
+
+  switch(code) {
+    case 189: // -
+      if (state.global.tags.length > 10) {
+        yield put(indexActionCreators.selectTag(state.global.tags[10]));
+      }
+      return;
+    case 187: // ^
+      if (state.global.tags.length > 11) {
+        yield put(indexActionCreators.selectTag(state.global.tags[11]));
+      }
+      return;
+    case 0: // ¥
+      if (state.global.tags.length > 12) {
+        yield put(indexActionCreators.selectTag(state.global.tags[12]));
+      }
+      return;
+  }
+};
+
 export default function* rootSaga() {
   yield fork(resizeSaga);
   yield all([
@@ -161,6 +194,7 @@ export default function* rootSaga() {
     takeEveryAction(fsActionCreators.scanStart, fsScanStartWorkSpacesWorker)(),
     takeEveryAction(fsActionCreators.scanRunning, fsScanRunningWorker)(),
     takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)(),
+    takeEveryAction(indexActionCreators.downSymbolKey, downSymbolKeyWorker)(),
     takeEveryAction(indexActionCreators.selectTag, selectTagWorker)(),
     takeEveryAction(indexActionCreators.clickFilterApplyButton, clickFilterApplyButtonWorker)(),
     takeEveryAction(boundingBoxActionCreators.move, boxMoveWorker)(),

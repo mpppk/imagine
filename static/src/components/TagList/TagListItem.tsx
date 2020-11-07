@@ -99,6 +99,19 @@ export const TagListItem: React.FC<Props> = (props) => {
     return viewState.paper.genClassNames(isDragging, props.assigned, props.selected).join(' ');
   }
 
+  let tagPrefix = '';
+  if (props.index < 9) {
+    tagPrefix = (props.index+1).toString() + ': ';
+  } else if(props.index === 9) {
+    tagPrefix = '0: ';
+  } else if (props.index === 10) {
+    tagPrefix = '-: ';
+  } else if (props.index === 11) {
+    tagPrefix = '^: ';
+  } else if (props.index === 12) {
+    tagPrefix = '¥: ';
+  }
+
   return (<Draggable key={props.tag.name} draggableId={props.tag.name} index={props.index} isDragDisabled={props.disabled}>
     {(provided, snapshot) => (
       <Paper
@@ -110,7 +123,7 @@ export const TagListItem: React.FC<Props> = (props) => {
         className={genPaperClassName(snapshot.isDragging)}
         style={{...provided.draggableProps.style}}
       >
-        {props.index < 10 ? `${props.index+1}: ${props.tag.name}` : props.tag.name}
+        {tagPrefix + props.tag.name}
         <IconButton
           disabled={props.disabled}
           aria-label="delete"
