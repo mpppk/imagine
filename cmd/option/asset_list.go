@@ -12,6 +12,7 @@ import (
 type AssetListCmdConfig struct {
 	DB        string
 	WorkSpace model.WSName
+	Format    string
 }
 
 // NewAssetListCmdConfigFromViper generate config for eval command from viper
