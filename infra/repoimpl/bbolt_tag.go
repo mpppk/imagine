@@ -28,12 +28,12 @@ func (b *BBoltTag) Init(ws model.WSName) error {
 	return b.base.createBucketIfNotExist(createTagBucketNames(ws))
 }
 
-func (b *BBoltTag) Add(ws model.WSName, tag *model.Tag) (model.TagID, error) {
-	id, err := b.base.addByID(createTagBucketNames(ws), tag)
+func (b *BBoltTag) Add(ws model.WSName, tagWithIndex *model.TagWithIndex) (model.TagID, error) {
+	id, err := b.base.addByID(createTagBucketNames(ws), tagWithIndex)
 	return model.TagID(id), err
 }
 
-func (b *BBoltTag) Get(ws model.WSName, id model.TagID) (tag *model.Tag, exist bool, err error) {
+func (b *BBoltTag) Get(ws model.WSName, id model.TagID) (tagWithIndex *model.TagWithIndex, exist bool, err error) {
 	data, exist, err := b.base.get(createTagBucketNames(ws), uint64(id))
 	if err != nil {
 		return nil, exist, err
@@ -42,9 +42,9 @@ func (b *BBoltTag) Get(ws model.WSName, id model.TagID) (tag *model.Tag, exist b
 		return nil, false, nil
 	}
 
-	var a model.Tag
+	var a model.TagWithIndex
 	if err := json.Unmarshal(data, &a); err != nil {
-		return nil, exist, fmt.Errorf("failed to unmarshal json to tag. contents: %s: %w", string(data), err)
+		return nil, exist, fmt.Errorf("failed to unmarshal json to tagWithIndex. contents: %s: %w", string(data), err)
 	}
 	return &a, exist, nil
 }
@@ -53,22 +53,22 @@ func (b *BBoltTag) RecreateBucket(ws model.WSName) error {
 	return b.base.recreateBucket(createTagBucketNames(ws))
 }
 
-func (b *BBoltTag) Update(ws model.WSName, tag *model.Tag) error {
-	return b.base.updateByID(createTagBucketNames(ws), tag)
+func (b *BBoltTag) Update(ws model.WSName, tagWithIndex *model.TagWithIndex) error {
+	return b.base.updateByID(createTagBucketNames(ws), tagWithIndex)
 }
 
-func (b *BBoltTag) ListByAsync(ws model.WSName, f func(tag *model.Tag) bool, cap int) (assetChan <-chan *model.Tag, err error) {
-	c := make(chan *model.Tag, cap)
+func (b *BBoltTag) ListByAsync(ws model.WSName, f func(tagWithIndex *model.TagWithIndex) bool, cap int) (assetChan <-chan *model.TagWithIndex, err error) {
+	c := make(chan *model.TagWithIndex, cap)
 	ec := make(chan error, 1)
 	f2 := f
 	if f2 == nil {
-		f2 = func(tag *model.Tag) bool {
+		f2 = func(tagWithIndex *model.TagWithIndex) bool {
 			return true
 		}
 	}
-	eachF := func(tag *model.Tag) error {
-		if f2(tag) {
-			c <- tag
+	eachF := func(tagWithIndex *model.TagWithIndex) error {
+		if f2(tagWithIndex) {
+			c <- tagWithIndex
 		}
 		return nil
 	}
@@ -83,14 +83,14 @@ func (b *BBoltTag) ListByAsync(ws model.WSName, f func(tag *model.Tag) bool, cap
 	return c, nil
 }
 
-func (b *BBoltTag) ListAll(ws model.WSName) (assets []*model.Tag, err error) {
-	return b.ListBy(ws, func(tag *model.Tag) bool { return true })
+func (b *BBoltTag) ListAll(ws model.WSName) (assets []*model.TagWithIndex, err error) {
+	return b.ListBy(ws, func(tag *model.TagWithIndex) bool { return true })
 }
 
-func (b *BBoltTag) ListBy(ws model.WSName, f func(tag *model.Tag) bool) (assets []*model.Tag, err error) {
-	eachF := func(tag *model.Tag) error {
-		if f(tag) {
-			assets = append(assets, tag)
+func (b *BBoltTag) ListBy(ws model.WSName, f func(tag *model.TagWithIndex) bool) (assets []*model.TagWithIndex, err error) {
+	eachF := func(tagWithIndex *model.TagWithIndex) error {
+		if f(tagWithIndex) {
+			assets = append(assets, tagWithIndex)
 		}
 		return nil
 	}
@@ -100,14 +100,14 @@ func (b *BBoltTag) ListBy(ws model.WSName, f func(tag *model.Tag) bool) (assets 
 	return
 }
 
-func (b *BBoltTag) ForEach(ws model.WSName, f func(tag *model.Tag) error) error {
+func (b *BBoltTag) ForEach(ws model.WSName, f func(tagWithIndex *model.TagWithIndex) error) error {
 	return b.loBucketFunc(ws, func(bucket *bolt.Bucket) error {
 		return bucket.ForEach(func(k, v []byte) error {
-			var tag model.Tag
-			if err := json.Unmarshal(v, &tag); err != nil {
-				return fmt.Errorf("failed to unmarshal tag: %w", err)
+			var tagWithIndex model.TagWithIndex
+			if err := json.Unmarshal(v, &tagWithIndex); err != nil {
+				return fmt.Errorf("failed to unmarshal tagWithIndex: %w", err)
 			}
-			return f(&tag)
+			return f(&tagWithIndex)
 		})
 	})
 }
