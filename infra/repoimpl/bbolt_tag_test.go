@@ -16,26 +16,30 @@ import (
 func TestBBoltTag_Update(t *testing.T) {
 	fileName := "TestBBoltTag_Update.db"
 	var wsName model.WSName = "workspace-for-test"
-	oldTag := &model.Tag{
-		ID:   0,
-		Name: "old",
+	oldTag := &model.TagWithIndex{
+		Tag: &model.Tag{
+			ID:   0,
+			Name: "old",
+		},
 	}
-	newTag := &model.Tag{
-		ID:   0,
-		Name: "replaced",
+	newTag := &model.TagWithIndex{
+		Tag: &model.Tag{
+			ID:   0,
+			Name: "replaced",
+		},
 	}
 	type args struct {
-		tag *model.Tag
+		tag *model.TagWithIndex
 	}
 	tests := []struct {
 		name    string
 		args    args
-		oldTags []*model.Tag
+		oldTags []*model.TagWithIndex
 
 		wantErr bool
 	}{
 		{
-			oldTags: []*model.Tag{oldTag},
+			oldTags: []*model.TagWithIndex{oldTag},
 			args:    args{tag: newTag},
 			wantErr: false,
 		},
