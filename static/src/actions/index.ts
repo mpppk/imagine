@@ -25,6 +25,7 @@ export const indexActionCreators = {
   changeFilterMode: indexActionCreatorFactory<boolean>('FILTER_MODE/CHANGE'),
   downNumberKey: indexActionCreatorFactory<number>('NUMBER_KEY/DOWN'),
   downArrowKey: indexActionCreatorFactory<Direction>('ARROW_KEY/DOWN'),
+  downSymbolKey: indexActionCreatorFactory<number>('SYMBOL_KEY/DOWN'),
   assetSelect: indexActionCreatorFactory<Asset>('ASSET/SELECT'),
   dragResizeHandler: indexActionCreatorFactory<DragResizeHandlerPayload>('RESIZE_HANDLER/DRAG'),
 };
