@@ -29,6 +29,11 @@ func (t *Tag) SetID(id uint64) {
 	t.ID = TagID(id)
 }
 
+type TagWithIndex struct {
+	*Tag
+	Index int
+}
+
 type AssetID uint64
 
 type Asset struct {
