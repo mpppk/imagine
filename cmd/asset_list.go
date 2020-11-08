@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mpppk/imagine/cmd/option"
 	"github.com/mpppk/imagine/infra/repoimpl"
@@ -14,7 +18,46 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func boxesToTags(boxes []*model.BoundingBox) (tags []*model.Tag) {
+	tagM := map[model.TagID]*model.Tag{}
+	for _, box := range boxes {
+		tagM[box.Tag.ID] = box.Tag
+	}
+
+	for _, tag := range tagM {
+		tags = append(tags, tag)
+	}
+	return
+}
+
 func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
+	format := func(format string, asset *model.Asset) (string, error) {
+		switch format {
+		case "json":
+			contents, err := json.Marshal(asset)
+			if err != nil {
+				return "", fmt.Errorf("failed to marshal asset to json: %w", err)
+			}
+			return string(contents), nil
+		case "csv":
+			var tagNames []string
+			for _, tag := range boxesToTags(asset.BoundingBoxes) {
+				tagNames = append(tagNames, tag.Name)
+			}
+
+			line := []string{
+				strconv.Quote(strconv.Itoa(int(asset.ID))),
+				strconv.Quote(asset.Path),
+				strconv.Quote(strings.Join(tagNames, ",")),
+			}
+
+			return strings.Join(line, ","), nil
+		default:
+			return "", fmt.Errorf("unknown output format: %s", format)
+		}
+
+	}
+
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list assets",
@@ -33,17 +76,38 @@ func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
 			if err != nil {
 				return err
 			}
+
+			if conf.Format == "csv" {
+				header := []string{strconv.Quote("id"), strconv.Quote("path"), strconv.Quote("tags")}
+				cmd.Println(strings.Join(header, ","))
+			}
+
 			for asset := range assetChan {
-				contents, err := json.Marshal(asset)
+				t, err := format(conf.Format, asset)
 				if err != nil {
-					return fmt.Errorf("failed to marshal asset to json: %w", err)
+					return err
 				}
-				cmd.Println(string(contents))
+				cmd.Println(t)
 			}
 			return nil
 		},
 	}
 
+	registerFlags := func(cmd *cobra.Command) error {
+		flags := []option.Flag{
+			&option.StringFlag{
+				BaseFlag: &option.BaseFlag{
+					Name:  "format",
+					Usage: "output format",
+				},
+				Value: "json",
+			},
+		}
+		return option.RegisterFlags(cmd, flags)
+	}
+	if err := registerFlags(cmd); err != nil {
+		return nil, err
+	}
 	return cmd, nil
 }
 
