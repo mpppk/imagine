@@ -60,8 +60,8 @@ const useViewState = (props: Props, state: LocalState, errors: FieldErrors) => {
       },
       textField: {
         defaultValue: state.currentTagName,
-        error: !!errors.tagName || !!props.errorMessage,
-        helperText: errors.tagName?.type ?? props.errorMessage,
+        error: !!errors.value || !!props.errorMessage,
+        helperText: errors.value?.type ?? props.errorMessage,
         value: state.currentTagName,
       }
     };

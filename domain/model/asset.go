@@ -60,6 +60,15 @@ func (a *Asset) HasTag(tagName string) bool {
 	return false
 }
 
+func (a *Asset) HasTagStartWith(prefix string) bool {
+	for _, box := range a.BoundingBoxes {
+		if strings.HasPrefix(box.Tag.Name, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 func ReplaceBoundingBoxByID(boxes []*BoundingBox, replaceBox *BoundingBox) (newBoxes []*BoundingBox) {
 	for _, box := range boxes {
 		if box.ID == replaceBox.ID {

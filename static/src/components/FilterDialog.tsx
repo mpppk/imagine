@@ -27,22 +27,73 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+interface TagNameFormProps {
+  value: string
+  onChangeTagName: (tagName: string) => void;
+}
+
+// tslint:disable-next-line:variable-name
+const TagNameForm: React.FC<TagNameFormProps> = (props) => {
+  const handleChangeTagName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    props.onChangeTagName(e.target.value);
+  };
+  return (
+    <TextField id="tag" label="tag" value={props.value} onChange={handleChangeTagName}/>
+  )
+};
+
+interface StartWithFormProps {
+  prefix: string
+  onChangePrefix: (tagName: string) => void;
+}
+
+// tslint:disable-next-line:variable-name
+const StartWithForm: React.FC<StartWithFormProps> = (props) => {
+  const handleChangePrefix = (e: React.ChangeEvent<HTMLInputElement>) => {
+    props.onChangePrefix(e.target.value);
+  };
+  return (
+    <TextField label="prefix" value={props.prefix} onChange={handleChangePrefix}/>
+  )
+};
+
+interface QueryInputFormProps {
+  op: QueryOp
+  value: string
+  onChangeValue: (value: string) => void;
+}
+
 interface QueryInputProps {
   op: QueryOp;
-  tagName: string
+  value: string
   onUpdate: (q: Query) => void;
   onDelete: () => void;
+}
+
+// tslint:disable-next-line:variable-name
+const QueryInputForm: React.FC<QueryInputFormProps> = (props) => {
+  switch (props.op) {
+    case 'equals':
+    case 'not-equals':
+      return <TagNameForm value={props.value} onChangeTagName={props.onChangeValue}/>
+    case 'start-with':
+      return <StartWithForm prefix={props.value} onChangePrefix={props.onChangeValue}/>
+    case 'no-tags':
+      return <div/>;
+    default:
+      throw new Error("unknown query op is provided. " + props.op)
+  }
 }
 
 // tslint:disable-next-line:variable-name
 export const QueryInput: React.FC<QueryInputProps> = (props) => {
   const classes = useStyles();
   const handleChangeSelect = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
-    props.onUpdate({op: e.target.value as QueryOp, tagName: props.tagName});
+    props.onUpdate({op: e.target.value as QueryOp, value: props.value});
   };
 
-  const handleChangeTagName = (e: React.ChangeEvent<HTMLInputElement>) => {
-    props.onUpdate({op: props.op, tagName: e.target.value});
+  const handleChangeFormValue = (v: string)=> {
+    props.onUpdate({op: props.op, value: v});
   };
 
   return (
@@ -57,11 +108,13 @@ export const QueryInput: React.FC<QueryInputProps> = (props) => {
           >
             <MenuItem value={'equals'}>Equals</MenuItem>
             <MenuItem value={'not-equals'}>Not Equals</MenuItem>
+            <MenuItem value={'start-with'}>Start With</MenuItem>
+            <MenuItem value={'no-tags'}>No Tags</MenuItem>
           </Select>
         </FormControl>
       </Grid>
       <Grid item={true} xs={5}>
-        <TextField id="tag" label="tag" value={props.tagName} onChange={handleChangeTagName}/>
+        <QueryInputForm op={props.op} value={props.value} onChangeValue={handleChangeFormValue}/>
       </Grid>
       <Grid item={true} xs={2}>
         <Tooltip title="delete query" aria-label="delete-query">
@@ -86,7 +139,7 @@ interface QueryFormProps {
 // tslint:disable-next-line:variable-name
 export const QueryForm: React.FC<QueryFormProps> = (props) => {
   const handleClickAddButton = () => {
-    props.onUpdate([...props.inputs, {op: 'equals', tagName: '', id: -1}]);
+    props.onUpdate([...props.inputs, {op: 'equals', value: '', id: -1}]);
   };
 
   const handleUpdateQueryInput = (index: number, input: Query) => {
@@ -100,7 +153,7 @@ export const QueryForm: React.FC<QueryFormProps> = (props) => {
           <QueryInput
             key={input.id}
             op={input.op}
-            tagName={input.tagName}
+            value={input.value}
             onUpdate={handleUpdateQueryInput.bind(null, i)}
             onDelete={props.onDelete.bind(null, input.id)}
           />)}
@@ -125,7 +178,7 @@ interface FilterDialogProps {
 
 interface QueryInWithID {
   op: QueryOp;
-  tagName: string;
+  value: string;
   id: number;
 }
 

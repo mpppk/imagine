@@ -39,15 +39,25 @@ export interface AssetWithIndex extends Asset {
 
 export type Direction = 'LEFT' | 'RIGHT' | 'UP' | 'DOWN';
 
-export type Query = EqualsQuery | NotEqualsQuery;
+export type Query = EqualsQuery | NotEqualsQuery | StartWithQuery | NoTagsQuery;
 
-export type QueryOp = 'equals' | 'not-equals';
+export type QueryOp = 'equals' | 'not-equals' | 'start-with' | 'no-tags';
 export interface EqualsQuery {
   op: 'equals'
-  tagName: string
+  value: string
 }
 
 export interface NotEqualsQuery {
   op: 'not-equals'
-  tagName: string
+  value: string
+}
+
+export interface StartWithQuery {
+  op: 'start-with'
+  value: string
+}
+
+export interface NoTagsQuery {
+  op: 'no-tags'
+  value: string
 }
