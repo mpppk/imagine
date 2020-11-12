@@ -136,6 +136,7 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 	L:
 		for {
 			var assets []*model.Asset
+			var lastAsset *model.Asset = nil
 			err := b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
 				cursor := bucket.Cursor()
 				cnt := 0
@@ -151,6 +152,7 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 					if f2(&asset) {
 						assets = append(assets, &asset)
 					}
+					lastAsset = &asset
 				}
 				return nil
 			})
@@ -159,7 +161,7 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 				ec <- fmt.Errorf("failed to list assets: %w", err)
 			}
 
-			if len(assets) == 0 {
+			if lastAsset == nil {
 				break
 			}
 
@@ -170,7 +172,7 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 				case c <- asset:
 				}
 			}
-			min = itob(uint64(assets[len(assets)-1].ID))
+			min = itob(uint64(lastAsset.ID))
 		}
 		close(c)
 		close(ec)
