@@ -65,7 +65,7 @@ func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath strin
 	if err != nil {
 		return 0, false, err
 	}
-	return id, true, b.pathRepository.Add(ws, filePath, id)
+	return id, true, nil
 }
 
 func (b *BBoltAsset) AddList(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
@@ -91,19 +91,30 @@ func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, er
 	if err != nil {
 		return 0, err
 	}
-	return model.AssetID(id), nil
+	return model.AssetID(id), b.pathRepository.Add(ws, asset.Path, model.AssetID(id))
 }
 
-func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error) {
-	data, _, err := b.base.get(createAssetBucketNames(ws), uint64(id))
+func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, exist bool, err error) {
+	data, exist, err := b.base.get(createAssetBucketNames(ws), uint64(id))
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	var a model.Asset
 	if err := json.Unmarshal(data, &a); err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	return &a, nil
+	return &a, exist, nil
+}
+
+func (b *BBoltAsset) GetByPath(ws model.WSName, path string) (asset *model.Asset, exist bool, err error) {
+	id, exist, err := b.pathRepository.Get(ws, path)
+	if err != nil {
+		return nil, false, err
+	}
+	if !exist {
+		return nil, false, nil
+	}
+	return b.Get(ws, id)
 }
 
 func (b *BBoltAsset) Has(ws model.WSName, id model.AssetID) (ok bool, err error) {
