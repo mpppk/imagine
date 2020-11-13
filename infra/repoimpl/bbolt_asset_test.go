@@ -231,6 +231,45 @@ func TestBBoltAsset_Add(t *testing.T) {
 	}
 }
 
+func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
+	fileName := "TestBBoltAsset_Add.db"
+	var wsName model.WSName = "workspace-for-test"
+	type args struct {
+		ws           model.WSName
+		filePathList []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []model.AssetID
+		wantErr bool
+	}{
+		{},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, db := newRepository(t, wsName, fileName)
+			defer teardown(t, fileName, db)
+
+			idList, err := repo.AddByFilePathListIfDoesNotExist(wsName, tt.args.filePathList)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddByFilePathListifDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			for _, id := range idList {
+				asset, err := repo.Get(wsName, id)
+				if err != nil {
+					t.Errorf("failed to get asset which added by AddByFilePathListifDoesNotExist() error = %v", err)
+				}
+				asset2, err := repo.GetByPath(wsName, asset.Path)
+
+				if !reflect.DeepEqual(asset, asset2) {
+					t.Errorf("inconsistecy detected on AddByFilePathListifDoesNotExisti() asset1: %#v, asset2: %#v", asset, asset2)
+				}
+			}
+		})
+	}
+}
+
 func newRepository(t *testing.T, wsName model.WSName, fileName string) (repository.Asset, *bolt.DB) {
 	t.Helper()
 	db, err := bolt.Open(fileName, 0600, nil)
