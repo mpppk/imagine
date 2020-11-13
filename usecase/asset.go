@@ -43,15 +43,44 @@ func (a *Asset) ListAsync(ctx context.Context, ws model.WSName) (<-chan *model.A
 }
 
 func (a *Asset) ListAsyncByQueries(ctx context.Context, ws model.WSName, queries []*model.Query) (<-chan *model.Asset, error) {
+	if query, ok := hasPathQuery(queries); ok {
+		return a.handlePathQuery(ws, queries, query.Value)
+	}
 	f := func(asset *model.Asset) bool {
-		for _, query := range queries {
-			if !query.Match(asset) {
-				return false
-			}
-		}
-		return true
+		return checkQueries(asset, queries)
 	}
 	return a.assetRepository.ListByAsync(ctx, ws, f, 50) // FIXME
+}
+
+func (a *Asset) handlePathQuery(ws model.WSName, queries []*model.Query, path string) (<-chan *model.Asset, error) {
+	asset, _, err := a.assetRepository.GetByPath(ws, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to handle path query: %w", err)
+	}
+	c := make(chan *model.Asset, 1)
+	if checkQueries(asset, queries) {
+		c <- asset
+	}
+	close(c)
+	return c, nil
+}
+
+func hasPathQuery(queries []*model.Query) (*model.Query, bool) {
+	for _, query := range queries {
+		if query.Op == model.PathEqualsQueryOP {
+			return query, true
+		}
+	}
+	return nil, false
+}
+
+func checkQueries(asset *model.Asset, queries []*model.Query) bool {
+	for _, query := range queries {
+		if !query.Match(asset) {
+			return false
+		}
+	}
+	return true
 }
 
 // AssignBoundingBox assign bounding box to asset
@@ -60,7 +89,7 @@ func (a *Asset) AssignBoundingBox(ws model.WSName, assetID model.AssetID, box *m
 	if err := a.assetRepository.Init(ws); err != nil {
 		return nil, err
 	}
-	asset, err := a.assetRepository.Get(ws, assetID) // FIXME
+	asset, _, err := a.assetRepository.Get(ws, assetID) // FIXME
 	if err != nil {
 		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetID, err)
 	}
@@ -84,7 +113,7 @@ func (a *Asset) UnAssignBoundingBox(ws model.WSName, assetID model.AssetID, boxI
 	if err := a.assetRepository.Init(ws); err != nil {
 		return nil, err
 	}
-	asset, err := a.assetRepository.Get(ws, assetID) // FIXME
+	asset, _, err := a.assetRepository.Get(ws, assetID) // FIXME
 	if err != nil {
 		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetID, err)
 	}
@@ -109,7 +138,7 @@ func (a *Asset) ModifyBoundingBox(ws model.WSName, assetID model.AssetID, box *m
 	if err := a.assetRepository.Init(ws); err != nil {
 		return nil, err
 	}
-	asset, err := a.assetRepository.Get(ws, assetID) // FIXME
+	asset, _, err := a.assetRepository.Get(ws, assetID) // FIXME
 	if err != nil {
 		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetID, err)
 	}
@@ -126,7 +155,7 @@ func (a *Asset) DeleteBoundingBox(ws model.WSName, assetID model.AssetID, boxID 
 	if err := a.assetRepository.Init(ws); err != nil {
 		return err
 	}
-	asset, err := a.assetRepository.Get(ws, assetID) // FIXME
+	asset, _, err := a.assetRepository.Get(ws, assetID) // FIXME
 	if err != nil {
 		return fmt.Errorf("failed to get asset. id: %v: %w", assetID, err)
 	}

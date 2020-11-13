@@ -97,11 +97,15 @@ func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, er
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, exist bool, err error) {
 	data, exist, err := b.base.get(createAssetBucketNames(ws), uint64(id))
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("failed to get asset by id(%v): %w", id, err)
 	}
+	if !exist {
+		return nil, false, nil
+	}
+
 	var a model.Asset
 	if err := json.Unmarshal(data, &a); err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("failed to unmarshal asset. raw text: %s: %w", string(data), err)
 	}
 	return &a, exist, nil
 }
@@ -109,7 +113,7 @@ func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset,
 func (b *BBoltAsset) GetByPath(ws model.WSName, path string) (asset *model.Asset, exist bool, err error) {
 	id, exist, err := b.pathRepository.Get(ws, path)
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("failed to get asset from path repository: %w", err)
 	}
 	if !exist {
 		return nil, false, nil

@@ -1,6 +1,8 @@
 package repoimpl
 
 import (
+	"fmt"
+
 	"github.com/mpppk/imagine/domain/model"
 	"go.etcd.io/bbolt"
 )
@@ -18,7 +20,7 @@ func newBBoltPathRepository(b *bbolt.DB) *bboltPathRepository {
 func (p *bboltPathRepository) Get(ws model.WSName, path string) (id model.AssetID, exist bool, err error) {
 	id2, exist, err := p.base.getIDByString(createPathBucketNames(ws), path)
 	if err != nil {
-		return 0, false, err
+		return 0, false, fmt.Errorf("failed to get asset id by path. path: %s: %w", path, err)
 	} else if !exist {
 		return 0, false, nil
 	}

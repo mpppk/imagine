@@ -27,6 +27,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+interface PathFormProps {
+  value: string
+  onChangePath: (path: string) => void;
+}
+
+// tslint:disable-next-line:variable-name
+const PathForm: React.FC<PathFormProps> = (props) => {
+  const handleChangePath = (e: React.ChangeEvent<HTMLInputElement>) => {
+    props.onChangePath(e.target.value);
+  };
+  return (
+    <TextField label="path" value={props.value} onChange={handleChangePath}/>
+  )
+};
+
+
 interface TagNameFormProps {
   value: string
   onChangeTagName: (tagName: string) => void;
@@ -80,6 +96,8 @@ const QueryInputForm: React.FC<QueryInputFormProps> = (props) => {
       return <StartWithForm prefix={props.value} onChangePrefix={props.onChangeValue}/>
     case 'no-tags':
       return <div/>;
+    case 'path-equals':
+      return <PathForm value={props.value} onChangePath={props.onChangeValue}/>
     default:
       throw new Error("unknown query op is provided. " + props.op)
   }
@@ -110,6 +128,7 @@ export const QueryInput: React.FC<QueryInputProps> = (props) => {
             <MenuItem value={'not-equals'}>Not Equals</MenuItem>
             <MenuItem value={'start-with'}>Start With</MenuItem>
             <MenuItem value={'no-tags'}>No Tags</MenuItem>
+            <MenuItem value={'path-equals'}>Path Equals</MenuItem>
           </Select>
         </FormControl>
       </Grid>
