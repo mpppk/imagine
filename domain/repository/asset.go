@@ -21,4 +21,5 @@ type Asset interface {
 	ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset, err error)
 	ListByTags(ws model.WSName, tags []model.Tag) (assets []*model.Asset, err error)
 	ForEach(ws model.WSName, f func(asset *model.Asset) error) error
+	Revalidate(ws model.WSName) error
 }

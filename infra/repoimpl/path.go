@@ -66,3 +66,7 @@ func (p *bboltPathRepository) AddList(ws model.WSName, paths []string, assetIDLi
 	}
 	return p.base.addListWithStringKey(createPathBucketNames(ws), paths, dataList)
 }
+
+func (p *bboltPathRepository) DeleteAll(ws model.WSName) error {
+	return p.base.recreateBucket(createPathBucketNames(ws))
+}
