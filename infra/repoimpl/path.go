@@ -15,14 +15,14 @@ func newBBoltPathRepository(b *bbolt.DB) *bboltPathRepository {
 	}
 }
 
-func (p *bboltPathRepository) Get(ws model.WSName, path string) (id uint64, exist bool, err error) {
-	data, exist, err := p.base.getByString(createPathBucketNames(ws), path)
+func (p *bboltPathRepository) Get(ws model.WSName, path string) (id model.AssetID, exist bool, err error) {
+	id2, exist, err := p.base.getIDByString(createPathBucketNames(ws), path)
 	if err != nil {
 		return 0, false, err
 	} else if !exist {
 		return 0, false, nil
 	}
-	return btoi(data), exist, nil
+	return model.AssetID(id2), exist, nil
 }
 
 // FilterExistPath returns paths which does not exist yet
@@ -56,7 +56,7 @@ func (p *bboltPathRepository) GetList(ws model.WSName, paths []string) (idList [
 }
 
 func (p *bboltPathRepository) Add(ws model.WSName, path string, assetID model.AssetID) error {
-	return p.base.addWithStringKey(createPathBucketNames(ws), path, assetID)
+	return p.base.addIDWithStringKey(createPathBucketNames(ws), path, uint64(assetID))
 }
 
 func (p *bboltPathRepository) AddList(ws model.WSName, paths []string, assetIDList []model.AssetID) error {

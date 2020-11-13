@@ -11,15 +11,14 @@ import (
 
 // itob returns an 8-byte big endian representation of v.
 func itob(v uint64) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, v)
+	b := make([]byte, binary.MaxVarintLen64)
+	binary.PutUvarint(b, v)
 	return b
 }
 
 func btoi(bytes []byte) uint64 {
-	padding := make([]byte, 8-len(bytes))
-	i := binary.BigEndian.Uint64(append(padding, bytes...))
-	return i
+	u, _ := binary.Uvarint(bytes)
+	return u
 }
 
 type boltRepository struct {
@@ -151,6 +150,13 @@ func (b *boltRepository) addWithStringKey(bucketNames []string, k string, v inte
 	})
 }
 
+func (b *boltRepository) addIDWithStringKey(bucketNames []string, k string, v uint64) error {
+	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		e := bucket.Put([]byte(k), itob(v))
+		return e
+	})
+}
+
 func (b *boltRepository) addListWithStringKey(bucketNames []string, keys []string, values []interface{}) error {
 	return b.batchBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		for i, key := range keys {
@@ -225,7 +231,16 @@ func (b *boltRepository) multipleGetByString(bucketNames []string, keys []string
 	return dataList, err
 }
 
-func (b *boltRepository) getByString(bucketNames []string, key string) (data []byte, exist bool, err error) {
+func (b *boltRepository) getIDByString(bucketNames []string, key string) (id uint64, exist bool, err error) {
+	var data []byte
+	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		data = bucket.Get([]byte(key))
+		return nil
+	})
+	return btoi(data), data != nil, err
+}
+
+func (b *boltRepository) getJsonByString(bucketNames []string, key string) (data []byte, exist bool, err error) {
 	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		data = bucket.Get([]byte(key))
 		return nil
