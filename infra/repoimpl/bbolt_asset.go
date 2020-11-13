@@ -119,6 +119,13 @@ func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
 	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
 
+func (b *BBoltAsset) List(ctx context.Context, ws model.WSName, cap int) (assetChan <-chan *model.Asset, err error) {
+	f := func(asset *model.Asset) bool {
+		return true
+	}
+	return b.ListByAsync(ctx, ws, f, cap)
+}
+
 func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error) {
 	c := make(chan *model.Asset, cap)
 	ec := make(chan error, 1)
@@ -221,4 +228,30 @@ func (b *BBoltAsset) ForEach(ws model.WSName, f func(asset *model.Asset) error) 
 			return f(&asset)
 		})
 	})
+}
+
+func (b *BBoltAsset) Revalidate(ws model.WSName) error {
+	cap := 10000
+	if err := b.pathRepository.DeleteAll(ws); err != nil {
+		return fmt.Errorf("failed to delete path caches while revalidating: %w", err)
+	}
+	c, err := b.List(context.Background(), ws, cap)
+	if err != nil {
+		return fmt.Errorf("failed to prepare asset listing: %w", err)
+	}
+
+	paths := make([]string, 0, cap)
+	idList := make([]model.AssetID, 0, cap)
+	for asset := range c {
+		paths = append(paths, asset.Path)
+		idList = append(idList, asset.ID)
+		if len(paths) >= cap {
+			if err := b.pathRepository.AddList(ws, paths, idList); err != nil {
+				return fmt.Errorf("failed to add paths: %w", err)
+			}
+			paths = make([]string, 0, cap)
+			idList = make([]model.AssetID, 0, cap)
+		}
+	}
+	return nil
 }
