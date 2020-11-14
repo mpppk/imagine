@@ -153,7 +153,6 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 		}
 	}
 
-	// FIXME: goroutine leak
 	go func() {
 		batchNum := 50
 		min := itob(0)

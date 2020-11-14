@@ -83,12 +83,12 @@ func (d *assetScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 			return dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret))
 		}
 	}
+
 	if len(ret) > 0 {
-		if err := dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret)); err != nil {
-			return err
-		}
+		return dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret))
+	} else {
+		return dispatch(d.assetActionCreator.scanFinish(payload.WorkSpaceName))
 	}
-	return dispatch(d.assetActionCreator.scanFinish(payload.WorkSpaceName))
 }
 
 type assetHandlerCreator struct {
