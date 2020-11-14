@@ -7,10 +7,11 @@ import (
 type QueryOP string
 
 const (
-	EqualsQueryOP    QueryOP = "equals"
-	NotEqualsQueryOP QueryOP = "not-equals"
-	StartWithQueryOP QueryOP = "start-with"
-	NoTagsQueryOP    QueryOP = "no-tags"
+	EqualsQueryOP     QueryOP = "equals"
+	NotEqualsQueryOP  QueryOP = "not-equals"
+	StartWithQueryOP  QueryOP = "start-with"
+	NoTagsQueryOP     QueryOP = "no-tags"
+	PathEqualsQueryOP QueryOP = "path-equals"
 )
 
 type Query struct {
@@ -28,6 +29,8 @@ func (q *Query) Match(asset *Asset) bool {
 		return asset.HasTagStartWith(q.Value)
 	case NoTagsQueryOP:
 		return len(asset.BoundingBoxes) == 0
+	case PathEqualsQueryOP:
+		return true
 	default:
 		log.Printf("warning: unknown query op is given: %s", q.Op)
 		return false

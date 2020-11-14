@@ -13,7 +13,8 @@ type Asset interface {
 	Add(ws model.WSName, asset *model.Asset) (model.AssetID, error)
 	AddByFilePathIfDoesNotExist(ws model.WSName, filePath string) (id model.AssetID, added bool, err error)
 	AddByFilePathListIfDoesNotExist(ws model.WSName, filePathList []string) (idList []model.AssetID, err error)
-	Get(ws model.WSName, id model.AssetID) (asset *model.Asset, err error)
+	Get(ws model.WSName, id model.AssetID) (asset *model.Asset, exist bool, err error)
+	GetByPath(ws model.WSName, path string) (asset *model.Asset, exist bool, err error)
 	Has(ws model.WSName, id model.AssetID) (ok bool, err error)
 	Update(ws model.WSName, asset *model.Asset) error
 	Delete(ws model.WSName, id model.AssetID) error

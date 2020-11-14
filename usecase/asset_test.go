@@ -66,7 +66,7 @@ func TestAsset_AssignBoundingBox(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			repo.EXPECT().Update(gomock.Eq(testWSName), gomock.Any()).Return(nil)
-			repo.EXPECT().Get(gomock.Eq(testWSName), gomock.Eq(tt.existAsset.ID)).Return(tt.existAsset, nil)
+			repo.EXPECT().Get(gomock.Eq(testWSName), gomock.Eq(tt.existAsset.ID)).Return(tt.existAsset, true, nil)
 
 			a := &Asset{assetRepository: repo}
 			got, err := a.AssignBoundingBox(tt.args.ws, tt.args.assetId, tt.args.box)
