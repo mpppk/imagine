@@ -36,6 +36,13 @@ type TagWithIndex struct {
 
 type AssetID uint64
 
+func AssetIDListToUint64List(assetIDList []AssetID) (idList []uint64) {
+	for _, id := range assetIDList {
+		idList = append(idList, uint64(id))
+	}
+	return
+}
+
 type Asset struct {
 	ID            AssetID        `json:"id"`
 	Name          string         `json:"name"`

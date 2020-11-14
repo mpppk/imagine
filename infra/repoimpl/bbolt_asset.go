@@ -51,7 +51,7 @@ func (b *BBoltAsset) AddByFilePathListIfDoesNotExist(ws model.WSName, filePathLi
 		return nil, err
 	}
 
-	return idList, b.pathRepository.AddList(ws, notExistPaths, idList)
+	return idList, nil
 }
 
 func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath string) (model.AssetID, bool, error) {
@@ -70,17 +70,19 @@ func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath strin
 
 func (b *BBoltAsset) AddList(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
 	var dataList []boltData
+	var paths []string
 	for _, asset := range assets {
 		dataList = append(dataList, asset)
+		paths = append(paths, asset.Path)
 	}
-	idList, err := b.base.addListByID(createAssetBucketNames(ws), dataList)
+	idList, err := b.base.addJsonListByID(createAssetBucketNames(ws), dataList)
 	if err != nil {
 		return nil, err
 	}
 
-	var assetIDList []model.AssetID
-	for _, id := range idList {
-		assetIDList = append(assetIDList, model.AssetID(id))
+	assetIDList := toAssetIDList(idList)
+	if err := b.pathRepository.AddList(ws, paths, assetIDList); err != nil {
+		return nil, fmt.Errorf("failed to add paths to path repository: %w", err)
 	}
 
 	return assetIDList, nil
@@ -114,9 +116,6 @@ func (b *BBoltAsset) GetByPath(ws model.WSName, path string) (asset *model.Asset
 	id, exist, err := b.pathRepository.Get(ws, path)
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to get asset from path repository: %w", err)
-	}
-	if !exist {
-		return nil, false, nil
 	}
 	return b.Get(ws, id)
 }
@@ -269,4 +268,11 @@ func (b *BBoltAsset) Revalidate(ws model.WSName) error {
 		}
 	}
 	return nil
+}
+
+func toAssetIDList(idList []uint64) (assetIDList []model.AssetID) {
+	for _, id := range idList {
+		assetIDList = append(assetIDList, model.AssetID(id))
+	}
+	return
 }

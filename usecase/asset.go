@@ -53,12 +53,13 @@ func (a *Asset) ListAsyncByQueries(ctx context.Context, ws model.WSName, queries
 }
 
 func (a *Asset) handlePathQuery(ws model.WSName, queries []*model.Query, path string) (<-chan *model.Asset, error) {
-	asset, _, err := a.assetRepository.GetByPath(ws, path)
+	asset, exist, err := a.assetRepository.GetByPath(ws, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to handle path query: %w", err)
 	}
 	c := make(chan *model.Asset, 1)
-	if checkQueries(asset, queries) {
+
+	if exist && checkQueries(asset, queries) {
 		c <- asset
 	}
 	close(c)

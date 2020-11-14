@@ -5,6 +5,7 @@ import (
 
 	"github.com/mpppk/imagine/domain/model"
 	"go.etcd.io/bbolt"
+	bolt "go.etcd.io/bbolt"
 )
 
 type bboltPathRepository struct {
@@ -62,13 +63,35 @@ func (p *bboltPathRepository) Add(ws model.WSName, path string, assetID model.As
 }
 
 func (p *bboltPathRepository) AddList(ws model.WSName, paths []string, assetIDList []model.AssetID) error {
-	var dataList []interface{}
-	for _, id := range assetIDList {
-		dataList = append(dataList, id)
-	}
-	return p.base.addListWithStringKey(createPathBucketNames(ws), paths, dataList)
+	return p.base.addIDListWithStringKey(createPathBucketNames(ws), paths, model.AssetIDListToUint64List(assetIDList))
 }
 
 func (p *bboltPathRepository) DeleteAll(ws model.WSName) error {
 	return p.base.recreateBucket(createPathBucketNames(ws))
+}
+
+func (p *bboltPathRepository) ListAll(ws model.WSName) ([]string, []model.AssetID, error) {
+	return p.ListBy(ws, func(p string, i model.AssetID) bool { return true })
+}
+
+func (p *bboltPathRepository) ListBy(ws model.WSName, f func(path string, id model.AssetID) bool) (paths []string, idList []model.AssetID, err error) {
+	eachF := func(path string, id model.AssetID) error {
+		if f(path, id) {
+			paths = append(paths, path)
+			idList = append(idList, id)
+		}
+		return nil
+	}
+	if err := p.ForEach(ws, eachF); err != nil {
+		return nil, nil, fmt.Errorf("failed to list paths: %w", err)
+	}
+	return
+}
+
+func (p *bboltPathRepository) ForEach(ws model.WSName, f func(path string, id model.AssetID) error) error {
+	return p.base.loBucketFunc(createPathBucketNames(ws), func(bucket *bolt.Bucket) error {
+		return bucket.ForEach(func(k, v []byte) error {
+			return f(string(k), model.AssetID(btoi(v)))
+		})
+	})
 }
