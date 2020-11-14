@@ -139,16 +139,16 @@ type boltData interface {
 	SetID(id uint64)
 }
 
-func (b *boltRepository) addWithStringKey(bucketNames []string, k string, v interface{}) error {
-	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		s, err := json.Marshal(v)
-		if err != nil {
-			return fmt.Errorf("failed to marshal data to json: %w", err)
-		}
-		e := bucket.Put([]byte(k), s)
-		return e
-	})
-}
+//func (b *boltRepository) addWithStringKey(bucketNames []string, k string, v interface{}) error {
+//	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+//		s, err := json.Marshal(v)
+//		if err != nil {
+//			return fmt.Errorf("failed to marshal data to json: %w", err)
+//		}
+//		e := bucket.Put([]byte(k), s)
+//		return e
+//	})
+//}
 
 func (b *boltRepository) addIDWithStringKey(bucketNames []string, k string, v uint64) error {
 	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
@@ -168,21 +168,21 @@ func (b *boltRepository) addIDListWithStringKey(bucketNames []string, keys []str
 	})
 }
 
-func (b *boltRepository) addJsonListWithStringKey(bucketNames []string, keys []string, values []interface{}) error {
-	return b.batchBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		for i, key := range keys {
-			value := values[i]
-			s, err := json.Marshal(value)
-			if err != nil {
-				return fmt.Errorf("failed to marshal data to json: %w", err)
-			}
-			if err := bucket.Put([]byte(key), s); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
+//func (b *boltRepository) addJsonListWithStringKey(bucketNames []string, keys []string, values []interface{}) error {
+//	return b.batchBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+//		for i, key := range keys {
+//			value := values[i]
+//			s, err := json.Marshal(value)
+//			if err != nil {
+//				return fmt.Errorf("failed to marshal data to json: %w", err)
+//			}
+//			if err := bucket.Put([]byte(key), s); err != nil {
+//				return err
+//			}
+//		}
+//		return nil
+//	})
+//}
 
 func (b *boltRepository) addJsonListByID(bucketNames []string, dataList []boltData) (idList []uint64, err error) {
 	e := b.batchBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
@@ -251,13 +251,13 @@ func (b *boltRepository) getIDByString(bucketNames []string, key string) (id uin
 	return btoi(data), data != nil, err
 }
 
-func (b *boltRepository) getJsonByString(bucketNames []string, key string) (data []byte, exist bool, err error) {
-	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		data = bucket.Get([]byte(key))
-		return nil
-	})
-	return data, data != nil, err
-}
+//func (b *boltRepository) getJsonByString(bucketNames []string, key string) (data []byte, exist bool, err error) {
+//	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+//		data = bucket.Get([]byte(key))
+//		return nil
+//	})
+//	return data, data != nil, err
+//}
 
 func (b *boltRepository) updateByID(bucketNames []string, data boltData) error {
 	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {

@@ -117,6 +117,9 @@ func (b *BBoltAsset) GetByPath(ws model.WSName, path string) (asset *model.Asset
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to get asset from path repository: %w", err)
 	}
+	if !exist {
+		return nil, false, nil
+	}
 	return b.Get(ws, id)
 }
 

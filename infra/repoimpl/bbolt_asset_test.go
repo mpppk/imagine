@@ -274,7 +274,6 @@ func TestBBoltAsset_GetByPath(t *testing.T) {
 
 func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 	fileName := "TestBBoltAsset_AddByFlePathListIfDoesNotExist.db"
-	var wsName model.WSName = "workspace-for-test"
 	type args struct {
 		ws           model.WSName
 		filePathList []string
@@ -285,23 +284,29 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 		want    []model.AssetID
 		wantErr bool
 	}{
-		{},
+		{
+			args: args{
+				ws:           "workspace-for-test",
+				filePathList: []string{"0.png", "1.png"},
+			},
+			want: []model.AssetID{1, 2},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, db := newRepository(t, wsName, fileName)
+			repo, db := newRepository(t, tt.args.ws, fileName)
 			defer teardown(t, fileName, db)
 
-			idList, err := repo.AddByFilePathListIfDoesNotExist(wsName, tt.args.filePathList)
+			idList, err := repo.AddByFilePathListIfDoesNotExist(tt.args.ws, tt.args.filePathList)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddByFilePathListifDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			for _, id := range idList {
-				asset, exist, err := repo.Get(wsName, id)
+				asset, exist, err := repo.Get(tt.args.ws, id)
 				if err != nil || !exist {
 					t.Errorf("failed to get asset which added by AddByFilePathListifDoesNotExist() exist = %v error = %v", exist, err)
 				}
-				asset2, exist, err := repo.GetByPath(wsName, asset.Path)
+				asset2, exist, err := repo.GetByPath(tt.args.ws, asset.Path)
 				if err != nil || !exist {
 					t.Errorf("failed to get asset which added by AddByFilePathListifDoesNotExist() exist = %v error = %v", exist, err)
 				}
