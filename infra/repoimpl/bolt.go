@@ -9,16 +9,16 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-// itob returns an 8-byte big endian representation of v.
 func itob(v uint64) []byte {
-	b := make([]byte, binary.MaxVarintLen64)
-	binary.PutUvarint(b, v)
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, v)
 	return b
 }
 
 func btoi(bytes []byte) uint64 {
-	u, _ := binary.Uvarint(bytes)
-	return u
+	padding := make([]byte, 8-len(bytes))
+	i := binary.LittleEndian.Uint64(append(padding, bytes...))
+	return i
 }
 
 type boltRepository struct {
