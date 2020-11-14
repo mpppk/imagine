@@ -139,9 +139,13 @@ func (a *Asset) ModifyBoundingBox(ws model.WSName, assetID model.AssetID, box *m
 	if err := a.assetRepository.Init(ws); err != nil {
 		return nil, err
 	}
-	asset, _, err := a.assetRepository.Get(ws, assetID) // FIXME
+	asset, exist, err := a.assetRepository.Get(ws, assetID) // FIXME
 	if err != nil {
 		return nil, fmt.Errorf("failed to get asset. id: %v: %w", assetID, err)
+	}
+
+	if !exist {
+		return nil, fmt.Errorf("asset does not found when modify bounding box. asset id:%v", assetID)
 	}
 
 	asset.BoundingBoxes = model.ReplaceBoundingBoxByID(asset.BoundingBoxes, box)

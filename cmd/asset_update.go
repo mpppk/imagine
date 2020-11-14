@@ -34,6 +34,9 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 			}
 			assetRepository := repoimpl.NewBBoltAsset(db)
 			assetUseCase := usecase.NewAsset(assetRepository)
+			if err := assetUseCase.Init(conf.WorkSpace); err != nil {
+				return fmt.Errorf("failed to initialize asset usecase: %w", err)
+			}
 
 			scanner := bufio.NewScanner(os.Stdin)
 			var asset model.Asset

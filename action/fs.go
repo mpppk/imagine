@@ -147,6 +147,9 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 			}
 		}
 		if len(paths) > 0 {
+			if _, err := f.assetUseCase.AddAssetFromImagePathListIfDoesNotExist(payload.WorkSpaceName, paths); err != nil {
+				dispatchScanFailActionAndLogOrPanic(err)
+			}
 			if err := dispatch(f.action.scanRunning(payload.WorkSpaceName, paths)); err != nil {
 				dispatchScanFailActionAndLogOrPanic(err)
 			}
