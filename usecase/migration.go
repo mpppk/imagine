@@ -14,13 +14,12 @@ import (
 )
 
 type Migration struct {
-	assetRepository repository.Asset
-	metaRepository  repository.Meta
+	client *repository.Client
 }
 
-func NewMigration(metaRepository repository.Meta) *Migration {
+func NewMigration(client *repository.Client) *Migration {
 	return &Migration{
-		metaRepository: metaRepository,
+		client: client,
 	}
 }
 
@@ -40,25 +39,41 @@ func (m *Migration) Migrate(dbV *semver.Version) error {
 }
 
 func (m *Migration) migrateFrom0d0d1To0d1d0(ws model.WSName) error {
-	// TODO workspace名を取得
 	f := func(v []byte) bool {
 		return true
 	}
-	c, err := m.assetRepository.ListRawByAsync(context.Background(), ws, f, 100)
+	c, err := m.client.Asset.ListRawByAsync(context.Background(), ws, f, 100)
 	if err != nil {
 		return err
 	}
-
+	batchNum := 10000
+	var assets = make([]*model.Asset, 0, batchNum)
 	for v := range c {
 		oldAsset, err := old0_0_1.NewAssetFromJson(v)
 		if err != nil {
 			return err
 		}
-		asset := oldAsset.Migrate()
-		if err := m.assetRepository.Update(ws, asset); err != nil {
-			return err
+		asset, ok := oldAsset.Migrate()
+		if !ok {
+			continue
+		}
+		assets = append(assets, asset)
+		if len(assets) >= batchNum {
+			if err := m.client.Asset.BatchUpdate(ws, assets); err != nil {
+				return err
+			}
+			log.Printf("debug: assets(ID:%v-%v) are migrated. (v0.0.1→v0.1.0)", assets[0].ID, assets[len(assets)-1].ID)
+			assets = make([]*model.Asset, 0, batchNum)
 		}
 	}
+
+	if err := m.client.Asset.BatchUpdate(ws, assets); err != nil {
+		return err
+	}
+	if len(assets) > 0 {
+		log.Printf("debug: assets(ID:%v-%v) are migrated. (v0.0.1→v0.1.0)", assets[0].ID, assets[len(assets)-1].ID)
+	}
+
 	v := semver.MustParse("0.1.0")
-	return m.metaRepository.SetVersion(&v)
+	return m.client.Meta.SetVersion(&v)
 }

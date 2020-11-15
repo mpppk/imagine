@@ -132,6 +132,14 @@ func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
 	return b.base.updateByID(createAssetBucketNames(ws), asset)
 }
 
+func (b *BBoltAsset) BatchUpdate(ws model.WSName, assets []*model.Asset) error {
+	var dataList []boltData
+	for _, asset := range assets {
+		dataList = append(dataList, asset)
+	}
+	return b.base.batchUpdateByID(createAssetBucketNames(ws), dataList)
+}
+
 func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
 	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
@@ -219,7 +227,7 @@ func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func
 	L:
 		for {
 			var assets [][]byte
-			var lastAsset []byte = nil
+			var lastAssetID uint64 = 0
 			err := b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
 				cursor := bucket.Cursor()
 				cnt := 0
@@ -229,9 +237,11 @@ func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func
 					}
 					cnt++
 					if f2(v) {
-						assets = append(assets, v)
+						newV := make([]byte, len(v))
+						copy(newV, v)
+						assets = append(assets, newV)
 					}
-					lastAsset = v
+					lastAssetID = btoi(k)
 				}
 				return nil
 			})
@@ -240,7 +250,7 @@ func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func
 				ec <- fmt.Errorf("failed to list assets: %w", err)
 			}
 
-			if lastAsset == nil {
+			if lastAssetID == 0 {
 				break
 			}
 
@@ -251,7 +261,7 @@ func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func
 				case c <- asset:
 				}
 			}
-			min = lastAsset
+			min = itob(lastAssetID)
 		}
 		close(c)
 		close(ec)

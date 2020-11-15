@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/mpppk/imagine/usecase"
+
 	"github.com/blang/semver/v4"
 
 	"github.com/comail/colog"
@@ -71,10 +73,10 @@ var rootCmd = &cobra.Command{
 			log.Printf("info: versions: db:%s app:%s", dbV.String(), appV.String())
 		}
 
-		//migrationUseCase := usecase.NewMigration(metaRepository)
-		//if err := migrationUseCase.Migrate(dbV); err != nil {
-		//	return err
-		//}
+		migrationUseCase := usecase.NewMigration(client)
+		if err := migrationUseCase.Migrate(dbV); err != nil {
+			return err
+		}
 
 		return nil
 	},

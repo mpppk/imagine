@@ -23,7 +23,10 @@ type Tag struct {
 	Name string `json:"name"`
 }
 
-func (b *BoundingBox) Migrate() *model.BoundingBox {
+func (b *BoundingBox) Migrate() (*model.BoundingBox, bool) {
+	if b.Tag == nil {
+		return nil, false
+	}
 	return &model.BoundingBox{
 		ID:     model.BoundingBoxID(b.ID),
 		TagID:  model.TagID(b.Tag.ID),
@@ -31,7 +34,7 @@ func (b *BoundingBox) Migrate() *model.BoundingBox {
 		Y:      b.Y,
 		Width:  b.Width,
 		Height: b.Height,
-	}
+	}, true
 }
 
 type AssetID uint64
@@ -51,10 +54,20 @@ func NewAssetFromJson(contents []byte) (*Asset, error) {
 	return &asset, nil
 }
 
-func (a *Asset) Migrate() *model.Asset {
+func (a *Asset) Migrate() (*model.Asset, bool) {
 	var boxes []*model.BoundingBox
+	skip := false
 	for _, box := range a.BoundingBoxes {
-		boxes = append(boxes, box.Migrate())
+		newBox, ok := box.Migrate()
+		if !ok {
+			skip = true
+			break
+		}
+		boxes = append(boxes, newBox)
+	}
+
+	if skip {
+		return nil, false
 	}
 
 	return &model.Asset{
@@ -62,5 +75,5 @@ func (a *Asset) Migrate() *model.Asset {
 		Name:          a.Name,
 		Path:          a.Path,
 		BoundingBoxes: boxes,
-	}
+	}, true
 }
