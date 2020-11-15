@@ -1,4 +1,3 @@
-import {Button} from "@material-ui/core";
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
 import React, {useState} from 'react';
@@ -214,14 +213,6 @@ export default function Test() {
   const globalState = useSelector(selector)
   const handlers = useHandlers(localState, setLocalState, globalState);
   const virtualizedAssetProps = useVirtualizedAsset();
-  const handleClickAddDirectoryButton = () => {
-    if (globalState.currentWorkSpace === null) {
-      // tslint:disable-next-line:no-console
-      console.warn('workspace is not selected, but AddDirectoryButton is clicked')
-      return
-    }
-    handlers.clickAddDirectoryButton(globalState.currentWorkSpace)
-  }
 
   return (
     <div className={classes.root} onKeyDown={handlers.keyDown} tabIndex={0}>
