@@ -7,11 +7,12 @@ import (
 	"log"
 	"os"
 
+	"github.com/mpppk/imagine/registry"
+
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/mpppk/imagine/domain/model"
 	"github.com/mpppk/imagine/infra/repoimpl"
-	"github.com/mpppk/imagine/usecase"
 
 	"github.com/mpppk/imagine/cmd/option"
 	"github.com/spf13/afero"
@@ -33,7 +34,7 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 				return err
 			}
 			assetRepository := repoimpl.NewBBoltAsset(db)
-			assetUseCase := usecase.NewAsset(assetRepository)
+			assetUseCase := registry.InitializeAssetUseCase(db)
 			if err := assetUseCase.Init(conf.WorkSpace); err != nil {
 				return fmt.Errorf("failed to initialize asset usecase: %w", err)
 			}

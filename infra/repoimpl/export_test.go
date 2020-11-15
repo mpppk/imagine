@@ -2,12 +2,9 @@ package repoimpl
 
 import "github.com/mpppk/imagine/domain/model"
 
-func CreateBoundingBox(id int, tagName string) *model.BoundingBox {
+func CreateBoundingBox(id int) *model.BoundingBox {
 	return &model.BoundingBox{
-		ID: model.BoundingBoxID(id),
-		Tag: &model.Tag{
-			ID:   model.TagID(id),
-			Name: tagName,
-		},
+		ID:    model.BoundingBoxID(id),
+		TagID: model.TagID(id),
 	}
 }

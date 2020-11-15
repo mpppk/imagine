@@ -4,60 +4,36 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
+
+	"github.com/mpppk/imagine/infra/repoimpl"
+
+	"github.com/mpppk/imagine/registry"
 
 	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mpppk/imagine/cmd/option"
-	"github.com/mpppk/imagine/infra/repoimpl"
-	"github.com/mpppk/imagine/usecase"
 	"github.com/spf13/afero"
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/spf13/cobra"
 )
 
-func boxesToTags(boxes []*model.BoundingBox) (tags []*model.Tag) {
-	tagM := map[model.TagID]*model.Tag{}
+func boxesToTagIDList(boxes []*model.BoundingBox) (idList []model.TagID) {
+	tagM := map[model.TagID]struct{}{}
 	for _, box := range boxes {
-		tagM[box.Tag.ID] = box.Tag
+		tagM[box.TagID] = struct{}{}
 	}
 
-	for _, tag := range tagM {
-		tags = append(tags, tag)
+	for id := range tagM {
+		idList = append(idList, id)
 	}
 	return
 }
 
 func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
-	format := func(format string, asset *model.Asset) (string, error) {
-		switch format {
-		case "json":
-			contents, err := json.Marshal(asset)
-			if err != nil {
-				return "", fmt.Errorf("failed to marshal asset to json: %w", err)
-			}
-			return string(contents), nil
-		case "csv":
-			var tagNames []string
-			for _, tag := range boxesToTags(asset.BoundingBoxes) {
-				tagNames = append(tagNames, tag.Name)
-			}
-
-			line := []string{
-				strconv.Quote(strconv.Itoa(int(asset.ID))),
-				strconv.Quote(asset.Path),
-				strconv.Quote(strings.Join(tagNames, ",")),
-			}
-
-			return strings.Join(line, ","), nil
-		default:
-			return "", fmt.Errorf("unknown output format: %s", format)
-		}
-
-	}
-
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list assets",
@@ -70,11 +46,47 @@ func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
 			if err != nil {
 				return err
 			}
-			assetRepository := repoimpl.NewBBoltAsset(db)
-			assetUseCase := usecase.NewAsset(assetRepository)
+			assetUseCase := registry.InitializeAssetUseCase(db)
 			assetChan, err := assetUseCase.ListAsync(context.Background(), conf.WorkSpace)
 			if err != nil {
 				return err
+			}
+
+			tagRepository := repoimpl.NewBBoltTag(db)
+			tagSet, err := tagRepository.ListAsSet(conf.WorkSpace)
+			if err != nil {
+				return err
+			}
+
+			format := func(format string, asset *model.Asset) (string, error) {
+				switch format {
+				case "json":
+					contents, err := json.Marshal(asset)
+					if err != nil {
+						return "", fmt.Errorf("failed to marshal asset to json: %w", err)
+					}
+					return string(contents), nil
+				case "csv":
+					var tagNames []string
+					for _, tagID := range boxesToTagIDList(asset.BoundingBoxes) {
+						tag, ok := tagSet.Get(tagID)
+						if !ok {
+							log.Printf("warning: tag not found. id:%v", tagID)
+							continue
+						}
+						tagNames = append(tagNames, tag.Name)
+					}
+
+					line := []string{
+						strconv.Quote(strconv.Itoa(int(asset.ID))),
+						strconv.Quote(asset.Path),
+						strconv.Quote(strings.Join(tagNames, ",")),
+					}
+
+					return strings.Join(line, ","), nil
+				default:
+					return "", fmt.Errorf("unknown output format: %s", format)
+				}
 			}
 
 			if conf.Format == "csv" {

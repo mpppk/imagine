@@ -6,6 +6,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/mpppk/imagine/usecase"
+
+	"github.com/blang/semver/v4"
+
 	"github.com/comail/colog"
 
 	"go.etcd.io/bbolt"
@@ -38,6 +42,48 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 		util.InitializeLog(conf.Verbose)
+
+		db, err := bbolt.Open(conf.DB, 0600, nil)
+		if err != nil {
+			return fmt.Errorf("failed to open DB: %w", err)
+		}
+		defer func() {
+			if err := db.Close(); err != nil {
+				panic(err)
+			}
+		}()
+
+		client := registry.NewBoltClient(db)
+		if err := client.Meta.Init(); err != nil {
+			return fmt.Errorf("failed to initialize meta repository: %w", err)
+		}
+
+		// for debug. set version for test
+		//v := semver.MustParse("0.0.1")
+		//if err := client.Meta.SetDBVersion(&v); err != nil {
+		//	return err
+		//}
+
+		dbV, ok, err := client.Meta.GetDBVersion()
+		if err != nil {
+			return fmt.Errorf("failed to get db version: %w", err)
+		}
+
+		appV := semver.MustParse(util.Version)
+		if !ok {
+			if err := client.Meta.SetDBVersion(&appV); err != nil {
+				return err
+			}
+			log.Printf("info: versions: db:%s app:%s", "empty→"+appV.String(), appV.String())
+		} else {
+			log.Printf("info: versions: db:%s app:%s", dbV.String(), appV.String())
+		}
+
+		migrationUseCase := usecase.NewMigration(client)
+		if err := migrationUseCase.Migrate(dbV); err != nil {
+			return err
+		}
+
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {

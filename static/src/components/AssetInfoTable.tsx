@@ -17,12 +17,12 @@ const useStyles = makeStyles((_theme: Theme) => {
 
 interface Props {
   asset: Asset
+  tagNames: string[]
 }
 
 // tslint:disable-next-line:variable-name
-export const AssetInfoTable: React.FC<Props> = ({asset}) => {
+export const AssetInfoTable: React.FC<Props> = (props) => {
   const classes = useStyles();
-  const tags = (asset.boundingBoxes ?? []).map((b) => b.tag.name).join(', ');
 
   return (
     <TableContainer component={Paper}>
@@ -35,15 +35,15 @@ export const AssetInfoTable: React.FC<Props> = ({asset}) => {
         <TableBody>
           <TableRow>
             <TableCell component="th" scope="row">ID</TableCell>
-            <TableCell>{asset.id}</TableCell>
+            <TableCell>{props.asset.id}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell component="th" scope="row">Path</TableCell>
-            <TableCell>{asset.path}</TableCell>
+            <TableCell>{props.asset.path}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell component="th" scope="row">Tags</TableCell>
-            <TableCell>{tags}</TableCell>
+            <TableCell>{props.tagNames.join(', ')}</TableCell>
           </TableRow>
         </TableBody>
       </Table>

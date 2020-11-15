@@ -9,11 +9,12 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-const globalBucketName = "WorkSpace"
+// FIXME
+const workspaceBucketName = "WorkSpace"
 
 var workSpacesKey = []byte("WorkSpaces")
 
-var globalBucketNames = []string{globalBucketName}
+var workspaceBucketNames = []string{workspaceBucketName}
 
 type BBoltWorkSpace struct {
 	base           *boltRepository
@@ -28,7 +29,7 @@ func NewBBoltWorkSpace(b *bolt.DB) repository.WorkSpace {
 }
 
 func (b *BBoltWorkSpace) globalBucketFunc(f func(bucket *bolt.Bucket) error) error {
-	return b.base.bucketFunc(globalBucketNames, f)
+	return b.base.bucketFunc(workspaceBucketNames, f)
 }
 
 func (b *BBoltWorkSpace) getWorkSpacesFromBucket(bucket *bolt.Bucket) (workspaces []*model.WorkSpace, err error) {
@@ -60,6 +61,13 @@ func (b *BBoltWorkSpace) updateWorkSpaces(f func(workspaces []*model.WorkSpace) 
 		}
 		return b.setWorkSpaces(bucket, newWorkspaces)
 	})
+}
+
+func (b *BBoltWorkSpace) Init() error {
+	if err := b.base.createBucketIfNotExist(workspaceBucketNames); err != nil {
+		return fmt.Errorf("failed to create workspace bucket: %w", err)
+	}
+	return nil
 }
 
 func (b *BBoltWorkSpace) List() (workspaces []*model.WorkSpace, err error) {

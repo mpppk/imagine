@@ -7,32 +7,30 @@ import (
 )
 
 type HandlerCreator struct {
-	assetUseCase     *usecase.Asset
-	tagUseCase       *usecase.Tag
-	globalRepository repository.WorkSpace
-	b                *bbolt.DB
-	Asset            *assetHandlerCreator
-	Box              *boxHandlerCreator
-	Tag              *tagHandlerCreator
-	FS               *fsHandlerCreator
-	Workspace        *workspaceHandlerCreator
+	assetUseCase *usecase.Asset
+	tagUseCase   *usecase.Tag
+	b            *bbolt.DB
+	Asset        *assetHandlerCreator
+	Box          *boxHandlerCreator
+	Tag          *tagHandlerCreator
+	FS           *fsHandlerCreator
+	Workspace    *workspaceHandlerCreator
 }
 
 func NewHandlerCreator(
 	assetUseCase *usecase.Asset,
 	tagUseCase *usecase.Tag,
-	globalRepository repository.WorkSpace,
+	client *repository.Client,
 	b *bbolt.DB,
 ) *HandlerCreator {
 	return &HandlerCreator{
-		assetUseCase:     assetUseCase,
-		tagUseCase:       tagUseCase,
-		globalRepository: globalRepository,
-		b:                b,
-		Asset:            newAssetHandlerCreator(assetUseCase),
-		Box:              newBoxHandlerCreator(assetUseCase),
-		Tag:              newTagHandlerCreator(tagUseCase),
-		FS:               newFSHandlerCreator(assetUseCase),
-		Workspace:        newWorkspaceHandlerCreator(globalRepository),
+		assetUseCase: assetUseCase,
+		tagUseCase:   tagUseCase,
+		b:            b,
+		Asset:        newAssetHandlerCreator(assetUseCase),
+		Box:          newBoxHandlerCreator(assetUseCase),
+		Tag:          newTagHandlerCreator(tagUseCase),
+		FS:           newFSHandlerCreator(assetUseCase),
+		Workspace:    newWorkspaceHandlerCreator(client),
 	}
 }

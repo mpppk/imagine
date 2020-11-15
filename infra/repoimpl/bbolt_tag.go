@@ -100,6 +100,19 @@ func (b *BBoltTag) ListBy(ws model.WSName, f func(tag *model.TagWithIndex) bool)
 	return
 }
 
+func (b *BBoltTag) ListAsSet(ws model.WSName) (set *model.TagSet, err error) {
+	tags, err := b.ListAll(ws)
+	if err != nil {
+		return nil, err
+	}
+
+	set = model.NewTagSet()
+	for _, tag := range tags {
+		set.Set(tag.Tag)
+	}
+	return
+}
+
 func (b *BBoltTag) ForEach(ws model.WSName, f func(tagWithIndex *model.TagWithIndex) error) error {
 	return b.loBucketFunc(ws, func(bucket *bolt.Bucket) error {
 		return bucket.ForEach(func(k, v []byte) error {

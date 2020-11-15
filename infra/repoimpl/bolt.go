@@ -269,6 +269,21 @@ func (b *boltRepository) updateByID(bucketNames []string, data boltData) error {
 	})
 }
 
+func (b *boltRepository) batchUpdateByID(bucketNames []string, dataList []boltData) error {
+	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		for _, data := range dataList {
+			s, err := json.Marshal(data)
+			if err != nil {
+				return fmt.Errorf("failed to marshal tag to json: %w", err)
+			}
+			if err := bucket.Put(itob(data.GetID()), s); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
 func (b *boltRepository) delete(bucketNames []string, id uint64) error {
 	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		return bucket.Delete(itob(id))

@@ -15,11 +15,8 @@ var testWSName model.WSName = "test-ws"
 
 func newBox(boxId model.BoundingBoxID, tagId model.TagID, tagName string) *model.BoundingBox {
 	return &model.BoundingBox{
-		ID: boxId,
-		Tag: &model.Tag{
-			ID:   tagId,
-			Name: tagName,
-		},
+		ID:    boxId,
+		TagID: tagId,
 	}
 }
 

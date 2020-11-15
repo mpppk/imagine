@@ -132,6 +132,14 @@ func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
 	return b.base.updateByID(createAssetBucketNames(ws), asset)
 }
 
+func (b *BBoltAsset) BatchUpdate(ws model.WSName, assets []*model.Asset) error {
+	var dataList []boltData
+	for _, asset := range assets {
+		dataList = append(dataList, asset)
+	}
+	return b.base.batchUpdateByID(createAssetBucketNames(ws), dataList)
+}
+
 func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
 	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
@@ -203,6 +211,64 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 	return c, nil
 }
 
+func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func(v []byte) bool, cap int) (vc <-chan []byte, err error) {
+	c := make(chan []byte, cap)
+	ec := make(chan error, 1)
+	f2 := f
+	if f2 == nil {
+		f2 = func(v []byte) bool {
+			return true
+		}
+	}
+
+	go func() {
+		batchNum := 50
+		min := itob(0)
+	L:
+		for {
+			var assets [][]byte
+			var lastAssetID uint64 = 0
+			err := b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
+				cursor := bucket.Cursor()
+				cnt := 0
+				for k, v := cursor.Seek(min); k != nil && cnt < batchNum; k, v = cursor.Next() {
+					if bytes.Equal(k, min) {
+						continue
+					}
+					cnt++
+					if f2(v) {
+						newV := make([]byte, len(v))
+						copy(newV, v)
+						assets = append(assets, newV)
+					}
+					lastAssetID = btoi(k)
+				}
+				return nil
+			})
+
+			if err != nil {
+				ec <- fmt.Errorf("failed to list assets: %w", err)
+			}
+
+			if lastAssetID == 0 {
+				break
+			}
+
+			for _, asset := range assets {
+				select {
+				case <-ctx.Done():
+					break L
+				case c <- asset:
+				}
+			}
+			min = itob(lastAssetID)
+		}
+		close(c)
+		close(ec)
+	}()
+	return c, nil
+}
+
 func (b *BBoltAsset) ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset, err error) {
 	eachF := func(asset *model.Asset) error {
 		if f(asset) {
@@ -223,7 +289,7 @@ func (b *BBoltAsset) ListByTags(ws model.WSName, tags []model.Tag) (assets []*mo
 	return b.ListBy(ws, func(asset *model.Asset) bool {
 		m := map[model.TagID]struct{}{}
 		for _, box := range asset.BoundingBoxes {
-			m[box.Tag.ID] = struct{}{}
+			m[box.TagID] = struct{}{}
 		}
 		for _, tag := range tags {
 			if _, ok := m[tag.ID]; !ok {

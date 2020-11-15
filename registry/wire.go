@@ -5,6 +5,7 @@ package registry
 import (
 	"github.com/google/wire"
 	"github.com/mpppk/imagine/action"
+	"github.com/mpppk/imagine/domain/repository"
 	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/mpppk/imagine/usecase"
 	"go.etcd.io/bbolt"
@@ -12,7 +13,7 @@ import (
 
 //go:generate wire
 
-func InitializeHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
+func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	wire.Build(
 		action.NewHandlerCreator,
 
@@ -23,6 +24,36 @@ func InitializeHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 		repoimpl.NewBBoltTag,
 
 		repoimpl.NewBBoltWorkSpace,
+		repoimpl.NewBoltMeta,
+		repository.NewClient,
+	)
+	return nil
+}
+
+func InitializeAssetUseCase(b *bbolt.DB) *usecase.Asset {
+	wire.Build(
+		usecase.NewAsset,
+		repoimpl.NewBBoltAsset,
+		repoimpl.NewBBoltTag,
+	)
+	return nil
+}
+
+func InitializeTagUseCase(b *bbolt.DB) *usecase.Tag {
+	wire.Build(
+		usecase.NewTag,
+		repoimpl.NewBBoltTag,
+	)
+	return nil
+}
+
+func NewBoltClient(b *bbolt.DB) *repository.Client {
+	wire.Build(
+		repository.NewClient,
+		repoimpl.NewBBoltAsset,
+		repoimpl.NewBBoltTag,
+		repoimpl.NewBBoltWorkSpace,
+		repoimpl.NewBoltMeta,
 	)
 	return nil
 }
