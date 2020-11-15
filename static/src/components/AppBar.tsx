@@ -8,9 +8,9 @@ import MenuIcon from '@material-ui/icons/Menu';
 import {makeStyles} from '@material-ui/styles';
 import * as React from 'react';
 import {useState} from 'react';
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import {workspaceActionCreators} from "../actions/workspace";
-import {Query, WorkSpace} from "../models/models";
+import {Query} from "../models/models";
 import {State} from "../reducers/reducer";
 import MyDrawer from './drawer/Drawer';
 import {SwitchWorkSpaceDialog} from "./SwitchWorkSpaceDialog";
@@ -40,85 +40,93 @@ const useStyles = makeStyles((theme: Theme) => ({
   }
 }));
 
-// tslint:disable-next-line variable-name
-export function MyAppBar() {
-  const classes = useStyles(undefined);
+const useLocalState = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const handleDrawer = (open: boolean) => () => setDrawerOpen(open);
   const [isSwitchWorkSpaceDialogOpen, setSwitchWorkSpaceDialogOpen] = useState(false);
   const [openFilterDialog, setOpenFilterDialog] = useState(false);
   const [openWorkSpaceSettingDialog, setWorkSpaceSettingDialog] = useState(false);
-  const currentWorkSpace = useSelector((s: State) => s.global.currentWorkSpace)
-  const workspaces = useSelector((s: State) => s.global.workspaces)
-  const isLoadingWorkSpaces = useSelector((s: State) => s.global.isLoadingWorkSpaces)
-  const isFiltered = useSelector((s: State) => {
-    return s.global.queries.length > 0 && s.global.filterEnabled;
-  });
-  const scanStatus = useSelector((s: State) => ({
-    running: s.indexPage.scanning,
-    count: s.indexPage.scanCount,
-  }))
-  const dispatch = useDispatch();
+  return {
+    isDrawerOpen, setDrawerOpen,
+    isSwitchWorkSpaceDialogOpen, setSwitchWorkSpaceDialogOpen,
+    openFilterDialog, setOpenFilterDialog,
+    openWorkSpaceSettingDialog, setWorkSpaceSettingDialog,
+  };
+}
+
+type LocalState = ReturnType<typeof useLocalState>;
+
+const useViewState = (localState: LocalState) => {
+  const viewState = {
+    ...localState,
+    disableChangeBasePathButton: useSelector((s: State) => s.indexPage.scanning || s.global.isLoadingWorkSpaces),
+    currentWorkSpace: useSelector((s: State) => s.global.currentWorkSpace),
+    workspaces: useSelector((s: State) => s.global.workspaces),
+    isLoadingWorkSpaces: useSelector((s: State) => s.global.isLoadingWorkSpaces),
+    isFiltered: useSelector((s: State) => s.global.queries.length > 0 && s.global.filterEnabled),
+    scanStatus: useSelector((s: State) => ({
+      running: s.indexPage.scanning,
+      count: s.indexPage.scanCount,
+    })),
+  };
+
+  let scanMsg = viewState.scanStatus.count === 0 ? null : `🔎 ${viewState.scanStatus.count}`;
+  if (viewState.scanStatus.count !== 0 && !viewState.scanStatus.running) {
+    scanMsg = `✔ ${viewState.scanStatus.count}`;
+  }
+
+  return {
+    ...viewState,
+    scanMsg,
+  }
+};
+
+type ViewState = ReturnType<typeof useViewState>;
+
+const useHandlers = (localState: LocalState, viewState: ViewState) => {
   const indexActionDispatcher = useActions(indexActionCreators);
+  const workspaceActionDispatcher = useActions(workspaceActionCreators);
 
-  const handleClickOpenSwitchWorkSpaceDialogButton = () => {
-    setSwitchWorkSpaceDialogOpen(true)
-  }
+  return {
+    genDrawerHandler: (open: boolean) => () => localState.setDrawerOpen(open),
+    handleClickOpenSwitchWorkSpaceDialogButton: localState.setSwitchWorkSpaceDialogOpen.bind(null, true),
+    handleCloseSwitchWorkSpaceDialog: localState.setSwitchWorkSpaceDialogOpen.bind(null, false),
+    handleSelectWorkSpace: workspaceActionDispatcher.select,
+    handleClickFilterButton: localState.setOpenFilterDialog.bind(null, true),
+    handleCloseFilter: localState.setOpenFilterDialog.bind(null, false),
 
-  const handleCloseSwitchWorkSpaceDialog = () => {
-    setSwitchWorkSpaceDialogOpen(false)
-  }
+    handleClickFilterApplyButton: (enabled: boolean, changed: boolean, queries: Query[]) => {
+      localState.setOpenFilterDialog(false);
+      indexActionDispatcher.clickFilterApplyButton({enabled, changed, queries: enabled ? queries : []});
+    },
 
-  const handleSelectWorkSpace = (ws: WorkSpace) => {
-    dispatch(workspaceActionCreators.select(ws));
-  }
-
-  const handleClickFilterButton = () => {
-    setOpenFilterDialog(true);
-  };
-
-  const handleCloseFilter = () => {
-    setOpenFilterDialog(false);
-  }
-
-  const handleClickFilterApplyButton = (enabled: boolean, changed: boolean, queries: Query[]) => {
-    setOpenFilterDialog(false);
-    indexActionDispatcher.clickFilterApplyButton({enabled, changed, queries: enabled ? queries : []});
-  };
-
-  const handleCloseWorkSpaceSetting = () => {
-    setWorkSpaceSettingDialog(false);
-  };
-
-  const handleClickWorkSpaceSettingButton = () => {
-    setWorkSpaceSettingDialog(true);
-  };
-
-  let scanMsg = scanStatus.count === 0 ? null : `🔎 ${scanStatus.count}`;
-  if (scanStatus.count !== 0 && !scanStatus.running) {
-    scanMsg = `✔ ${scanStatus.count}`;
-  }
-
-  const disableChangeBasePathButton = useSelector((s: State) => {
-    return s.indexPage.scanning || s.global.isLoadingWorkSpaces
-  })
-
-  const handleClickChangeBasePathButton = () => {
-    if (currentWorkSpace === null) {
-      // tslint:disable-next-line:no-console
-      console.warn('workspace is not selected, but AddDirectoryButton is clicked')
-      return
+    handleCloseWorkSpaceSetting: localState.setWorkSpaceSettingDialog.bind(null, false),
+    handleClickWorkSpaceSettingButton: localState.setWorkSpaceSettingDialog.bind(null, true),
+    handleClickChangeBasePathButton: () => {
+      if (viewState.currentWorkSpace === null) {
+        // tslint:disable-next-line:no-console
+        console.warn('workspace is not selected, but AddDirectoryButton is clicked')
+        return
+      }
+      indexActionDispatcher.clickAddDirectoryButton({workSpaceName: viewState.currentWorkSpace.name})
     }
-    indexActionDispatcher.clickAddDirectoryButton({workSpaceName: currentWorkSpace.name})
   }
+}
+
+
+// tslint:disable-next-line variable-name
+export function MyAppBar() {
+  const classes = useStyles(undefined);
+  const localState = useLocalState();
+  const viewState = useViewState(localState);
+  const handlers = useHandlers(localState, viewState);
 
   return (
     <>
       <AppBar position="fixed" className={classes.appBar}>
         <MyDrawer
-          open={isDrawerOpen}
-          onClose={handleDrawer(false)}
-          onClickSideList={handleDrawer(false)}
+          open={viewState.isDrawerOpen}
+          onClose={handlers.genDrawerHandler(false)}
+          onClickSideList={handlers.genDrawerHandler(false)}
         />
         <Toolbar>
           <IconButton
@@ -126,7 +134,7 @@ export function MyAppBar() {
             className={classes.menuButton}
             color="inherit"
             aria-label="menu"
-            onClick={handleDrawer(true)}
+            onClick={handlers.genDrawerHandler(true)}
           >
             <MenuIcon/>
           </IconButton>
@@ -135,9 +143,9 @@ export function MyAppBar() {
             className={classes.title}
           >
             <span>
-            {currentWorkSpace === null ? 'loading workspace...' : currentWorkSpace.name}
+            {viewState.currentWorkSpace === null ? 'loading workspace...' : viewState.currentWorkSpace.name}
             </span>
-            <FilterButton className={classes.filterButton} onClick={handleClickFilterButton} dot={isFiltered}/>
+            <FilterButton className={classes.filterButton} onClick={handlers.handleClickFilterButton} dot={viewState.isFiltered}/>
             <Tooltip
               title="Edit WorkSpace settings"
               aria-label="edit-workspace-settings"
@@ -147,38 +155,38 @@ export function MyAppBar() {
                 edge="start"
                 color="inherit"
                 aria-label="workspace-setting"
-                onClick={handleClickWorkSpaceSettingButton}
+                onClick={handlers.handleClickWorkSpaceSettingButton}
               >
                 <SettingsIcon/>
               </IconButton>
             </Tooltip>
           </Typography>
-          {scanMsg}
-          <Button color="inherit" disabled={isLoadingWorkSpaces}
-                  onClick={handleClickOpenSwitchWorkSpaceDialogButton}>
+          {viewState.scanMsg}
+          <Button color="inherit" disabled={viewState.isLoadingWorkSpaces}
+                  onClick={handlers.handleClickOpenSwitchWorkSpaceDialogButton}>
             Switch WorkSpace
           </Button>
         </Toolbar>
       </AppBar>
       <SwitchWorkSpaceDialog
-        workspaces={workspaces === null ? [] : workspaces}
-        open={isSwitchWorkSpaceDialogOpen}
-        onClose={handleCloseSwitchWorkSpaceDialog}
-        currentWorkSpace={currentWorkSpace}
-        onSelectWorkSpace={handleSelectWorkSpace}
+        workspaces={viewState.workspaces === null ? [] : viewState.workspaces}
+        open={viewState.isSwitchWorkSpaceDialogOpen}
+        onClose={handlers.handleCloseSwitchWorkSpaceDialog}
+        currentWorkSpace={viewState.currentWorkSpace}
+        onSelectWorkSpace={handlers.handleSelectWorkSpace}
       />
       <FilterDialog
-        onClickApplyButton={handleClickFilterApplyButton}
-        open={openFilterDialog}
-        onClose={handleCloseFilter}
+        onClickApplyButton={handlers.handleClickFilterApplyButton}
+        open={viewState.openFilterDialog}
+        onClose={handlers.handleCloseFilter}
         inputs={[]}
       />
       <WorkSpaceSettingDialog
-        onClose={handleCloseWorkSpaceSetting}
-        open={openWorkSpaceSettingDialog}
-        workspace={currentWorkSpace}
-        disableChangeBasePathButton={disableChangeBasePathButton}
-        onClickChangeBasePathButton={handleClickChangeBasePathButton}
+        onClose={handlers.handleCloseWorkSpaceSetting}
+        open={viewState.openWorkSpaceSettingDialog}
+        workspace={viewState.currentWorkSpace}
+        disableChangeBasePathButton={viewState.disableChangeBasePathButton}
+        onClickChangeBasePathButton={handlers.handleClickChangeBasePathButton}
       />
     </>
   );
