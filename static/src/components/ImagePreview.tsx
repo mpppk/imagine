@@ -11,7 +11,7 @@ interface Props {
   onScaleBoundingBox: (boxID: number, dx: Pixel, dy: Pixel) => void
   onDeleteBoundingBox: (boxID: number) => void;
 }
-interface BoxProps extends Omit<BoundingBox, 'tag'> {
+interface BoxProps extends Omit<BoundingBox, 'tagID'> {
   onScale: (width: Pixel, height: Pixel) => void;
   onMove: (x: Pixel, y: Pixel) => void;
   onDelete: () => void;

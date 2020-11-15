@@ -37,8 +37,8 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 			if err := repo.SetDBVersion(v); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			gotVersion, err := repo.GetDBVersion()
-			if err != nil {
+			gotVersion, ok, err := repo.GetDBVersion()
+			if err != nil || !ok {
 				t.Errorf("failed to get version: %v", err)
 			}
 			if !reflect.DeepEqual(v, gotVersion) {
