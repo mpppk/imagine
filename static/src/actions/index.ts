@@ -23,6 +23,7 @@ export const indexActionCreators = {
   clickFilterApplyButton: indexActionCreatorFactory<ClickFilterApplyButtonPayload>('FILTER_APPLY_BUTTON/CLICK'),
   clickWorkspaceName: indexActionCreatorFactory<WorkSpace>('WORKSPACE_NAME/CLICK'),
   changeFilterMode: indexActionCreatorFactory<boolean>('FILTER_MODE/CHANGE'),
+  downAlphabetKey: indexActionCreatorFactory<string>('ALPHABET_KEY/DOWN'),
   downNumberKey: indexActionCreatorFactory<number>('NUMBER_KEY/DOWN'),
   downArrowKey: indexActionCreatorFactory<Direction>('ARROW_KEY/DOWN'),
   downSymbolKey: indexActionCreatorFactory<number>('SYMBOL_KEY/DOWN'),
