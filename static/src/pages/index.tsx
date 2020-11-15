@@ -18,6 +18,7 @@ import _ from "lodash";
 import {boundingBoxActionCreators} from "../actions/box";
 import {Pixel} from "../components/svg/svg";
 import {AssetInfoTable} from "../components/AssetInfoTable";
+import {TagInfoTable} from "../components/TagInfoTable";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -28,6 +29,9 @@ const useStyles = makeStyles((theme: Theme) =>
     root: {
       display: 'flex',
     },
+    tagInfoTable: {
+      marginTop: theme.spacing(2),
+    }
   }),
 );
 
@@ -119,7 +123,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         dx, dy,
       })
     }, 50, {maxWait: 150}),
-    onDeleteBoundingBox: (boxID:number) => {
+    onDeleteBoundingBox: (boxID: number) => {
       if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
         return;
       }
@@ -140,6 +144,9 @@ interface GlobalState {
   assets: Asset[]
   assetTable: {
     tagNames: string[]
+  }
+  tagInfoTable: {
+    tag?: Tag
   }
   assignedTagIds: number[]
   selectedTagId?: number
@@ -173,6 +180,9 @@ const selector = (state: State): GlobalState => {
     assets: state.global.assets,
     assetTable: {
       tagNames,
+    },
+    tagInfoTable: {
+      tag: state.global.tags.find((t) => t.id === state.global.selectedTagId),
     },
     assignedTagIds: uniq(assignedTagIds),
     selectedAsset: state.global.selectedAsset,
@@ -232,7 +242,13 @@ export default function Test() {
           onScaleBoundingBox={handlers.onScaleBoundingBox}
           onDeleteBoundingBox={handlers.onDeleteBoundingBox}
         />}
-        {globalState.selectedAsset ? <AssetInfoTable asset={globalState.selectedAsset} tagNames={globalState.assetTable.tagNames}/> : null}
+        {globalState.selectedAsset ?
+          <AssetInfoTable asset={globalState.selectedAsset} tagNames={globalState.assetTable.tagNames}/> : null}
+        {globalState.tagInfoTable.tag ? <TagInfoTable
+          className={classes.tagInfoTable}
+          tagID={globalState.tagInfoTable.tag.id}
+          tagName={globalState.tagInfoTable.tag.name}
+        /> : null}
         <Button variant="outlined" color="primary"
                 disabled={globalState.isScanningDirectories || globalState.isLoadingWorkSpace}
                 onClick={handleClickAddDirectoryButton}>
