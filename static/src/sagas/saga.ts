@@ -114,13 +114,13 @@ const selectTagWorker = function* (tag: Tag): any { // FIXME any
   let boxes = asset.boundingBoxes;
   if (boxes === null) {
     return yield put(boundingBoxActionCreators.assignRequest({
-      asset, box: newEmptyBoundingBox(tag), workSpaceName,
+      asset, box: newEmptyBoundingBox(tag.id), workSpaceName,
     }));
   }
-  boxes = boxes.filter(isDefaultBox).filter((box) => box.tag.id === tag.id);
+  boxes = boxes.filter(isDefaultBox).filter((box) => box.tagID === tag.id);
   if (boxes.length === 0) {
     return yield put(boundingBoxActionCreators.assignRequest({
-      asset, box: newEmptyBoundingBox(tag), workSpaceName,
+      asset, box: newEmptyBoundingBox(tag.id), workSpaceName,
     }));
   }
 
