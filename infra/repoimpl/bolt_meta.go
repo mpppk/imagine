@@ -17,7 +17,7 @@ const (
 	versionKey = "version"
 )
 
-func (b *BoltMeta) GetVersion() (v *semver.Version, exist bool, err error) {
+func (b *BoltMeta) GetDBVersion() (v *semver.Version, exist bool, err error) {
 	err = b.loBucketFunc(func(bucket *bolt.Bucket) error {
 		rawV := bucket.Get([]byte(versionKey))
 		if rawV == nil {
@@ -34,7 +34,7 @@ func (b *BoltMeta) GetVersion() (v *semver.Version, exist bool, err error) {
 	return
 }
 
-func (b *BoltMeta) SetVersion(version *semver.Version) error {
+func (b *BoltMeta) SetDBVersion(version *semver.Version) error {
 	return b.bucketFunc(func(bucket *bolt.Bucket) error {
 		if err := bucket.Put([]byte(versionKey), []byte(version.String())); err != nil {
 			return fmt.Errorf("failed to put version: %w", err)
@@ -42,23 +42,6 @@ func (b *BoltMeta) SetVersion(version *semver.Version) error {
 		return nil
 	})
 }
-
-// CompareVersion compares db version to app version.
-// -1 == app is less than db
-// 0 == app is equal to db
-// 1 == app is greater than db
-//func (b *BoltMeta) CompareVersion() (c int, appV, dbV *semver.Version, err error) {
-//	dbVersion, exist, err := b.GetVersion()
-//	if err != nil {
-//		return 0, nil, nil, err
-//	}
-//
-//	appVersion, err := semver.New(util.Version)
-//	if err != nil {
-//		return 0, nil, nil, fmt.Errorf("failed to parse app version(%s): %w", util.Version, err)
-//	}
-//	return appVersion.Compare(*dbVersion), appVersion, dbVersion, nil
-//}
 
 func NewBoltMeta(b *bolt.DB) repository.Meta {
 	return &BoltMeta{

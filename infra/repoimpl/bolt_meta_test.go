@@ -34,10 +34,10 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed to create semver struct: %v", err)
 			}
-			if err := repo.SetVersion(v); (err != nil) != tt.wantErr {
+			if err := repo.SetDBVersion(v); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			gotVersion, err := repo.GetVersion()
+			gotVersion, err := repo.GetDBVersion()
 			if err != nil {
 				t.Errorf("failed to get version: %v", err)
 			}

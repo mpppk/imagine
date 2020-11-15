@@ -58,14 +58,20 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("failed to initialize meta repository: %w", err)
 		}
 
-		dbV, ok, err := client.Meta.GetVersion()
+		// for debug. set version for test
+		//v := semver.MustParse("0.0.1")
+		//if err := client.Meta.SetDBVersion(&v); err != nil {
+		//	return err
+		//}
+
+		dbV, ok, err := client.Meta.GetDBVersion()
 		if err != nil {
 			return fmt.Errorf("failed to get db version: %w", err)
 		}
 
 		appV := semver.MustParse(util.Version)
 		if !ok {
-			if err := client.Meta.SetVersion(&appV); err != nil {
+			if err := client.Meta.SetDBVersion(&appV); err != nil {
 				return err
 			}
 			log.Printf("info: versions: db:%s app:%s", "empty→"+appV.String(), appV.String())

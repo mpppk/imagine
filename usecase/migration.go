@@ -75,5 +75,5 @@ func (m *Migration) migrateFrom0d0d1To0d1d0(ws model.WSName) error {
 	}
 
 	v := semver.MustParse("0.1.0")
-	return m.client.Meta.SetVersion(&v)
+	return m.client.Meta.SetDBVersion(&v)
 }
