@@ -88,20 +88,20 @@ const useHandlers = (localState: LocalState, viewState: ViewState) => {
 
   return {
     genDrawerHandler: (open: boolean) => () => localState.setDrawerOpen(open),
-    handleClickOpenSwitchWorkSpaceDialogButton: localState.setSwitchWorkSpaceDialogOpen.bind(null, true),
-    handleCloseSwitchWorkSpaceDialog: localState.setSwitchWorkSpaceDialogOpen.bind(null, false),
-    handleSelectWorkSpace: workspaceActionDispatcher.select,
-    handleClickFilterButton: localState.setOpenFilterDialog.bind(null, true),
-    handleCloseFilter: localState.setOpenFilterDialog.bind(null, false),
+    clickOpenSwitchWorkSpaceDialogButton: localState.setSwitchWorkSpaceDialogOpen.bind(null, true),
+    closeSwitchWorkSpaceDialog: localState.setSwitchWorkSpaceDialogOpen.bind(null, false),
+    selectWorkSpace: workspaceActionDispatcher.select,
+    clickFilterButton: localState.setOpenFilterDialog.bind(null, true),
+    closeFilter: localState.setOpenFilterDialog.bind(null, false),
 
-    handleClickFilterApplyButton: (enabled: boolean, changed: boolean, queries: Query[]) => {
+    clickFilterApplyButton: (enabled: boolean, changed: boolean, queries: Query[]) => {
       localState.setOpenFilterDialog(false);
       indexActionDispatcher.clickFilterApplyButton({enabled, changed, queries: enabled ? queries : []});
     },
 
-    handleCloseWorkSpaceSetting: localState.setWorkSpaceSettingDialog.bind(null, false),
-    handleClickWorkSpaceSettingButton: localState.setWorkSpaceSettingDialog.bind(null, true),
-    handleClickChangeBasePathButton: () => {
+    closeWorkSpaceSetting: localState.setWorkSpaceSettingDialog.bind(null, false),
+    clickWorkSpaceSettingButton: localState.setWorkSpaceSettingDialog.bind(null, true),
+    clickChangeBasePathButton: () => {
       if (viewState.currentWorkSpace === null) {
         // tslint:disable-next-line:no-console
         console.warn('workspace is not selected, but AddDirectoryButton is clicked')
@@ -111,7 +111,6 @@ const useHandlers = (localState: LocalState, viewState: ViewState) => {
     }
   }
 }
-
 
 // tslint:disable-next-line variable-name
 export function MyAppBar() {
@@ -145,7 +144,7 @@ export function MyAppBar() {
             <span>
             {viewState.currentWorkSpace === null ? 'loading workspace...' : viewState.currentWorkSpace.name}
             </span>
-            <FilterButton className={classes.filterButton} onClick={handlers.handleClickFilterButton} dot={viewState.isFiltered}/>
+            <FilterButton className={classes.filterButton} onClick={handlers.clickFilterButton} dot={viewState.isFiltered}/>
             <Tooltip
               title="Edit WorkSpace settings"
               aria-label="edit-workspace-settings"
@@ -155,7 +154,7 @@ export function MyAppBar() {
                 edge="start"
                 color="inherit"
                 aria-label="workspace-setting"
-                onClick={handlers.handleClickWorkSpaceSettingButton}
+                onClick={handlers.clickWorkSpaceSettingButton}
               >
                 <SettingsIcon/>
               </IconButton>
@@ -163,7 +162,7 @@ export function MyAppBar() {
           </Typography>
           {viewState.scanMsg}
           <Button color="inherit" disabled={viewState.isLoadingWorkSpaces}
-                  onClick={handlers.handleClickOpenSwitchWorkSpaceDialogButton}>
+                  onClick={handlers.clickOpenSwitchWorkSpaceDialogButton}>
             Switch WorkSpace
           </Button>
         </Toolbar>
@@ -171,22 +170,22 @@ export function MyAppBar() {
       <SwitchWorkSpaceDialog
         workspaces={viewState.workspaces === null ? [] : viewState.workspaces}
         open={viewState.isSwitchWorkSpaceDialogOpen}
-        onClose={handlers.handleCloseSwitchWorkSpaceDialog}
+        onClose={handlers.closeSwitchWorkSpaceDialog}
         currentWorkSpace={viewState.currentWorkSpace}
-        onSelectWorkSpace={handlers.handleSelectWorkSpace}
+        onSelectWorkSpace={handlers.selectWorkSpace}
       />
       <FilterDialog
-        onClickApplyButton={handlers.handleClickFilterApplyButton}
+        onClickApplyButton={handlers.clickFilterApplyButton}
         open={viewState.openFilterDialog}
-        onClose={handlers.handleCloseFilter}
+        onClose={handlers.closeFilter}
         inputs={[]}
       />
       <WorkSpaceSettingDialog
-        onClose={handlers.handleCloseWorkSpaceSetting}
+        onClose={handlers.closeWorkSpaceSetting}
         open={viewState.openWorkSpaceSettingDialog}
         workspace={viewState.currentWorkSpace}
         disableChangeBasePathButton={viewState.disableChangeBasePathButton}
-        onClickChangeBasePathButton={handlers.handleClickChangeBasePathButton}
+        onClickChangeBasePathButton={handlers.clickChangeBasePathButton}
       />
     </>
   );
