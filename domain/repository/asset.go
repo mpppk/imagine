@@ -19,8 +19,8 @@ type Asset interface {
 	Update(ws model.WSName, asset *model.Asset) error
 	Delete(ws model.WSName, id model.AssetID) error
 	ListByAsync(ctx context.Context, ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error)
+	ListRawByAsync(ctx context.Context, ws model.WSName, f func(v []byte) bool, cap int) (c <-chan []byte, err error)
 	ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset, err error)
-	ListByTags(ws model.WSName, tags []model.Tag) (assets []*model.Asset, err error)
 	ForEach(ws model.WSName, f func(asset *model.Asset) error) error
 	Revalidate(ws model.WSName) error
 }

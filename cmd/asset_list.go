@@ -27,7 +27,7 @@ func boxesToTagIDList(boxes []*model.BoundingBox) (idList []model.TagID) {
 		tagM[box.TagID] = struct{}{}
 	}
 
-	for id, _ := range tagM {
+	for id := range tagM {
 		idList = append(idList, id)
 	}
 	return

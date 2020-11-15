@@ -6,6 +6,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/blang/semver/v4"
+
+	"github.com/mpppk/imagine/infra/repoimpl"
+
 	"github.com/comail/colog"
 
 	"go.etcd.io/bbolt"
@@ -38,6 +42,42 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 		util.InitializeLog(conf.Verbose)
+
+		db, err := bbolt.Open(conf.DB, 0600, nil)
+		if err != nil {
+			return fmt.Errorf("failed to open DB: %w", err)
+		}
+		defer func() {
+			if err := db.Close(); err != nil {
+				panic(err)
+			}
+		}()
+
+		metaRepository := repoimpl.NewBoltMeta(db)
+		if err := metaRepository.Init(); err != nil {
+			return fmt.Errorf("failed to initialize meta repository: %w", err)
+		}
+
+		dbV, ok, err := metaRepository.GetVersion()
+		if err != nil {
+			return fmt.Errorf("failed to get db version: %w", err)
+		}
+
+		appV := semver.MustParse(util.Version)
+		if !ok {
+			if err := metaRepository.SetVersion(&appV); err != nil {
+				return err
+			}
+			log.Printf("info: versions: db:%s app:%s", "empty→"+appV.String(), appV.String())
+		} else {
+			log.Printf("info: versions: db:%s app:%s", dbV.String(), appV.String())
+		}
+
+		//migrationUseCase := usecase.NewMigration(metaRepository)
+		//if err := migrationUseCase.Migrate(dbV); err != nil {
+		//	return err
+		//}
+
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {

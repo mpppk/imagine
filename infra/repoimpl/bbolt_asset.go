@@ -203,6 +203,62 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 	return c, nil
 }
 
+func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func(v []byte) bool, cap int) (vc <-chan []byte, err error) {
+	c := make(chan []byte, cap)
+	ec := make(chan error, 1)
+	f2 := f
+	if f2 == nil {
+		f2 = func(v []byte) bool {
+			return true
+		}
+	}
+
+	go func() {
+		batchNum := 50
+		min := itob(0)
+	L:
+		for {
+			var assets [][]byte
+			var lastAsset []byte = nil
+			err := b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
+				cursor := bucket.Cursor()
+				cnt := 0
+				for k, v := cursor.Seek(min); k != nil && cnt < batchNum; k, v = cursor.Next() {
+					if bytes.Equal(k, min) {
+						continue
+					}
+					cnt++
+					if f2(v) {
+						assets = append(assets, v)
+					}
+					lastAsset = v
+				}
+				return nil
+			})
+
+			if err != nil {
+				ec <- fmt.Errorf("failed to list assets: %w", err)
+			}
+
+			if lastAsset == nil {
+				break
+			}
+
+			for _, asset := range assets {
+				select {
+				case <-ctx.Done():
+					break L
+				case c <- asset:
+				}
+			}
+			min = lastAsset
+		}
+		close(c)
+		close(ec)
+	}()
+	return c, nil
+}
+
 func (b *BBoltAsset) ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset, err error) {
 	eachF := func(asset *model.Asset) error {
 		if f(asset) {
