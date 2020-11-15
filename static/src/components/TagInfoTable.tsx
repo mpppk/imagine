@@ -1,7 +1,6 @@
 import {TableHead, Theme} from "@material-ui/core";
 import {makeStyles} from "@material-ui/core/styles";
 import React from "react";
-import {Asset} from "../models/models";
 import TableContainer from "@material-ui/core/TableContainer";
 import Paper from "@material-ui/core/Paper";
 import Table from "@material-ui/core/Table";
@@ -16,34 +15,31 @@ const useStyles = makeStyles((_theme: Theme) => {
 });
 
 interface Props {
-  asset: Asset
-  tagNames: string[]
+  className: string
+  tagID: number
+  tagName: string
 }
 
 // tslint:disable-next-line:variable-name
-export const AssetInfoTable: React.FC<Props> = (props) => {
+export const TagInfoTable: React.FC<Props> = (props) => {
   const classes = useStyles();
 
   return (
-    <TableContainer component={Paper}>
-      <Table className={classes.table} size="small" aria-label="asset information table">
+    <TableContainer className={props.className} component={Paper}>
+      <Table className={classes.table} size="small" aria-label="tag information table">
         <TableHead>
           <TableRow>
-            <TableCell>Asset</TableCell>
+            <TableCell>Tag</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           <TableRow>
             <TableCell component="th" scope="row">ID</TableCell>
-            <TableCell>{props.asset.id}</TableCell>
+            <TableCell>{props.tagID}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell component="th" scope="row">Path</TableCell>
-            <TableCell>{props.asset.path}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell component="th" scope="row">Tags</TableCell>
-            <TableCell>{props.tagNames.join(', ')}</TableCell>
+            <TableCell component="th" scope="row">Name</TableCell>
+            <TableCell>{props.tagName}</TableCell>
           </TableRow>
         </TableBody>
       </Table>
