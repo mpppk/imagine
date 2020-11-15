@@ -9,7 +9,7 @@ import (
 )
 
 func NewHandlers(db *bbolt.DB) *fsa.Handlers {
-	handlerCreator := InitializeHandlerCreator(db)
+	handlerCreator := NewBoltHandlerCreator(db)
 	handlers := fsa.NewHandlers()
 	handlers.Handle(action.IndexAddDirectoryButtonClickType, handlerCreator.FS.Scan())
 	handlers.Handle(action.WorkSpaceScanRequestType, handlerCreator.Workspace.Scan())

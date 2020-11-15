@@ -8,8 +8,6 @@ import (
 
 	"github.com/blang/semver/v4"
 
-	"github.com/mpppk/imagine/infra/repoimpl"
-
 	"github.com/comail/colog"
 
 	"go.etcd.io/bbolt"
@@ -53,19 +51,19 @@ var rootCmd = &cobra.Command{
 			}
 		}()
 
-		metaRepository := repoimpl.NewBoltMeta(db)
-		if err := metaRepository.Init(); err != nil {
+		client := registry.NewBoltClient(db)
+		if err := client.Meta.Init(); err != nil {
 			return fmt.Errorf("failed to initialize meta repository: %w", err)
 		}
 
-		dbV, ok, err := metaRepository.GetVersion()
+		dbV, ok, err := client.Meta.GetVersion()
 		if err != nil {
 			return fmt.Errorf("failed to get db version: %w", err)
 		}
 
 		appV := semver.MustParse(util.Version)
 		if !ok {
-			if err := metaRepository.SetVersion(&appV); err != nil {
+			if err := client.Meta.SetVersion(&appV); err != nil {
 				return err
 			}
 			log.Printf("info: versions: db:%s app:%s", "empty→"+appV.String(), appV.String())

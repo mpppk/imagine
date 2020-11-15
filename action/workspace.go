@@ -53,20 +53,20 @@ func (w *workspaceActionCreator) Update(workSpace *model.WorkSpace) *fsa.Action 
 }
 
 type workspaceScanHandler struct {
-	globalRepository repository.WorkSpace
-	action           *workspaceActionCreator
+	client *repository.Client
+	action *workspaceActionCreator
 }
 
 func (d *workspaceScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	workspaces, err := d.globalRepository.List()
+	workspaces, err := d.client.WorkSpace.List()
 	if err != nil {
 		return fmt.Errorf("failed to fetch workspaces from repository: %w", err)
 	}
 
 	if len(workspaces) == 0 {
 		log.Println("debug: default workspace will be created because no workspace exists")
-		defaultWorkSpace := &model.WorkSpace{Name: defaultWorkSpaceName}
-		if err := d.globalRepository.Add(defaultWorkSpace); err != nil {
+		defaultWorkSpace, err := d.client.CreateWorkSpace(defaultWorkSpaceName)
+		if err != nil {
 			return fmt.Errorf("failed to create default workspace: %w", err)
 		}
 		workspaces = append(workspaces, defaultWorkSpace)
@@ -76,8 +76,8 @@ func (d *workspaceScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) err
 }
 
 type workspaceUpdateHandler struct {
-	globalRepository repository.WorkSpace
-	action           *workspaceActionCreator
+	client *repository.Client
+	action *workspaceActionCreator
 }
 
 func (d *workspaceUpdateHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
@@ -86,7 +86,7 @@ func (d *workspaceUpdateHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) e
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	if err := d.globalRepository.Update(&payload.WorkSpace); err != nil {
+	if err := d.client.WorkSpace.Update(&payload.WorkSpace); err != nil {
 		return fmt.Errorf("failed to update workspace from repository: %w", err)
 	}
 
@@ -94,27 +94,27 @@ func (d *workspaceUpdateHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) e
 }
 
 type workspaceHandlerCreator struct {
-	globalRepository repository.WorkSpace
-	action           *workspaceActionCreator
+	client *repository.Client
+	action *workspaceActionCreator
 }
 
-func newWorkspaceHandlerCreator(globalRepository repository.WorkSpace) *workspaceHandlerCreator {
+func newWorkspaceHandlerCreator(client *repository.Client) *workspaceHandlerCreator {
 	return &workspaceHandlerCreator{
-		globalRepository: globalRepository,
-		action:           &workspaceActionCreator{},
+		client: client,
+		action: &workspaceActionCreator{},
 	}
 }
 
 func (w *workspaceHandlerCreator) Scan() *workspaceScanHandler {
 	return &workspaceScanHandler{
-		globalRepository: w.globalRepository,
-		action:           w.action,
+		client: w.client,
+		action: w.action,
 	}
 }
 
 func (w *workspaceHandlerCreator) Update() *workspaceUpdateHandler {
 	return &workspaceUpdateHandler{
-		globalRepository: w.globalRepository,
-		action:           w.action,
+		client: w.client,
+		action: w.action,
 	}
 }
