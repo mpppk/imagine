@@ -134,6 +134,41 @@ const selectTagWorker = function* (tag: Tag): any { // FIXME any
   }
 };
 
+const downAlphabetKeyWorker= function* (key: string) {
+  const state: State = yield select();
+  if (!state.global.selectedAsset) {
+    return;
+  }
+
+  if (!state.global.currentWorkSpace) {
+    // tslint:disable-next-line:no-console
+    console.info('workspace is not selected');
+    return;
+  }
+
+  let index: number | undefined
+  switch(key) {
+    case 'Q':index = 4;break;
+    case 'W':index = 5;break;
+    case 'E':index = 6;break;
+    case 'R':index = 7;break;
+    case 'A':index = 8;break;
+    case 'S':index = 9;break;
+    case 'D':index = 10;break;
+    case 'F':index = 11;break;
+    case 'Z':index = 12;break;
+    case 'X':index = 13;break;
+    case 'C':index = 14;break;
+    case 'V':index = 15;break;
+  }
+
+  // tag list is 0-indexed, but number key is 1-indexed
+  if (index !== undefined && index < state.global.tags.length) {
+    const tag = state.global.tags[index];
+    yield put(indexActionCreators.selectTag(tag));
+  }
+};
+
 const downNumberKeyWorker = function* (key: number) {
   const state: State = yield select();
   if (key > state.global.tags.length || !state.global.selectedAsset) {
@@ -142,9 +177,7 @@ const downNumberKeyWorker = function* (key: number) {
 
   if (!state.global.currentWorkSpace) {
     // tslint:disable-next-line:no-console
-    console.info(
-      'bounding box assign/unassign request is not sent because workspace is not selected'
-    );
+    console.info('workspace is not selected');
     return;
   }
 
@@ -193,6 +226,7 @@ export default function* rootSaga() {
     takeEveryAction(workspaceActionCreators.scanResult, scanWorkSpacesWorker)(),
     takeEveryAction(fsActionCreators.scanStart, fsScanStartWorkSpacesWorker)(),
     takeEveryAction(fsActionCreators.scanRunning, fsScanRunningWorker)(),
+    takeEveryAction(indexActionCreators.downAlphabetKey, downAlphabetKeyWorker)(),
     takeEveryAction(indexActionCreators.downNumberKey, downNumberKeyWorker)(),
     takeEveryAction(indexActionCreators.downSymbolKey, downSymbolKeyWorker)(),
     takeEveryAction(indexActionCreators.selectTag, selectTagWorker)(),

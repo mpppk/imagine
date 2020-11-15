@@ -85,12 +85,19 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         return;
       }
 
-      if ([189, 187, 0].includes(e.keyCode as number)) {
+      if (e.keyCode >= 65 && e.keyCode <= 90) {
+        indexActionDispatcher.downAlphabetKey(String.fromCharCode(e.keyCode));
+        return;
+      }
+
+      if ([189,187,0].includes(e.keyCode as number)) {
         indexActionDispatcher.downSymbolKey(e.keyCode);
+        return;
       }
 
       if (isArrowKeyCode(e.keyCode)) {
         indexActionDispatcher.downArrowKey(keyCodeToDirection(e.keyCode));
+        return;
       }
     },
 
