@@ -223,7 +223,7 @@ func (b *BBoltAsset) ListByTags(ws model.WSName, tags []model.Tag) (assets []*mo
 	return b.ListBy(ws, func(asset *model.Asset) bool {
 		m := map[model.TagID]struct{}{}
 		for _, box := range asset.BoundingBoxes {
-			m[box.Tag.ID] = struct{}{}
+			m[box.TagID] = struct{}{}
 		}
 		for _, tag := range tags {
 			if _, ok := m[tag.ID]; !ok {

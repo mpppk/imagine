@@ -11,5 +11,6 @@ type Tag interface {
 	ListAll(ws model.WSName) ([]*model.TagWithIndex, error)
 	ListByAsync(ws model.WSName, f func(tagWithIndex *model.TagWithIndex) bool, cap int) (tagChan <-chan *model.TagWithIndex, err error)
 	ListBy(ws model.WSName, f func(tagWithIndex *model.TagWithIndex) bool) (tags []*model.TagWithIndex, err error)
+	ListAsSet(ws model.WSName) (set *model.TagSet, err error)
 	ForEach(ws model.WSName, f func(tagWithIndex *model.TagWithIndex) error) error
 }

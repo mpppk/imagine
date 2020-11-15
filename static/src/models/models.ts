@@ -11,7 +11,7 @@ export interface Tag {
 
 export interface BoundingBox {
   id: number
-  tag: Tag
+  tagID: number
   x: number
   y: number
   width: number
@@ -20,8 +20,8 @@ export interface BoundingBox {
 
 export type BoundingBoxRequest = Omit<BoundingBox, 'id'>;
 
-export const newEmptyBoundingBox = (tag: Tag): BoundingBoxRequest => ({
-  tag,
+export const newEmptyBoundingBox = (tagID: number): BoundingBoxRequest => ({
+  tagID,
   x: 0, y: 0, width: 0, height: 0
 });
 

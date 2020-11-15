@@ -26,3 +26,20 @@ func InitializeHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	)
 	return nil
 }
+
+func InitializeAssetUseCase(b *bbolt.DB) *usecase.Asset {
+	wire.Build(
+		usecase.NewAsset,
+		repoimpl.NewBBoltAsset,
+		repoimpl.NewBBoltTag,
+	)
+	return nil
+}
+
+func InitializeTagUseCase(b *bbolt.DB) *usecase.Tag {
+	wire.Build(
+		usecase.NewTag,
+		repoimpl.NewBBoltTag,
+	)
+	return nil
+}

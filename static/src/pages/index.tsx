@@ -9,7 +9,7 @@ import {ImageListDrawer} from "../components/ImageListDrawer";
 import {ImagePreview} from "../components/ImagePreview";
 import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
-import {Asset, AssetWithIndex, Tag, WorkSpace} from "../models/models";
+import {Asset, AssetWithIndex, BoundingBox, Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import {assetPathToUrl, findAssetIndexById, isArrowKeyCode, keyCodeToDirection} from "../util";
 import {tagActionCreators} from "../actions/tag";
@@ -131,6 +131,9 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
 
 interface GlobalState {
   assets: Asset[]
+  assetTable: {
+    tagNames: string[]
+  }
   assignedTagIds: number[]
   selectedTagId?: number
   selectedAsset: AssetWithIndex | null
@@ -146,7 +149,7 @@ interface GlobalState {
 
 const selector = (state: State): GlobalState => {
   const boxes = state.global.selectedAsset?.boundingBoxes ?? [];
-  const assignedTagIds = boxes.map((box) => box.tag.id);
+  const assignedTagIds = boxes.map((box) => box.tagID);
   const selectedAssetIndex = state.global.selectedAsset ?
     findAssetIndexById(state.global.assets, state.global.selectedAsset.id) :
     -1;
@@ -155,8 +158,15 @@ const selector = (state: State): GlobalState => {
   const basePath = state.global.currentWorkSpace === null ? '' : state.global.currentWorkSpace.basePath;
   const toAssetPath = assetPathToUrl.bind(null, basePath);
 
+  const boxToTagName = (tags: Tag[], box: BoundingBox) => tags.find((t) => t.id === box.tagID)?.name;
+  const tagNames = boxes.map(boxToTagName.bind(null, state.global.tags))
+    .filter((n): n is string => n !== undefined);
+
   return {
     assets: state.global.assets,
+    assetTable: {
+      tagNames,
+    },
     assignedTagIds: uniq(assignedTagIds),
     selectedAsset: state.global.selectedAsset,
     selectedAssetUrl: state.global.selectedAsset === null ? undefined : toAssetPath(state.global.selectedAsset.path),
@@ -215,7 +225,7 @@ export default function Test() {
           onScaleBoundingBox={handlers.onScaleBoundingBox}
           onDeleteBoundingBox={handlers.onDeleteBoundingBox}
         />}
-        {globalState.selectedAsset ? <AssetInfoTable asset={globalState.selectedAsset}/> : null}
+        {globalState.selectedAsset ? <AssetInfoTable asset={globalState.selectedAsset} tagNames={globalState.assetTable.tagNames}/> : null}
         <Button variant="outlined" color="primary"
                 disabled={globalState.isScanningDirectories || globalState.isLoadingWorkSpace}
                 onClick={handleClickAddDirectoryButton}>

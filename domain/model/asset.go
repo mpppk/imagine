@@ -8,7 +8,7 @@ import (
 type BoundingBoxID uint64
 type BoundingBox struct {
 	ID     BoundingBoxID `json:"id"`
-	Tag    *Tag          `json:"tag"`
+	TagID  TagID         `json:"tagID"`
 	X      int           `json:"x"`
 	Y      int           `json:"y"`
 	Width  int           `json:"width"`
@@ -32,6 +32,47 @@ func (t *Tag) SetID(id uint64) {
 type TagWithIndex struct {
 	*Tag
 	Index int
+}
+
+type TagSet struct {
+	m     map[TagID]*Tag
+	nameM map[string]*Tag
+}
+
+func NewTagSet() *TagSet {
+	return &TagSet{
+		m:     map[TagID]*Tag{},
+		nameM: map[string]*Tag{},
+	}
+}
+
+func (t *TagSet) Set(tag *Tag) bool {
+	if sameNamedTag, ok := t.nameM[tag.Name]; ok && sameNamedTag.ID != tag.ID {
+		return false
+	}
+	t.m[tag.ID] = tag
+	t.nameM[tag.Name] = tag
+	return true
+}
+
+func (t *TagSet) Get(id TagID) (*Tag, bool) {
+	tag, ok := t.m[id]
+	return tag, ok
+}
+
+func (t *TagSet) GetByName(name string) (*Tag, bool) {
+	tag, ok := t.nameM[name]
+	return tag, ok
+}
+
+func (t *TagSet) SubSetBy(f func(tag *Tag) bool) *TagSet {
+	subset := NewTagSet()
+	for _, tag := range t.m {
+		if f(tag) {
+			subset.Set(tag)
+		}
+	}
+	return subset
 }
 
 type AssetID uint64
@@ -58,18 +99,18 @@ func (a *Asset) SetID(id uint64) {
 	a.ID = AssetID(id)
 }
 
-func (a *Asset) HasTag(tagName string) bool {
+func (a *Asset) HasTag(tagID TagID) bool {
 	for _, box := range a.BoundingBoxes {
-		if box.Tag.Name == tagName {
+		if box.TagID == tagID {
 			return true
 		}
 	}
 	return false
 }
 
-func (a *Asset) HasTagStartWith(prefix string) bool {
+func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 	for _, box := range a.BoundingBoxes {
-		if strings.HasPrefix(box.Tag.Name, prefix) {
+		if _, ok := tagSet.Get(box.TagID); ok {
 			return true
 		}
 	}
