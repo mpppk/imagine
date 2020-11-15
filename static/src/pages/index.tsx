@@ -249,11 +249,6 @@ export default function Test() {
           tagID={globalState.tagInfoTable.tag.id}
           tagName={globalState.tagInfoTable.tag.name}
         /> : null}
-        <Button variant="outlined" color="primary"
-                disabled={globalState.isScanningDirectories || globalState.isLoadingWorkSpace}
-                onClick={handleClickAddDirectoryButton}>
-          {globalState.isScanningDirectories ? 'Scanning...' : 'Add Directory'}
-        </Button>
       </main>
       <TagListDrawer
         tags={globalState.tags}

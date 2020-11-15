@@ -60,7 +60,6 @@ export function MyAppBar() {
   }))
   const dispatch = useDispatch();
   const indexActionDispatcher = useActions(indexActionCreators);
-  const workspaceActionDispatcher = useActions(workspaceActionCreators);
 
   const handleClickOpenSwitchWorkSpaceDialogButton = () => {
     setSwitchWorkSpaceDialogOpen(true)
@@ -87,11 +86,6 @@ export function MyAppBar() {
     indexActionDispatcher.clickFilterApplyButton({enabled, changed, queries: enabled ? queries : []});
   };
 
-  const handleApplyWorkSpaceSetting = (workspace: WorkSpace) => {
-    workspaceActionDispatcher.updateRequest(workspace);
-    setWorkSpaceSettingDialog(false);
-  }
-
   const handleCloseWorkSpaceSetting = () => {
     setWorkSpaceSettingDialog(false);
   };
@@ -103,6 +97,19 @@ export function MyAppBar() {
   let scanMsg = scanStatus.count === 0 ? null : `🔎 ${scanStatus.count}`;
   if (scanStatus.count !== 0 && !scanStatus.running) {
     scanMsg = `✔ ${scanStatus.count}`;
+  }
+
+  const disableChangeBasePathButton = useSelector((s: State) => {
+    return s.indexPage.scanning || s.global.isLoadingWorkSpaces
+  })
+
+  const handleClickChangeBasePathButton = () => {
+    if (currentWorkSpace === null) {
+      // tslint:disable-next-line:no-console
+      console.warn('workspace is not selected, but AddDirectoryButton is clicked')
+      return
+    }
+    indexActionDispatcher.clickAddDirectoryButton({workSpaceName: currentWorkSpace.name})
   }
 
   return (
@@ -167,10 +174,12 @@ export function MyAppBar() {
         inputs={[]}
       />
       <WorkSpaceSettingDialog
-        onApply={handleApplyWorkSpaceSetting}
         onClose={handleCloseWorkSpaceSetting}
         open={openWorkSpaceSettingDialog}
-        workspace={currentWorkSpace}/>
+        workspace={currentWorkSpace}
+        disableChangeBasePathButton={disableChangeBasePathButton}
+        onClickChangeBasePathButton={handleClickChangeBasePathButton}
+      />
     </>
   );
 }
