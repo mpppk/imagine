@@ -1,7 +1,7 @@
 import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import {assetActionCreators} from "../actions/asset";
 import {workspaceActionCreators} from '../actions/workspace';
-import {Asset, AssetWithIndex, BoundingBox, Query, Tag, WorkSpace} from '../models/models';
+import {Asset, BoundingBox, Query, Tag, WorkSpace} from '../models/models';
 import {indexActionCreators} from "../actions";
 import {findAssetIndexById, immutableSplice, replaceBoxById, replaceBy} from "../util";
 import {tagActionCreators} from "../actions/tag";
@@ -14,7 +14,7 @@ export const globalInitialState = {
   filterEnabled: false,
   queries: [] as Query[],
   assets: [] as Asset[],
-  selectedAsset: null as AssetWithIndex | null,
+  selectedAsset: null as Asset | null,
   tags: [] as Tag[],
   currentWorkSpace: null as WorkSpace | null,
   initialBoundingBox: null as BoundingBox | null,
@@ -25,9 +25,10 @@ export const globalInitialState = {
   workspaces: null as WorkSpace[] | null,
   windowHeight: 720,
 };
-export type GlobalState = typeof globalInitialState;export const global = reducerWithInitialState(globalInitialState).case(browserActionCreators.resize, (state, payload) => {
-    return {...state, windowHeight: payload.height};
-  })
+export type GlobalState = typeof globalInitialState;
+export const global = reducerWithInitialState(globalInitialState).case(browserActionCreators.resize, (state, payload) => {
+  return {...state, windowHeight: payload.height};
+})
   .case(fsActionCreators.scanStart, (state, payload) => {
     if (state.currentWorkSpace === null || state.workspaces === null) {
       return {...state};
@@ -36,9 +37,6 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
     const workspaces = replaceBy(state.workspaces, currentWorkSpace, (w) => w.name === currentWorkSpace.name);
     return {...state, assets: [], currentWorkSpace, workspaces};
   })
-  // .case(fsActionCreators.scanRunning, (state) => {
-  //   return {...state, hasMoreAssets: state.assets.length === 0 ? true : state.hasMoreAssets}
-  // })
   .case(workspaceActionCreators.scanResult, (state, workspaces) => {
     return {...state, workspaces, isLoadingWorkSpaces: false};
   })
@@ -46,13 +44,8 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
     return {...state, isScanningAssets: true, hasMoreAssets: true}
   })
   .case(assetActionCreators.scanRunning, (state, payload) => {
-    const assets = {...state.assets};
-    let assetsNum = Object.keys(assets).length;
-    payload.assets.reduce((prev, cur) => {
-      assetsNum++;
-      return {...prev, [assetsNum]: cur}
-    }, {...state.assets});
-    return {...state, isScanningAssets: false, assets: [...state.assets, ...payload.assets]}
+    const assets = [...state.assets, ...payload.assets];
+    return {...state, isScanningAssets: false, assets}
   })
   .case(assetActionCreators.scanFinish, (state) => {
     return {...state, isScanningAssets: false, hasMoreAssets: false}
@@ -64,7 +57,7 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
   })
   .case(workspaceActionCreators.updateRequest, (state, workspace) => {
     if (state.workspaces === null) {
-      return { ...state, workspaces: [workspace]};
+      return {...state, workspaces: [workspace]};
     }
     const workspaces = replaceBy(state.workspaces, workspace, (w) => w.name === workspace.name);
     const currentWorkSpace = state.currentWorkSpace === null || state.currentWorkSpace.name !== workspace.name ?
@@ -77,11 +70,12 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
   .case(indexActionCreators.clickAddTagButton, (state, tag) => {
     return {...state, tags: [tag, ...state.tags]};
   })
-  .case(indexActionCreators.clickFilterApplyButton, (state , payload) => {
+  .case(indexActionCreators.clickFilterApplyButton, (state, payload) => {
     if (!state.filterEnabled && !payload.enabled) {
-      return {...state };
+      return {...state};
     }
-    return {...resetAssets(state),
+    return {
+      ...resetAssets(state),
       queries: payload.queries,
       filterEnabled: payload.enabled,
       hasMoreAssets: true
@@ -102,37 +96,27 @@ export type GlobalState = typeof globalInitialState;export const global = reduce
     return {...state, tags: payload.tags};
   })
   .case(indexActionCreators.assetSelect, (state, asset) => {
-    const index = findAssetIndexById(state.assets, asset.id);
-    return {...state, selectedAsset: {...asset, index}};
+    return {...state, selectedAsset: {...asset}};
   })
   .case(boundingBoxActionCreators.assign, (state, payload) => {
-    // FIXME: O(n)
-    const index = findAssetIndexById(state.assets, payload.asset.id);
-    return {...state, ...updateAssets(state, {...payload.asset, index})};
+    return {...state, ...updateAssets(state, {...payload.asset})};
   })
   .case(boundingBoxActionCreators.unAssign, (state, payload) => {
-    // FIXME: O(n)
-    const index = findAssetIndexById(state.assets, payload.asset.id);
-    return {...state, ...updateAssets(state, {...payload.asset, index})};
+    return {...state, ...updateAssets(state, {...payload.asset})};
   })
   .case(boundingBoxActionCreators.modifyRequest, (state, payload) => {
-    // FIXME: O(n)
-    const index = findAssetIndexById(state.assets, payload.asset.id);
     if (payload.asset.boundingBoxes == null) {
       return state;
     }
     const newBoxes = replaceBoxById(payload.asset.boundingBoxes, payload.box)
-    return {...state, ...updateAssets(state, {...payload.asset, index, boundingBoxes: newBoxes})};
+    return {...state, ...updateAssets(state, {...payload.asset, boundingBoxes: newBoxes})};
   })
   .case(boundingBoxActionCreators.deleteRequest, (state, payload) => {
-    // FIXME: O(n)
-    const index = findAssetIndexById(state.assets, payload.assetID);
-    const asset = state.assets[index];
-    if (asset.boundingBoxes == null) {
+    if (state.selectedAsset === null || state.selectedAsset.boundingBoxes == null) {
       return state;
     }
-    const boundingBoxes = asset.boundingBoxes.filter((b) => b.id !== payload.boxID);
-    return {...state, ...updateAssets(state, {...asset, index, boundingBoxes})};
+    const boundingBoxes = state.selectedAsset.boundingBoxes.filter((b) => b.id !== payload.boxID);
+    return {...state, ...updateAssets(state, {...state.selectedAsset, boundingBoxes})};
   })
   .case(indexActionCreators.downArrowKey, (state, payload) => {
     if (!state.selectedAsset) {
@@ -159,7 +143,7 @@ const resetAssets = (state: GlobalState): GlobalState => {
   return {...state, assets: [], selectedAsset: null, selectedTagId: undefined}
 };
 
-const updateAssets = (state: GlobalState, asset: AssetWithIndex) => {
+const updateAssets = (state: GlobalState, asset: Asset) => {
   const assets = replaceBy(state.assets, asset, (a) => a.id === asset.id);
   const selectedAsset = state.selectedAsset?.id === asset.id ? asset : state.selectedAsset;
   return {assets, selectedAsset};

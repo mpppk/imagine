@@ -8,7 +8,7 @@ import {ImageListDrawer} from "../components/ImageListDrawer";
 import {ImagePreview} from "../components/ImagePreview";
 import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
-import {Asset, AssetWithIndex, BoundingBox, Tag, WorkSpace} from "../models/models";
+import {BoundingBox, Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import {assetPathToUrl, findAssetIndexById, isArrowKeyCode, keyCodeToDirection} from "../util";
 import {tagActionCreators} from "../actions/tag";
@@ -139,28 +139,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
   };
 }
 
-interface GlobalState {
-  assets: Asset[]
-  assetTable: {
-    tagNames: string[]
-  }
-  tagInfoTable: {
-    tag?: Tag
-  }
-  assignedTagIds: number[]
-  selectedTagId?: number
-  selectedAsset: AssetWithIndex | null
-  selectedAssetUrl?: string
-  currentWorkSpace: WorkSpace | null
-  tags: Tag[]
-  imagePaths: string[]
-  isLoadingWorkSpace: boolean
-  isScanningDirectories: boolean
-  selectedAssetIndex: number
-  imageDrawerHeight: number
-}
-
-const selector = (state: State): GlobalState => {
+const selector = (state: State) => {
   const boxes = state.global.selectedAsset?.boundingBoxes ?? [];
   const assignedTagIds = boxes.map((box) => box.tagID);
   const selectedAssetIndex = state.global.selectedAsset ?
@@ -196,6 +175,8 @@ const selector = (state: State): GlobalState => {
     imageDrawerHeight: state.global.windowHeight,
   };
 };
+
+type GlobalState = ReturnType<typeof selector>
 
 interface LocalState {
   editTagId: number | null
