@@ -2,7 +2,7 @@ import {all, call, fork, put, select, take, takeEvery, takeLatest} from '@redux-
 import {ActionCreator} from 'typescript-fsa';
 import {eventChannel, SagaIterator} from 'redux-saga';
 import {workspaceActionCreators} from '../actions/workspace';
-import {AssetWithIndex, newEmptyBoundingBox, Tag, WorkSpace} from '../models/models';
+import {Asset, newEmptyBoundingBox, Tag, WorkSpace} from '../models/models';
 import {ClickFilterApplyButtonPayload, indexActionCreators} from '../actions';
 import {
   boundingBoxActionCreators,
@@ -98,7 +98,7 @@ const fsScanRunningWorker = function* () {
 };
 
 const selectTagWorker = function* (tag: Tag): any { // FIXME any
-  const [asset, workSpaceName]: [AssetWithIndex | null, string?] = yield select<(s: State) => [AssetWithIndex | null, string?]>((s) => [s.global.selectedAsset, s.global.currentWorkSpace?.name]);
+  const [asset, workSpaceName]: [Asset | null, string?] = yield select<(s: State) => [Asset | null, string?]>((s) => [s.global.selectedAsset, s.global.currentWorkSpace?.name]);
   if (workSpaceName === undefined) {
     // tslint:disable-next-line:no-console
     console.warn('failed to request to assign tag because workspace name is undefined');

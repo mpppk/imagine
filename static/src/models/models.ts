@@ -32,11 +32,6 @@ export interface Asset {
   boundingBoxes: BoundingBox[] | null
 }
 
-// 何番目のAssetか
-export interface AssetWithIndex extends Asset {
-  index: number
-}
-
 export type Direction = 'LEFT' | 'RIGHT' | 'UP' | 'DOWN';
 
 export type Query = EqualsQuery | NotEqualsQuery | StartWithQuery | NoTagsQuery | PathEqualsQuery;

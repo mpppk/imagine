@@ -1,12 +1,12 @@
 import React, {Reducer, useEffect, useReducer, useRef} from "react";
-import {AssetWithIndex, BoundingBox} from "../models/models";
+import {Asset, BoundingBox} from "../models/models";
 import {RectLayer} from "./svg/RectLayer";
 import {Pixel} from "./svg/svg";
 import {Action} from "typescript-fsa";
 
 interface Props {
   src: string
-  asset: AssetWithIndex
+  asset: Asset
   onMoveBoundingBox: (boxID: number, dx: Pixel, dy: Pixel) => void
   onScaleBoundingBox: (boxID: number, dx: Pixel, dy: Pixel) => void
   onDeleteBoundingBox: (boxID: number) => void;

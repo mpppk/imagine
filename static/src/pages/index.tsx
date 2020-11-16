@@ -8,7 +8,7 @@ import {ImageListDrawer} from "../components/ImageListDrawer";
 import {ImagePreview} from "../components/ImagePreview";
 import {TagListDrawer} from "../components/TagListDrawer";
 import {useActions, useVirtualizedAsset} from "../hooks";
-import {Asset, AssetWithIndex, BoundingBox, Tag, WorkSpace} from "../models/models";
+import {Asset, BoundingBox, Tag, WorkSpace} from "../models/models";
 import {State} from "../reducers/reducer";
 import {assetPathToUrl, findAssetIndexById, isArrowKeyCode, keyCodeToDirection} from "../util";
 import {tagActionCreators} from "../actions/tag";
@@ -149,7 +149,7 @@ interface GlobalState {
   }
   assignedTagIds: number[]
   selectedTagId?: number
-  selectedAsset: AssetWithIndex | null
+  selectedAsset: Asset | null
   selectedAssetUrl?: string
   currentWorkSpace: WorkSpace | null
   tags: Tag[]
