@@ -12,6 +12,7 @@ interface Props {
   onScaleBoundingBox: (boxID: number, dx: Pixel, dy: Pixel) => void
   onDeleteBoundingBox: (boxID: number) => void;
 }
+
 interface BoxProps extends Omit<BoundingBox, 'tagID'> {
   onScale: (width: Pixel, height: Pixel) => void;
   onMove: (x: Pixel, y: Pixel) => void;
@@ -59,20 +60,20 @@ type BoxAction = MoveAction | ScaleAction | MoveEndAction | ScaleEndAction;
 const boxReducer: Reducer<BoxState, BoxAction> = (state, action) => {
   switch (action.type) {
     case 'move':
-      const x = Math.max(Math.min(state.initX + action.payload.dx, IMAGE_WIDTH), 0);
-      const y = Math.max(Math.min(state.initY + action.payload.dy, IMAGE_HEIGHT), 0);
+      const x = Math.max(Math.min(state.initX + action.payload.dx, IMAGE_WIDTH - state.w), 0);
+      const y = Math.max(Math.min(state.initY + action.payload.dy, IMAGE_HEIGHT - state.h), 0);
       return {...state, x, y}
     case 'scale':
-      const w = Math.max(Math.min(state.initW + action.payload.dx, IMAGE_WIDTH), 0);
-      const h = Math.max(Math.min(state.initH + action.payload.dy, IMAGE_HEIGHT), 0);
+      const w = Math.max(Math.min(state.initW + action.payload.dx, IMAGE_WIDTH-state.x), 0);
+      const h = Math.max(Math.min(state.initH + action.payload.dy, IMAGE_HEIGHT-state.y), 0);
       return {...state, w, h}
     case 'moveEnd':
-      const initX = Math.max(Math.min(state.initX + action.payload.dx, IMAGE_WIDTH), 0);
-      const initY = Math.max(Math.min(state.initY + action.payload.dy, IMAGE_HEIGHT), 0);
+      const initX = Math.max(Math.min(state.initX + action.payload.dx, IMAGE_WIDTH - state.w), 0);
+      const initY = Math.max(Math.min(state.initY + action.payload.dy, IMAGE_HEIGHT - state.h), 0);
       return {...state, initX, initY}
     case 'scaleEnd':
-      const initW = Math.max(Math.min(state.initW + action.payload.dx, IMAGE_WIDTH), 0);
-      const initH = Math.max(Math.min(state.initH + action.payload.dy, IMAGE_HEIGHT), 0);
+      const initW = Math.max(Math.min(state.initW + action.payload.dx, IMAGE_WIDTH-state.x), 0);
+      const initH = Math.max(Math.min(state.initH + action.payload.dy, IMAGE_HEIGHT-state.y), 0);
       return {...state, initW, initH}
     default:
       const _: never = action;
