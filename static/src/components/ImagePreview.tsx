@@ -3,6 +3,7 @@ import {AssetWithIndex, BoundingBox} from "../models/models";
 import {RectLayer} from "./svg/RectLayer";
 import {Pixel} from "./svg/svg";
 import {Action} from "typescript-fsa";
+import {IMAGE_HEIGHT, IMAGE_WIDTH} from "../util";
 
 interface Props {
   src: string
@@ -58,20 +59,20 @@ type BoxAction = MoveAction | ScaleAction | MoveEndAction | ScaleEndAction;
 const boxReducer: Reducer<BoxState, BoxAction> = (state, action) => {
   switch (action.type) {
     case 'move':
-      const x = Math.max(Math.min(state.initX + action.payload.dx, 500), 0);
-      const y = Math.max(Math.min(state.initY + action.payload.dy, 500), 0);
+      const x = Math.max(Math.min(state.initX + action.payload.dx, IMAGE_WIDTH), 0);
+      const y = Math.max(Math.min(state.initY + action.payload.dy, IMAGE_HEIGHT), 0);
       return {...state, x, y}
     case 'scale':
-      const w = Math.max(Math.min(state.initW + action.payload.dx, 500), 0);
-      const h = Math.max(Math.min(state.initH + action.payload.dy, 500), 0);
+      const w = Math.max(Math.min(state.initW + action.payload.dx, IMAGE_WIDTH), 0);
+      const h = Math.max(Math.min(state.initH + action.payload.dy, IMAGE_HEIGHT), 0);
       return {...state, w, h}
     case 'moveEnd':
-      const initX = Math.max(Math.min(state.initX + action.payload.dx, 500), 0);
-      const initY = Math.max(Math.min(state.initY + action.payload.dy, 500), 0);
+      const initX = Math.max(Math.min(state.initX + action.payload.dx, IMAGE_WIDTH), 0);
+      const initY = Math.max(Math.min(state.initY + action.payload.dy, IMAGE_HEIGHT), 0);
       return {...state, initX, initY}
     case 'scaleEnd':
-      const initW = Math.max(Math.min(state.initW + action.payload.dx, 500), 0);
-      const initH = Math.max(Math.min(state.initH + action.payload.dy, 500), 0);
+      const initW = Math.max(Math.min(state.initW + action.payload.dx, IMAGE_WIDTH), 0);
+      const initH = Math.max(Math.min(state.initH + action.payload.dy, IMAGE_HEIGHT), 0);
       return {...state, initW, initH}
     default:
       const _: never = action;
@@ -122,7 +123,7 @@ export const ImagePreview: React.FC<Props> = (props) => {
 
   return (
     <div>
-      <svg id="canvas" viewBox="0 0 500 500" width="500" height="500">
+      <svg id="canvas" viewBox={`0 0 ${IMAGE_WIDTH} ${IMAGE_HEIGHT}`} width={IMAGE_WIDTH} height={IMAGE_HEIGHT}>
         <image href={props.src} width={'100%'} height={'100%'} ref={imageRef}/>
         {boxes.map((box) => {
           return <Box
