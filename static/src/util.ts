@@ -1,6 +1,8 @@
 import { Asset, BoundingBox, Direction, Tag } from './models/models';
 
-export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const IMAGE_WIDTH = 500;
+export const IMAGE_HEIGHT = 500;
+
 
 export const immutableSplice = <T>(
   array: T[],
@@ -69,10 +71,6 @@ export const keyCodeToDirection = (keyCode: number): Direction => {
     default:
       return 'DOWN';
   }
-};
-
-export const findIndexById = <T extends {id: number}>(elms: T[], id: number): number => {
-  return elms.findIndex((e) => e.id === id);
 };
 
 export const findAssetIndexById = (assets: Asset[], id: number): number => {
