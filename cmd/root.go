@@ -3,8 +3,9 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
+
+	"github.com/mpppk/imagine/infra"
 
 	"github.com/mpppk/imagine/usecase"
 
@@ -126,11 +127,13 @@ var rootCmd = &cobra.Command{
 			}
 		}()
 
-		http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("/"))))
-
+		server, sl, err := infra.NewFileServer(1323, "/")
+		if err != nil {
+			return err
+		}
 		go func() {
-			if err := http.ListenAndServe(":1323", nil); err != nil {
-				log.Fatal("ListenAndServe: ", err)
+			if err := server.Serve(sl); err != nil {
+				log.Fatal(err)
 			}
 		}()
 
