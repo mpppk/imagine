@@ -11,6 +11,7 @@ type RootCmdConfig struct {
 	Verbose bool
 	DB      string
 	Dev     bool
+	UiURL   string `mapstructure:"ui-url"`
 }
 
 // NewRootCmdConfigFromViper generate config for sum command from viper
