@@ -16,7 +16,7 @@ import (
 const (
 	workSpacePrefix                     = "WORKSPACE/"
 	WorkSpaceScanRequestType   fsa.Type = workSpacePrefix + "SCAN/REQUEST"
-	WorkSpaceSelectSpaceType   fsa.Type = workSpacePrefix + "SELECT"
+	WorkSpaceSelectType        fsa.Type = workSpacePrefix + "SELECT"
 	WorkSpaceScanResultType    fsa.Type = workSpacePrefix + "SCAN/RESULT"
 	WorkSpaceUpdateRequestType fsa.Type = workSpacePrefix + "UPDATE/REQUEST"
 	WorkSpaceUpdateType        fsa.Type = workSpacePrefix + "UPDATE"

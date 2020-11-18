@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/mpppk/imagine/infra"
-
 	"github.com/mpppk/imagine/usecase"
 
 	"github.com/blang/semver/v4"
@@ -124,16 +122,6 @@ var rootCmd = &cobra.Command{
 		defer func() {
 			if err := ui.Close(); err != nil {
 				panic(err)
-			}
-		}()
-
-		server, sl, err := infra.NewFileServer(1323, "/")
-		if err != nil {
-			return err
-		}
-		go func() {
-			if err := server.Serve(sl); err != nil {
-				log.Fatal(err)
 			}
 		}()
 

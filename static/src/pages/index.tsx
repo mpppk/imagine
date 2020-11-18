@@ -1,23 +1,28 @@
-import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
-import React, {useState} from 'react';
-import {resetServerContext} from "react-beautiful-dnd";
-import {useSelector} from "react-redux";
-import {indexActionCreators} from "../actions";
-import {ImageListDrawer} from "../components/ImageListDrawer";
-import {ImagePreview} from "../components/ImagePreview";
-import {TagListDrawer} from "../components/TagListDrawer";
-import {useActions, useVirtualizedAsset} from "../hooks";
-import {BoundingBox, Tag, WorkSpace} from "../models/models";
-import {State} from "../reducers/reducer";
-import {assetPathToUrl, findAssetIndexById, isArrowKeyCode, keyCodeToDirection} from "../util";
-import {tagActionCreators} from "../actions/tag";
-import uniq from "lodash/uniq";
-import _ from "lodash";
-import {boundingBoxActionCreators} from "../actions/box";
-import {Pixel} from "../components/svg/svg";
-import {AssetInfoTable} from "../components/AssetInfoTable";
-import {TagInfoTable} from "../components/TagInfoTable";
+import React, { useState } from 'react';
+import { resetServerContext } from 'react-beautiful-dnd';
+import { useSelector } from 'react-redux';
+import { indexActionCreators } from '../actions';
+import { ImageListDrawer } from '../components/ImageListDrawer';
+import { ImagePreview } from '../components/ImagePreview';
+import { TagListDrawer } from '../components/TagListDrawer';
+import { useActions, useVirtualizedAsset } from '../hooks';
+import { BoundingBox, Tag, WorkSpace } from '../models/models';
+import { State } from '../reducers/reducer';
+import {
+  assetPathToUrl,
+  findAssetIndexById,
+  isArrowKeyCode,
+  keyCodeToDirection,
+} from '../util';
+import { tagActionCreators } from '../actions/tag';
+import uniq from 'lodash/uniq';
+import _ from 'lodash';
+import { boundingBoxActionCreators } from '../actions/box';
+import { Pixel } from '../components/svg/svg';
+import { AssetInfoTable } from '../components/AssetInfoTable';
+import { TagInfoTable } from '../components/TagInfoTable';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -30,11 +35,15 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     tagInfoTable: {
       marginTop: theme.spacing(2),
-    }
-  }),
+    },
+  })
 );
 
-const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => void, globalState: GlobalState) => {
+const useHandlers = (
+  localState: LocalState,
+  setLocalState: (s: LocalState) => void,
+  globalState: GlobalState
+) => {
   const indexActionDispatcher = useActions(indexActionCreators);
   const tagActionDispatcher = useActions(tagActionCreators);
   const boxActionDispatcher = useActions(boundingBoxActionCreators);
@@ -42,16 +51,18 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
   return {
     ...indexActionDispatcher,
     ...tagActionDispatcher,
-    clickAddDirectoryButton: (ws: WorkSpace) => {
-      indexActionDispatcher.clickAddDirectoryButton({workSpaceName: ws.name});
+    clickChangeBasePathButton: (ws: WorkSpace) => {
+      indexActionDispatcher.clickChangeBasePathButton({
+        workSpaceName: ws.name,
+      });
     },
     clickTag: (tag: Tag) => {
       indexActionDispatcher.selectTag(tag);
     },
     clickAddTagButton: () => {
-      const tag: Tag = {id: globalState.tags.length + 1, name: ''};
+      const tag: Tag = { id: globalState.tags.length + 1, name: '' };
       indexActionDispatcher.clickAddTagButton(tag);
-      setLocalState({...localState, editTagId: tag.id});
+      setLocalState({ ...localState, editTagId: tag.id });
     },
     renameTag: (tag: Tag) => {
       const workSpaceName = globalState.currentWorkSpace?.name!;
@@ -59,14 +70,14 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         // tslint:disable-next-line:no-console
         console.warn('workspace is null but tag is renamed', tag);
       }
-      tagActionDispatcher.rename({workSpaceName, tag});
-      setLocalState({...localState, editTagId: null});
+      tagActionDispatcher.rename({ workSpaceName, tag });
+      setLocalState({ ...localState, editTagId: null });
     },
     clickEditTagButton: (tag: Tag) => {
-      setLocalState({...localState, editTagId: tag.id});
+      setLocalState({ ...localState, editTagId: tag.id });
     },
     clickImage: (__: string, index: number) => {
-      indexActionDispatcher.assetSelect(globalState.assets[index])
+      indexActionDispatcher.assetSelect(globalState.assets[index]);
     },
     updateTags: (tags: Tag[]) => {
       const workSpaceName = globalState.currentWorkSpace?.name!;
@@ -74,8 +85,8 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         // tslint:disable-next-line:no-console
         console.warn('workspace is null but tags are updated', tags);
       }
-      const newTags: Tag[] = tags.map((t, i) => ({...t, index: i}))
-      tagActionDispatcher.update({workSpaceName, tags: newTags});
+      const newTags: Tag[] = tags.map((t, i) => ({ ...t, index: i }));
+      tagActionDispatcher.update({ workSpaceName, tags: newTags });
     },
     keyDown: (e: any) => {
       e.preventDefault();
@@ -89,7 +100,7 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
         return;
       }
 
-      if ([189,187,0].includes(e.keyCode as number)) {
+      if ([189, 187, 0].includes(e.keyCode as number)) {
         indexActionDispatcher.downSymbolKey(e.keyCode);
         return;
       }
@@ -100,58 +111,85 @@ const useHandlers = (localState: LocalState, setLocalState: (s: LocalState) => v
       }
     },
 
-    onMoveBoundingBox: _.debounce((boxID: number, dx: Pixel, dy: Pixel) => {
-      if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
-        return;
-      }
-      boxActionDispatcher.move({
-        workSpaceName: globalState.currentWorkSpace.name,
-        assetID: globalState.selectedAsset.id,
-        boxID,
-        dx, dy,
-      })
-    }, 50, {maxWait: 150}),
-    onScaleBoundingBox: _.debounce((boxID: number, dx: Pixel, dy: Pixel) => {
-      if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
-        return;
-      }
-      boxActionDispatcher.scale({
-        workSpaceName: globalState.currentWorkSpace.name,
-        assetID: globalState.selectedAsset.id,
-        boxID,
-        dx, dy,
-      })
-    }, 50, {maxWait: 150}),
+    onMoveBoundingBox: _.debounce(
+      (boxID: number, dx: Pixel, dy: Pixel) => {
+        if (
+          globalState.selectedAsset === null ||
+          globalState.currentWorkSpace === null
+        ) {
+          return;
+        }
+        boxActionDispatcher.move({
+          workSpaceName: globalState.currentWorkSpace.name,
+          assetID: globalState.selectedAsset.id,
+          boxID,
+          dx,
+          dy,
+        });
+      },
+      50,
+      { maxWait: 150 }
+    ),
+    onScaleBoundingBox: _.debounce(
+      (boxID: number, dx: Pixel, dy: Pixel) => {
+        if (
+          globalState.selectedAsset === null ||
+          globalState.currentWorkSpace === null
+        ) {
+          return;
+        }
+        boxActionDispatcher.scale({
+          workSpaceName: globalState.currentWorkSpace.name,
+          assetID: globalState.selectedAsset.id,
+          boxID,
+          dx,
+          dy,
+        });
+      },
+      50,
+      { maxWait: 150 }
+    ),
     onDeleteBoundingBox: (boxID: number) => {
-      if (globalState.selectedAsset === null || globalState.currentWorkSpace === null) {
+      if (
+        globalState.selectedAsset === null ||
+        globalState.currentWorkSpace === null
+      ) {
         return;
       }
       if (globalState.currentWorkSpace === undefined) {
         // tslint:disable-next-line:no-console
-        console.warn('workspace is null but bounding box is deleted. id:', boxID);
+        console.warn(
+          'workspace is null but bounding box is deleted. id:',
+          boxID
+        );
       }
       boxActionDispatcher.deleteRequest({
         assetID: globalState.selectedAsset.id,
         boxID,
-        workSpaceName: globalState.currentWorkSpace?.name
+        workSpaceName: globalState.currentWorkSpace?.name,
       });
     },
   };
-}
+};
 
 const selector = (state: State) => {
   const boxes = state.global.selectedAsset?.boundingBoxes ?? [];
   const assignedTagIds = boxes.map((box) => box.tagID);
-  const selectedAssetIndex = state.global.selectedAsset ?
-    findAssetIndexById(state.global.assets, state.global.selectedAsset.id) :
-    -1;
+  const selectedAssetIndex = state.global.selectedAsset
+    ? findAssetIndexById(state.global.assets, state.global.selectedAsset.id)
+    : -1;
 
   // FIXME
-  const basePath = state.global.currentWorkSpace === null ? '' : state.global.currentWorkSpace.basePath;
+  const basePath =
+    state.global.currentWorkSpace === null
+      ? ''
+      : state.global.currentWorkSpace.basePath;
   const toAssetPath = assetPathToUrl.bind(null, basePath);
 
-  const boxToTagName = (tags: Tag[], box: BoundingBox) => tags.find((t) => t.id === box.tagID)?.name;
-  const tagNames = boxes.map(boxToTagName.bind(null, state.global.tags))
+  const boxToTagName = (tags: Tag[], box: BoundingBox) =>
+    tags.find((t) => t.id === box.tagID)?.name;
+  const tagNames = boxes
+    .map(boxToTagName.bind(null, state.global.tags))
     .filter((n): n is string => n !== undefined);
 
   return {
@@ -164,7 +202,10 @@ const selector = (state: State) => {
     },
     assignedTagIds: uniq(assignedTagIds),
     selectedAsset: state.global.selectedAsset,
-    selectedAssetUrl: state.global.selectedAsset === null ? undefined : toAssetPath(state.global.selectedAsset.path),
+    selectedAssetUrl:
+      state.global.selectedAsset === null
+        ? undefined
+        : toAssetPath(state.global.selectedAsset.path),
     currentWorkSpace: state.global.currentWorkSpace,
     tags: state.global.tags,
     imagePaths: state.global.assets.map((a) => toAssetPath(a.path)),
@@ -176,22 +217,22 @@ const selector = (state: State) => {
   };
 };
 
-type GlobalState = ReturnType<typeof selector>
+type GlobalState = ReturnType<typeof selector>;
 
 interface LocalState {
-  editTagId: number | null
+  editTagId: number | null;
 }
 
 const generateInitialLocalState = (): LocalState => {
   return {
     editTagId: null,
-  }
+  };
 };
 
 export default function Test() {
   const classes = useStyles();
   const [localState, setLocalState] = useState(generateInitialLocalState());
-  const globalState = useSelector(selector)
+  const globalState = useSelector(selector);
   const handlers = useHandlers(localState, setLocalState, globalState);
   const virtualizedAssetProps = useVirtualizedAsset();
 
@@ -199,28 +240,41 @@ export default function Test() {
     <div className={classes.root} onKeyDown={handlers.keyDown} tabIndex={0}>
       <ImageListDrawer
         {...virtualizedAssetProps}
-        basePath={globalState.currentWorkSpace === null ? 'workspace-not-found' : globalState.currentWorkSpace.basePath}
+        basePath={
+          globalState.currentWorkSpace === null
+            ? 'workspace-not-found'
+            : globalState.currentWorkSpace.basePath
+        }
         imagePaths={globalState.imagePaths}
         onClickImage={handlers.clickImage}
         selectedIndex={globalState.selectedAssetIndex}
         height={globalState.imageDrawerHeight}
       />
       <main className={classes.content}>
-        <Toolbar/>
-        {globalState.selectedAssetUrl === undefined || globalState.selectedAsset === null ? null : <ImagePreview
-          src={globalState.selectedAssetUrl}
-          asset={globalState.selectedAsset}
-          onMoveBoundingBox={handlers.onMoveBoundingBox}
-          onScaleBoundingBox={handlers.onScaleBoundingBox}
-          onDeleteBoundingBox={handlers.onDeleteBoundingBox}
-        />}
-        {globalState.selectedAsset ?
-          <AssetInfoTable asset={globalState.selectedAsset} tagNames={globalState.assetTable.tagNames}/> : null}
-        {globalState.tagInfoTable.tag ? <TagInfoTable
-          className={classes.tagInfoTable}
-          tagID={globalState.tagInfoTable.tag.id}
-          tagName={globalState.tagInfoTable.tag.name}
-        /> : null}
+        <Toolbar />
+        {globalState.selectedAssetUrl === undefined ||
+        globalState.selectedAsset === null ? null : (
+          <ImagePreview
+            src={globalState.selectedAssetUrl}
+            asset={globalState.selectedAsset}
+            onMoveBoundingBox={handlers.onMoveBoundingBox}
+            onScaleBoundingBox={handlers.onScaleBoundingBox}
+            onDeleteBoundingBox={handlers.onDeleteBoundingBox}
+          />
+        )}
+        {globalState.selectedAsset ? (
+          <AssetInfoTable
+            asset={globalState.selectedAsset}
+            tagNames={globalState.assetTable.tagNames}
+          />
+        ) : null}
+        {globalState.tagInfoTable.tag ? (
+          <TagInfoTable
+            className={classes.tagInfoTable}
+            tagID={globalState.tagInfoTable.tag.id}
+            tagName={globalState.tagInfoTable.tag.name}
+          />
+        ) : null}
       </main>
       <TagListDrawer
         tags={globalState.tags}
@@ -238,6 +292,6 @@ export default function Test() {
 }
 
 export async function getServerSideProps() {
-  resetServerContext()
-  return {props: {}}
+  resetServerContext();
+  return { props: {} };
 }
