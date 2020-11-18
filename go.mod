@@ -14,7 +14,7 @@ require (
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3
-	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20200916170540-145bd67d1a8e
+	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20201118155102-7b36636b60af
 	github.com/rhysd/go-github-selfupdate v1.2.2
 	github.com/spf13/afero v1.4.1
 	github.com/spf13/cobra v1.1.1
