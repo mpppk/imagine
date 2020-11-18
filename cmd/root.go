@@ -108,7 +108,7 @@ var rootCmd = &cobra.Command{
 		handlers := registry.NewHandlers(db)
 		config := &fsa.LorcaConfig{
 			AppName:          "imagine",
-			Url:              "http://localhost:3000",
+			Url:              conf.UiURL,
 			Width:            1080,
 			Height:           720,
 			EnableExtensions: conf.Dev,
@@ -168,6 +168,13 @@ func registerFlags(cmd *cobra.Command) error {
 				IsPersistent: true,
 				Usage:        "config file (default is $HOME/.imagine.yaml)",
 			}},
+		&option.StringFlag{
+			BaseFlag: &option.BaseFlag{
+				Name:  "ui-url",
+				Usage: "URL of front end server",
+			},
+			Value: "localhost:3000", // FIXME embedded
+		},
 		&option.BoolFlag{
 			BaseFlag: &option.BaseFlag{
 				Name:  "dev",

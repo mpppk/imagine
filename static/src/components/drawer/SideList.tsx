@@ -4,7 +4,6 @@ import ListItemIcon from '@material-ui/core/ListItemIcon/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import HomeIcon from '@material-ui/icons/Home';
-import InfoIcon from '@material-ui/icons/Info';
 import Link from 'next/link';
 import * as React from 'react';
 
@@ -26,14 +25,6 @@ const SideList: React.FunctionComponent = () => {
               <HomeIcon />
             </ListItemIcon>
             <ListItemText primary={'Home'} />
-          </ListItem>
-        </Link>
-        <Link href={'/explorer'}>
-          <ListItem button={true} key={'Explorer'}>
-            <ListItemIcon>
-              <InfoIcon />
-            </ListItemIcon>
-            <ListItemText primary={'Explorer'} />
           </ListItem>
         </Link>
       </List>
