@@ -3,6 +3,7 @@ package action
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"path/filepath"
 
 	"github.com/hydrogen18/stoppableListener"
@@ -197,6 +198,7 @@ type fsServeHandler struct {
 	assetUseCase      *usecase.Asset
 	action            *fsActionCreator
 	stoppableListener *stoppableListener.StoppableListener
+	server            *http.Server
 }
 
 func (f *fsServeHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
@@ -205,23 +207,26 @@ func (f *fsServeHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	// FIXME: port
-	server, sl, err := infra.NewFileServer(1323, payload.BasePath)
-	if err != nil {
-		return err
-	}
-
 	if f.stoppableListener != nil {
 		f.stoppableListener.Stop()
 		log.Println("info: server stopped")
 	}
 
+	// FIXME: port
+	server, sl, err := infra.NewFileServer(1323, payload.BasePath)
+	if err != nil {
+		return err
+	}
+	f.server = server
 	f.stoppableListener = sl
+
 	go func() {
-		log.Println("info: start server")
-		if err := server.Serve(sl); err != nil {
-			log.Fatal(err)
+		log.Printf("info: server will be started to host files. base path: %s", payload.BasePath)
+		if err := f.server.Serve(f.stoppableListener); err != nil {
+			log.Printf("warn: server failed: %s", err)
+			//log.Fatal(err)
 		}
+		log.Printf("info: server stopped!!!!: %s", payload.BasePath)
 	}()
 
 	return nil

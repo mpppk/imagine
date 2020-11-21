@@ -13,7 +13,6 @@ import { tagActionCreators } from '../actions/tag';
 import { boundingBoxActionCreators } from '../actions/box';
 import { browserActionCreators } from '../actions/browser';
 import { fsActionCreators } from '../actions/fs';
-import { loadBasePath } from '../components/util/store';
 
 export const globalInitialState = {
   filterEnabled: false,
@@ -64,9 +63,19 @@ export const global = reducerWithInitialState(globalInitialState)
     return { ...state, isScanningAssets: false, hasMoreAssets: false };
   })
   .case(workspaceActionCreators.select, (state, workspace) => {
-    // FIXME
-    const basePath = loadBasePath(workspace.name) ?? workspace.basePath;
-    return { ...state, currentWorkSpace: { ...workspace, basePath } };
+    return { ...state, currentWorkSpace: { ...workspace } };
+  })
+  .case(fsActionCreators.baseDirSelect, (state, payload) => {
+    if (state.currentWorkSpace === null) {
+      return state;
+    }
+    return {
+      ...state,
+      currentWorkSpace: {
+        ...state.currentWorkSpace,
+        basePath: payload.basePath,
+      },
+    };
   })
   .case(workspaceActionCreators.updateRequest, (state, workspace) => {
     if (state.workspaces === null) {

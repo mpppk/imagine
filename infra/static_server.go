@@ -9,7 +9,7 @@ import (
 )
 
 func NewFileServer(port uint, basePath string) (*http.Server, *stoppableListener.StoppableListener, error) {
-	server, sl, err := NewStoppableStaticServer(1323)
+	server, sl, err := NewStoppableStaticServer(port)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create stoppable static server: %w", err)
 	}
