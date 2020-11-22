@@ -15,7 +15,7 @@ lint: generate
 	goreleaser check
 
 .PHONY: test
-test: generate
+test: lint
 	go test ./...
 
 .PHONY: integration-test
@@ -41,11 +41,11 @@ generate: wire
 	statik -f -src static/out
 
 .PHONY: build
-build: generate
+build: test
 	go build
 
 .PHONY: cross-build-snapshot
-cross-build:
+cross-build: test
 	goreleaser --rm-dist --snapshot
 
 .PHONY: install
