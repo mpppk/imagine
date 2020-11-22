@@ -5,6 +5,6 @@ import (
 )
 
 const (
-	IndexPrefix                               = "INDEX/"
-	IndexAddDirectoryButtonClickType fsa.Type = IndexPrefix + "ADD_DIRECTORY_BUTTON/CLICK"
+	IndexPrefix                                 = "INDEX/"
+	IndexChangeBasePathButtonClickType fsa.Type = IndexPrefix + "CHANGE_BASE_PATH_BUTTON/CLICK"
 )

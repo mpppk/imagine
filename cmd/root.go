@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/mpppk/imagine/usecase"
@@ -123,14 +122,6 @@ var rootCmd = &cobra.Command{
 		defer func() {
 			if err := ui.Close(); err != nil {
 				panic(err)
-			}
-		}()
-
-		http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("/"))))
-
-		go func() {
-			if err := http.ListenAndServe(":1323", nil); err != nil {
-				log.Fatal("ListenAndServe: ", err)
 			}
 		}()
 

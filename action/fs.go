@@ -1,9 +1,14 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"path/filepath"
+	"time"
+
+	"github.com/mpppk/imagine/infra"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -17,12 +22,14 @@ import (
 )
 
 const (
-	fsPrefix                   = "FS/"
-	FSScanCancelType  fsa.Type = fsPrefix + "SCAN/CANCEL"
-	FSScanStartType   fsa.Type = fsPrefix + "SCAN/START"
-	FSScanFinishType  fsa.Type = fsPrefix + "SCAN/FINISH"
-	FSScanRunningType fsa.Type = fsPrefix + "SCAN/RUNNING"
-	FSScanFailType    fsa.Type = fsPrefix + "SCAN/FAIL"
+	fsPrefix                     = "FS/"
+	FSScanRequestType   fsa.Type = fsPrefix + "SCAN/REQUEST"
+	FSScanCancelType    fsa.Type = fsPrefix + "SCAN/CANCEL"
+	FSScanStartType     fsa.Type = fsPrefix + "SCAN/START"
+	FSScanFinishType    fsa.Type = fsPrefix + "SCAN/FINISH"
+	FSScanRunningType   fsa.Type = fsPrefix + "SCAN/RUNNING"
+	FSScanFailType      fsa.Type = fsPrefix + "SCAN/FAIL"
+	FSBaseDirSelectType fsa.Type = fsPrefix + "BASE_DIR/SELECT"
 )
 
 type ScanningImagesPayload struct {
@@ -32,12 +39,27 @@ type ScanningImagesPayload struct {
 
 type FsScanStartPayload struct {
 	*wsPayload
-	BasePath string `json:"basePath"`
+	*BasePathPayload
 }
 
 type FsScanFailPayload struct {
 	*wsPayload
 	err error
+}
+
+type BasePathPayload struct {
+	*wsPayload
+	BasePath string `json:"basePath"`
+}
+
+type BaseDirSelectRequestPayload struct {
+	*wsPayload
+	BasePath string `json:"basePath"`
+}
+
+type BaseDirSelectPayload struct {
+	*wsPayload
+	BasePath string `json:"basePath"`
 }
 
 type fsActionCreator struct{}
@@ -46,8 +68,8 @@ func (f *fsActionCreator) scanStart(wsName model.WSName, basePath string) *fsa.A
 	return &fsa.Action{
 		Type: FSScanStartType,
 		Payload: FsScanStartPayload{
-			wsPayload: newWSPayload(wsName),
-			BasePath:  basePath,
+			wsPayload:       newWSPayload(wsName),
+			BasePathPayload: &BasePathPayload{BasePath: basePath},
 		},
 	}
 }
@@ -82,6 +104,16 @@ func (f *fsActionCreator) scanFail(wsName model.WSName, err error) *fsa.Action {
 		Payload: &FsScanFailPayload{
 			wsPayload: newWSPayload(wsName),
 			err:       err,
+		},
+	}
+}
+
+func (f *fsActionCreator) baseDirSelect(wsName model.WSName, basePath string) *fsa.Action {
+	return &fsa.Action{
+		Type: FSBaseDirSelectType,
+		Payload: &BasePathPayload{
+			wsPayload: &wsPayload{WorkSpaceName: wsName},
+			BasePath:  basePath,
 		},
 	}
 }
@@ -162,6 +194,68 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	return nil
 }
 
+type fsServeHandler struct {
+	assetUseCase *usecase.Asset
+	action       *fsActionCreator
+	server       *http.Server
+}
+
+func (f *fsServeHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+	var payload BasePathPayload
+	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
+		return fmt.Errorf("failed to decode payload: %w", err)
+	}
+
+	if f.server != nil {
+		log.Printf("info: server will be restarted")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := f.server.Shutdown(ctx); err != nil {
+			log.Printf("error: failed to shutdown file server: %s", err)
+		}
+	}
+
+	// FIXME: port
+	f.server = infra.NewFileServer(1323, payload.BasePath)
+
+	go func() {
+		log.Printf("info: server will be started to host files. base path: %s", payload.BasePath)
+		if err := f.server.ListenAndServe(); err != nil {
+			log.Printf("warn: server failed: %s", err)
+		}
+		log.Printf("info: server stopped: %s", payload.BasePath)
+	}()
+
+	return nil
+}
+
+type fsBaseDirDialogHandler struct {
+	assetUseCase *usecase.Asset
+	action       *fsActionCreator
+}
+
+func (f *fsBaseDirDialogHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
+	var payload wsPayload
+	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
+		return fmt.Errorf("failed to decode payload: %w", err)
+	}
+
+	directory, selected, err := dlgs.File("Select file", "", true)
+	if err != nil {
+		return fmt.Errorf("failed to open file selector: %w", err)
+	}
+
+	if !selected {
+		return nil
+	}
+
+	if err := dispatch(f.action.baseDirSelect(payload.WorkSpaceName, directory)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 type fsHandlerCreator struct {
 	assetUseCase *usecase.Asset
 	action       *fsActionCreator
@@ -176,6 +270,20 @@ func newFSHandlerCreator(assetUseCase *usecase.Asset) *fsHandlerCreator {
 
 func (f *fsHandlerCreator) Scan() *fsScanHandler {
 	return &fsScanHandler{
+		assetUseCase: f.assetUseCase,
+		action:       f.action,
+	}
+}
+
+func (f *fsHandlerCreator) Serve() *fsServeHandler {
+	return &fsServeHandler{
+		assetUseCase: f.assetUseCase,
+		action:       f.action,
+	}
+}
+
+func (f *fsHandlerCreator) BaseDirDialog() *fsBaseDirDialogHandler {
+	return &fsBaseDirDialogHandler{
 		assetUseCase: f.assetUseCase,
 		action:       f.action,
 	}
