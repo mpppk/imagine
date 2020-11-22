@@ -1,4 +1,4 @@
-name: Go
+name: main
 on: [push]
 jobs:
 
@@ -21,6 +21,11 @@ jobs:
         go-version: ${{ matrix.goversion }}
       id: go
 
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
 
@@ -31,14 +36,16 @@ jobs:
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
+    - name: yarn install, build, and test
+      run: |
+        yarn --cwd static install
+        yarn --cwd static lint
+        yarn --cwd static test
+      env:
+        CI: true
+
     - name: Setup
       run: make setup
-
-    - name: Lint
-      run: make lint
-
-    - name: Test
-      run: make test
 
     - name: Build
       run: make build

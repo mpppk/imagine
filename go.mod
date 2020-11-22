@@ -10,12 +10,10 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/google/wire v0.4.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
-	github.com/hydrogen18/stoppableListener v0.0.0-20161101122645-827d760f0663
-	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
-	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3
 	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20201118155102-7b36636b60af
+	github.com/rakyll/statik v0.1.7
 	github.com/rhysd/go-github-selfupdate v1.2.2
 	github.com/spf13/afero v1.4.1
 	github.com/spf13/cobra v1.1.1

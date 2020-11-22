@@ -291,7 +291,7 @@ export default function Test() {
   );
 }
 
-export async function getServerSideProps() {
+export async function getInitialProps() {
   resetServerContext();
   return { props: {} };
 }

@@ -6,3 +6,5 @@ static/node_modules
 imagine
 *.db
 infra/repoimpl/mock_*
+static/out
+statik
