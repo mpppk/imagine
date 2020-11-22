@@ -2,12 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/mpppk/imagine/usecase"
-
-	"github.com/blang/semver/v4"
 
 	"github.com/comail/colog"
 
@@ -63,23 +60,8 @@ var rootCmd = &cobra.Command{
 		//	return err
 		//}
 
-		dbV, ok, err := client.Meta.GetDBVersion()
-		if err != nil {
-			return fmt.Errorf("failed to get db version: %w", err)
-		}
-
-		appV := semver.MustParse(util.Version)
-		if !ok {
-			if err := client.Meta.SetDBVersion(&appV); err != nil {
-				return err
-			}
-			log.Printf("info: versions: db:%s app:%s", "empty→"+appV.String(), appV.String())
-		} else {
-			log.Printf("info: versions: db:%s app:%s", dbV.String(), appV.String())
-		}
-
 		migrationUseCase := usecase.NewMigration(client.Asset, client.Meta)
-		if err := migrationUseCase.Migrate(dbV); err != nil {
+		if err := migrationUseCase.Migrate(); err != nil {
 			return err
 		}
 

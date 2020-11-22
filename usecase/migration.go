@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/mpppk/imagine/util"
+
 	old0_0_1 "github.com/mpppk/imagine/domain/model/old/old0.0.1"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -25,7 +27,29 @@ func NewMigration(assetRepository repository.Asset, metaRepository repository.Me
 	}
 }
 
-func (m *Migration) Migrate(dbV *semver.Version) error {
+func (m *Migration) Migrate() error {
+	dbV, ok, err := m.metaRepository.GetDBVersion()
+	if err != nil {
+		return fmt.Errorf("failed to get db version: %w", err)
+	}
+
+	appV := semver.MustParse(util.Version)
+	if !ok {
+		if err := m.metaRepository.SetDBVersion(&appV); err != nil {
+			return err
+		}
+		log.Printf("info: versions: db:%s app:%s", "empty→"+appV.String(), appV.String())
+	} else {
+		log.Printf("info: versions: db:%s app:%s", dbV.String(), appV.String())
+	}
+
+	if err := m.migrateDB(dbV); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Migration) migrateDB(dbV *semver.Version) error {
 	tmpl := "info: db migration is started from %s to %s"
 	curDBV := dbV
 
