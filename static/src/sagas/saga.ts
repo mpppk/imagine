@@ -25,7 +25,7 @@ import { browserActionCreators } from '../actions/browser';
 import debounce from 'lodash/debounce';
 import { assetActionCreators } from '../actions/asset';
 import { loadBasePath, saveBasePath } from '../components/util/store';
-import { fsActionCreators, FSScanStartPayload } from '../actions/fs';
+import { BaseDirSelectPayload, fsActionCreators } from '../actions/fs';
 
 const selectWorkSpaceWorker = function* (workspace: WorkSpace) {
   const basePath = loadBasePath(workspace.name) ?? workspace.basePath;
@@ -40,7 +40,7 @@ const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
   return yield put(workspaceActionCreators.select(workspaces[0]));
 };
 
-const fsScanStartWorkSpacesWorker = function* (payload: FSScanStartPayload) {
+const baseDirSelectWorker = function* (payload: BaseDirSelectPayload) {
   saveBasePath(payload.workSpaceName, payload.basePath);
 };
 
@@ -292,7 +292,7 @@ export default function* rootSaga() {
   yield all([
     takeEveryAction(workspaceActionCreators.scanResult, scanWorkSpacesWorker)(),
     takeEveryAction(workspaceActionCreators.select, selectWorkSpaceWorker)(),
-    takeEveryAction(fsActionCreators.scanStart, fsScanStartWorkSpacesWorker)(),
+    takeEveryAction(fsActionCreators.baseDirSelect, baseDirSelectWorker)(),
     takeEveryAction(fsActionCreators.scanRunning, fsScanRunningWorker)(),
     takeEveryAction(
       indexActionCreators.downAlphabetKey,
