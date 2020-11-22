@@ -1,21 +1,21 @@
-import {Draggable, DraggableHandlers} from "./draggable";
-import {Pixel} from "../../svg/svg";
+import { Draggable, DraggableHandlers } from './draggable';
+import { Pixel } from '../../svg/svg';
 
 export class TouchDraggable<E extends SVGElement> implements Draggable {
   constructor(private element: E, private handlers: DraggableHandlers) {
-    const passive = {passive: true};
-    this.element.addEventListener("touchstart", this._onTouchStart, passive);
-    this.element.addEventListener("touchmove", this._onTouchMove, passive);
-    this.element.addEventListener("touchend", this._onTouchEnd, passive);
+    const passive = { passive: true };
+    this.element.addEventListener('touchstart', this._onTouchStart, passive);
+    this.element.addEventListener('touchmove', this._onTouchMove, passive);
+    this.element.addEventListener('touchend', this._onTouchEnd, passive);
   }
 
   destroy() {
-    this.element.removeEventListener("touchstart", this._onTouchStart);
-    this.element.removeEventListener("touchmove", this._onTouchMove);
-    this.element.removeEventListener("touchend", this._onTouchEnd);
+    this.element.removeEventListener('touchstart', this._onTouchStart);
+    this.element.removeEventListener('touchmove', this._onTouchMove);
+    this.element.removeEventListener('touchend', this._onTouchEnd);
   }
 
-  private initialTouch?: { x: Pixel, y: Pixel }
+  private initialTouch?: { x: Pixel; y: Pixel };
 
   private readonly _onTouchStart = (e: TouchEvent) => {
     e.stopPropagation();
@@ -34,7 +34,7 @@ export class TouchDraggable<E extends SVGElement> implements Draggable {
     const x = touch.clientX;
     const y = touch.clientY;
 
-    this.initialTouch = {x, y};
+    this.initialTouch = { x, y };
     this.handlers.onDragStart?.(x, y, e);
   };
 
@@ -55,8 +55,8 @@ export class TouchDraggable<E extends SVGElement> implements Draggable {
       return;
     }
 
-    const {x, y} = this.initialTouch;
-    const {clientX, clientY} = e.changedTouches[0];
+    const { x, y } = this.initialTouch;
+    const { clientX, clientY } = e.changedTouches[0];
 
     this.handlers.onMove?.(clientX - x, clientY - y);
   };
@@ -78,5 +78,5 @@ export class TouchDraggable<E extends SVGElement> implements Draggable {
     const y = touch.clientY;
     this.handlers.onDragEnd?.(x, y, e);
     this.initialTouch = undefined;
-  }
+  };
 }

@@ -1,4 +1,4 @@
-import {DraggableHandlers} from "../util/draggable/draggable";
+import { DraggableHandlers } from '../util/draggable/draggable';
 
 export type Pixel = number;
 

@@ -1,9 +1,9 @@
 import Drawer from '@material-ui/core/Drawer';
-import {makeStyles} from "@material-ui/core/styles";
-import Toolbar from "@material-ui/core/Toolbar";
+import { makeStyles } from '@material-ui/core/styles';
+import Toolbar from '@material-ui/core/Toolbar';
 import React from 'react';
-import {Tag} from "../models/models";
-import {TagList} from "./TagList";
+import { Tag } from '../models/models';
+import { TagList } from './TagList';
 
 const drawerWidth = 240;
 
@@ -19,24 +19,26 @@ const useStyles = makeStyles(() => {
     drawerPaper: {
       width: drawerWidth,
     },
-  }
+  };
 });
 
 interface TagListDrawerProps {
-  tags: Tag[]
-  editTagId?: number
-  selectedTagId?: number
-  assignedTagIds: number[]
-  onClickItem: (tag: Tag) => void
-  onClickAddButton: () => void
-  onClickEditButton: (tag: Tag) => void
-  onClickDeleteButton?: (tag: Tag) => void
-  onUpdate?: (newTags: Tag[]) => void
-  onRename?: (tag: Tag) => void
+  tags: Tag[];
+  editTagId?: number;
+  selectedTagId?: number;
+  assignedTagIds: number[];
+  onClickItem: (tag: Tag) => void;
+  onClickAddButton: () => void;
+  onClickEditButton: (tag: Tag) => void;
+  onClickDeleteButton?: (tag: Tag) => void;
+  onUpdate?: (newTags: Tag[]) => void;
+  onRename?: (tag: Tag) => void;
 }
 
 // tslint:disable-next-line variable-name
-export const TagListDrawer: React.FunctionComponent<TagListDrawerProps> = props => {
+export const TagListDrawer: React.FunctionComponent<TagListDrawerProps> = (
+  props
+) => {
   const classes = useStyles();
   return (
     <Drawer
@@ -48,7 +50,7 @@ export const TagListDrawer: React.FunctionComponent<TagListDrawerProps> = props 
         paper: classes.drawerPaper,
       }}
     >
-      <Toolbar/>
+      <Toolbar />
       <div className={classes.drawerContainer}>
         <TagList
           tags={props.tags}
@@ -65,4 +67,3 @@ export const TagListDrawer: React.FunctionComponent<TagListDrawerProps> = props 
     </Drawer>
   );
 };
-

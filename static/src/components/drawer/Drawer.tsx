@@ -12,7 +12,7 @@ export interface IMyDrawerProps {
 }
 
 // tslint:disable-next-line variable-name
-const MyDrawer: React.FunctionComponent<IMyDrawerProps> = props => {
+const MyDrawer: React.FunctionComponent<IMyDrawerProps> = (props) => {
   const { open, onClose, onClickSideList } = props;
 
   return (

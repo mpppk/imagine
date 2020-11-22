@@ -1,9 +1,9 @@
 import Drawer from '@material-ui/core/Drawer';
-import {makeStyles} from "@material-ui/core/styles";
-import Toolbar from "@material-ui/core/Toolbar";
+import { makeStyles } from '@material-ui/core/styles';
+import Toolbar from '@material-ui/core/Toolbar';
 import React from 'react';
-import {ImageGridList} from "./ImageGrid";
-import {VirtualizedAssetProps} from "../services/virtualizedAsset";
+import { ImageGridList } from './ImageGrid';
+import { VirtualizedAssetProps } from '../services/virtualizedAsset';
 
 const drawerWidth = 240;
 
@@ -19,19 +19,21 @@ const useStyles = makeStyles(() => {
     drawerPaper: {
       width: drawerWidth,
     },
-  }
+  };
 });
 
 interface ImageListDrawerProps extends VirtualizedAssetProps {
-  basePath: string
-  imagePaths: string[]
-  onClickImage: (path: string, index: number) => void
-  selectedIndex: number
-  height: number
+  basePath: string;
+  imagePaths: string[];
+  onClickImage: (path: string, index: number) => void;
+  selectedIndex: number;
+  height: number;
 }
 
 // tslint:disable-next-line variable-name
-export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = props => {
+export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = (
+  props
+) => {
   const classes = useStyles();
 
   return (
@@ -40,7 +42,7 @@ export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = pr
       variant="persistent"
       anchor="left"
       className={classes.drawer}
-      classes={{paper: classes.drawerPaper}}
+      classes={{ paper: classes.drawerPaper }}
     >
       <Toolbar />
       <div className={classes.drawerContainer}>
@@ -57,4 +59,3 @@ export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = pr
     </Drawer>
   );
 };
-

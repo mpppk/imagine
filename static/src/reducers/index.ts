@@ -1,5 +1,5 @@
-import {reducerWithInitialState} from 'typescript-fsa-reducers';
-import {fsActionCreators} from "../actions/fs";
+import { reducerWithInitialState } from 'typescript-fsa-reducers';
+import { fsActionCreators } from '../actions/fs';
 
 export const indexInitialState = {
   scanning: false,
@@ -9,11 +9,11 @@ export const indexInitialState = {
 export type IndexState = typeof indexInitialState;
 
 const startScan = (state: IndexState) => {
-  return {...state, scanning: true, scanCount: 0};
+  return { ...state, scanning: true, scanCount: 0 };
 };
 
 const finishOrCancelScan = (state: IndexState) => {
-  return {...state, scanning: false};
+  return { ...state, scanning: false };
 };
 
 export const indexPage = reducerWithInitialState(indexInitialState)
@@ -21,7 +21,7 @@ export const indexPage = reducerWithInitialState(indexInitialState)
     return startScan(state);
   })
   .case(fsActionCreators.scanRunning, (state, payload) => {
-    return {...state, scanCount: state.scanCount+payload.foundedAssetsNum};
+    return { ...state, scanCount: state.scanCount + payload.foundedAssetsNum };
   })
   .case(fsActionCreators.scanCancel, (state) => {
     return finishOrCancelScan(state);

@@ -4,5 +4,5 @@ module.exports = {
   env: {
     enableReduxWrapperDebugMode: true,
   },
-  publicRuntimeConfig: {}
+  publicRuntimeConfig: {},
 };

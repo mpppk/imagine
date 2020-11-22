@@ -9,8 +9,8 @@ import * as React from 'react';
 
 const useStyles = makeStyles(() => ({
   list: {
-    width: 250
-  }
+    width: 250,
+  },
 }));
 
 // tslint:disable-next-line variable-name

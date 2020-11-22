@@ -1,14 +1,14 @@
-import {Pixel} from "./svg";
-import {useDrag} from "../util/draggable/draggable";
-import React from "react";
-import {makeStyles} from "@material-ui/core/styles";
-import {Theme} from "@material-ui/core";
+import { Pixel } from './svg';
+import { useDrag } from '../util/draggable/draggable';
+import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import { Theme } from '@material-ui/core';
 
 interface Props {
-  x: Pixel
-  y: Pixel
-  width: Pixel
-  height: Pixel
+  x: Pixel;
+  y: Pixel;
+  width: Pixel;
+  height: Pixel;
   onScaleStart?(x: Pixel, y: Pixel): void;
   onScale?(x: Pixel, y: Pixel): void;
   onScaleEnd?(x: Pixel, y: Pixel): void;
@@ -26,8 +26,8 @@ const useStyles = makeStyles((theme: Theme) => {
     resizeHandler: {
       stroke: theme.palette.primary.light,
       fill: theme.palette.primary.light,
-    }
-  }
+    },
+  };
 });
 
 // tslint:disable-next-line:variable-name
@@ -36,7 +36,7 @@ export const ResizeHandler: React.FC<Props> = (props) => {
   const x = props.x + props.width - HANDLE_SIZE / 2;
   const y = props.y + props.height - HANDLE_SIZE / 2;
 
-  const ref = useDrag("ontouchstart" in window, {
+  const ref = useDrag('ontouchstart' in window, {
     onDragStart: props.onScaleStart,
     onMove: props.onScale,
     onDragEnd: props.onScaleEnd,
@@ -60,8 +60,8 @@ export const ResizeHandler: React.FC<Props> = (props) => {
         height={HANDLE_SIZE + TOLERANCE * 2}
         x={x - TOLERANCE}
         y={y - TOLERANCE}
-        style={{ cursor: "pointer" }}
+        style={{ cursor: 'pointer' }}
       />
     </g>
   );
-}
+};

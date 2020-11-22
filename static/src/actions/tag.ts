@@ -1,15 +1,15 @@
 import actionCreatorFactory from 'typescript-fsa';
-import {Tag} from "../models/models";
-import {WSPayload} from "./workspace";
+import { Tag } from '../models/models';
+import { WSPayload } from './workspace';
 
 const tagActionCreatorFactory = actionCreatorFactory('TAG');
 
 interface TagsPayload extends WSPayload {
-  tags: Tag[]
+  tags: Tag[];
 }
 
 interface TagPayload extends WSPayload {
-  tag: Tag
+  tag: Tag;
 }
 
 export const tagActionCreators = {
@@ -18,4 +18,3 @@ export const tagActionCreators = {
   rename: tagActionCreatorFactory<TagPayload>('RENAME'),
   save: tagActionCreatorFactory<TagsPayload>('SAVE'),
 };
-

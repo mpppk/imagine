@@ -9,7 +9,7 @@ interface IProps {
 // tslint:disable-next-line variable-name
 const Layout: React.FunctionComponent<IProps> = ({
   children,
-  title = 'This is the default title'
+  title = 'This is the default title',
 }) => (
   <div>
     <Head>
