@@ -208,7 +208,8 @@ func (f *fsServeHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 
 	if f.server != nil {
 		log.Printf("info: server will be restarted")
-		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 		if err := f.server.Shutdown(ctx); err != nil {
 			log.Printf("error: failed to shutdown file server: %s", err)
 		}
