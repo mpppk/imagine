@@ -1,10 +1,13 @@
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import { makeStyles } from '@material-ui/core/styles';
-import React, {CSSProperties} from 'react';
-import {VirtualizedAssetProps} from "../services/virtualizedAsset";
-import {AssetListItemProps, VirtualizedAssetList} from "./VirtualizedAssetList";
-import {assetPathToUrl} from "../util";
+import React, { CSSProperties } from 'react';
+import { VirtualizedAssetProps } from '../services/virtualizedAsset';
+import {
+  AssetListItemProps,
+  VirtualizedAssetList,
+} from './VirtualizedAssetList';
+import { assetPathToUrl } from '../util';
 
 const useStyles = makeStyles((theme) => ({
   gridList: {
@@ -26,19 +29,25 @@ const useStyles = makeStyles((theme) => ({
 interface Props extends VirtualizedAssetProps {
   cellHeight: number;
   width: number;
-  basePath: string
-  paths: string[]
-  onClickImage: (path: string, index: number) => void
-  selectedIndex: number
-  height: number
+  basePath: string;
+  paths: string[];
+  onClickImage: (path: string, index: number) => void;
+  selectedIndex: number;
+  height: number;
 }
 
 // tslint:disable-next-line:variable-name
-const MemoizedImg = React.memo((props: {src: string}) => <img src={props.src} height={'100%'}/>);
+const MemoizedImg = React.memo((props: { src: string }) => (
+  <img src={props.src} height={'100%'} />
+));
 
-const generateImageGridTile = (basePath: string, selectedIndex: number, handleClickImage: (path: string, index: number) => void): React.FC<AssetListItemProps> => ({asset, index, isLoaded, style}) => {
+const generateImageGridTile = (
+  basePath: string,
+  selectedIndex: number,
+  handleClickImage: (path: string, index: number) => void
+): React.FC<AssetListItemProps> => ({ asset, index, isLoaded, style }) => {
   if (!isLoaded) {
-    return (<div style={style}>Loading...</div>);
+    return <div style={style}>Loading...</div>;
   }
 
   const classes = useStyles();
@@ -49,9 +58,9 @@ const generateImageGridTile = (basePath: string, selectedIndex: number, handleCl
     handleClickImage(imgPath, i);
   };
 
-  const selectedTileStyle: CSSProperties = {border: "solid"};
-  const newStyle = index === selectedIndex ? {...style, ...selectedTileStyle} : style;
-
+  const selectedTileStyle: CSSProperties = { border: 'solid' };
+  const newStyle =
+    index === selectedIndex ? { ...style, ...selectedTileStyle } : style;
 
   return (
     <GridListTile
@@ -72,7 +81,11 @@ export const ImageGridList: React.FC<Props> = (props) => {
 
   return (
     <div className={classes.root}>
-      <GridList cellHeight={props.cellHeight} className={classes.gridList} cols={1}>
+      <GridList
+        cellHeight={props.cellHeight}
+        className={classes.gridList}
+        cols={1}
+      >
         <VirtualizedAssetList
           assets={props.assets}
           selectedIndex={props.selectedIndex}
@@ -84,9 +97,13 @@ export const ImageGridList: React.FC<Props> = (props) => {
           itemSize={props.cellHeight}
           width={props.width}
         >
-          {generateImageGridTile(props.basePath, props.selectedIndex, props.onClickImage)}
+          {generateImageGridTile(
+            props.basePath,
+            props.selectedIndex,
+            props.onClickImage
+          )}
         </VirtualizedAssetList>
       </GridList>
     </div>
   );
-}
+};

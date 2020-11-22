@@ -1,30 +1,31 @@
 import React from 'react';
-import {Tooltip} from "@material-ui/core";
-import IconButton from "@material-ui/core/IconButton/IconButton";
-import Badge from "@material-ui/core/Badge";
-import FilterListIcon from "@material-ui/icons/FilterList";
+import { Tooltip } from '@material-ui/core';
+import IconButton from '@material-ui/core/IconButton/IconButton';
+import Badge from '@material-ui/core/Badge';
+import FilterListIcon from '@material-ui/icons/FilterList';
 
 interface Props {
-  className?: string
+  className?: string;
   onClick?: () => void;
-  dot: boolean
+  dot: boolean;
 }
 
 // tslint:disable-next-line:variable-name
 const FilterListIconWithBadge: React.FC = () => {
   return (
     <Badge
-      variant='dot'
+      variant="dot"
       overlap="circle"
       color="error"
       anchorOrigin={{
         vertical: 'bottom',
         horizontal: 'right',
-      }}>
-      <FilterListIcon/>
+      }}
+    >
+      <FilterListIcon />
     </Badge>
   );
-}
+};
 
 // tslint:disable-next-line:variable-name
 export const FilterButton: React.FC<Props> = (props) => {
@@ -40,8 +41,8 @@ export const FilterButton: React.FC<Props> = (props) => {
         aria-label="filter"
         onClick={props.onClick}
       >
-        {props.dot ? <FilterListIconWithBadge/> : <FilterListIcon/>}
+        {props.dot ? <FilterListIconWithBadge /> : <FilterListIcon />}
       </IconButton>
     </Tooltip>
   );
-}
+};

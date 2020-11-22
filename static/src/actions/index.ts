@@ -22,9 +22,9 @@ export const indexActionCreators = {
   ),
   clickAddTagButton: indexActionCreatorFactory<Tag>('ADD_TAG_BUTTON/CLICK'),
   clickEditTagButton: indexActionCreatorFactory<Tag>('EDIT_TAG_BUTTON/CLICK'),
-  clickFilterApplyButton: indexActionCreatorFactory<
-    ClickFilterApplyButtonPayload
-  >('FILTER_APPLY_BUTTON/CLICK'),
+  clickFilterApplyButton: indexActionCreatorFactory<ClickFilterApplyButtonPayload>(
+    'FILTER_APPLY_BUTTON/CLICK'
+  ),
   clickWorkspaceName: indexActionCreatorFactory<WorkSpace>(
     'WORKSPACE_NAME/CLICK'
   ),

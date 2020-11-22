@@ -4,18 +4,18 @@ import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
 const theme = createMuiTheme({
   palette: {
     background: {
-      default: '#fff'
+      default: '#fff',
     },
     error: {
-      main: red.A400
+      main: red.A400,
     },
     primary: {
-      main: '#556cd6'
+      main: '#556cd6',
     },
     secondary: {
-      main: '#19857b'
-    }
-  }
+      main: '#19857b',
+    },
+  },
 });
 
 export default theme;

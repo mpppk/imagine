@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {AssetTable} from '../components/AssetTable';
-import {useVirtualizedAsset} from "../hooks";
+import { AssetTable } from '../components/AssetTable';
+import { useVirtualizedAsset } from '../hooks';
 
 // tslint:disable-next-line:variable-name
 const Explorer: React.FC = () => {
@@ -8,11 +8,9 @@ const Explorer: React.FC = () => {
 
   return (
     <div>
-      <AssetTable
-        {...virtualizedAssetProps}
-      />
+      <AssetTable {...virtualizedAssetProps} />
     </div>
   );
-}
+};
 
 export default Explorer;

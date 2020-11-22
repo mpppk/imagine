@@ -3,7 +3,6 @@ import { Asset, BoundingBox, Direction, Tag } from './models/models';
 export const IMAGE_WIDTH = 500;
 export const IMAGE_HEIGHT = 500;
 
-
 export const immutableSplice = <T>(
   array: T[],
   start: number,
@@ -37,8 +36,8 @@ export const isDupNamedTag = (tags: Tag[], newTag: Tag) => {
 };
 
 export const assetPathToUrl = (basePath: string, p: string) => {
-  return `http://localhost:1323/static/${basePath}/${p}`;// FIXME
-}
+  return `http://localhost:1323/static/${basePath}/${p}`; // FIXME
+};
 
 export const replaceBy = <T>(array: T[], newElm: T, f: (v: T) => boolean) => {
   const newArray = [] as T[];
@@ -91,4 +90,4 @@ export const replaceBoxById = (boxes: BoundingBox[], newBox: BoundingBox) => {
   const newBoxes = [...boxes];
   newBoxes[index] = newBox;
   return newBoxes;
-}
+};

@@ -1,16 +1,19 @@
-import * as React from "react";
-import {Toolbar} from "@material-ui/core";
-import TableContainer from "@material-ui/core/TableContainer";
-import Paper from "@material-ui/core/Paper";
-import Table from "@material-ui/core/Table";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import TableCell from "@material-ui/core/TableCell";
-import TableBody from "@material-ui/core/TableBody";
-import {makeStyles} from "@material-ui/core/styles";
-import {VirtualizedAssetProps} from "../services/virtualizedAsset";
-import {AssetListItemProps, VirtualizedAssetList} from "./VirtualizedAssetList";
-import AutoSizer from "react-virtualized-auto-sizer";
+import * as React from 'react';
+import { Toolbar } from '@material-ui/core';
+import TableContainer from '@material-ui/core/TableContainer';
+import Paper from '@material-ui/core/Paper';
+import Table from '@material-ui/core/Table';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import TableCell from '@material-ui/core/TableCell';
+import TableBody from '@material-ui/core/TableBody';
+import { makeStyles } from '@material-ui/core/styles';
+import { VirtualizedAssetProps } from '../services/virtualizedAsset';
+import {
+  AssetListItemProps,
+  VirtualizedAssetList,
+} from './VirtualizedAssetList';
+import AutoSizer from 'react-virtualized-auto-sizer';
 
 const useStyles = makeStyles({
   table: {
@@ -26,9 +29,9 @@ export const AssetTable = (props: Props) => {
   const classes = useStyles();
 
   // tslint:disable-next-line:variable-name
-  const Item: React.FC<AssetListItemProps> = ({asset, isLoaded, style}) => {
+  const Item: React.FC<AssetListItemProps> = ({ asset, isLoaded, style }) => {
     if (!isLoaded) {
-      return (<div style={style}>Loading...</div>);
+      return <div style={style}>Loading...</div>;
     }
 
     return (
@@ -51,7 +54,7 @@ export const AssetTable = (props: Props) => {
 
   return (
     <>
-      <Toolbar/>
+      <Toolbar />
       <TableContainer component={Paper}>
         <Table className={classes.table} size="small">
           <TableHead>
@@ -64,7 +67,7 @@ export const AssetTable = (props: Props) => {
           </TableHead>
           <TableBody>
             <AutoSizer>
-              {({height, width}) => {
+              {({ height, width }) => {
                 return (
                   <VirtualizedAssetList
                     assets={props.assets}
@@ -81,7 +84,6 @@ export const AssetTable = (props: Props) => {
                 );
               }}
             </AutoSizer>
-
           </TableBody>
         </Table>
       </TableContainer>

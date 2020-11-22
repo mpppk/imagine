@@ -1,10 +1,10 @@
 import actionCreatorFactory from 'typescript-fsa';
-import {WorkSpace} from "../models/models";
+import { WorkSpace } from '../models/models';
 
 const workspaceActionCreatorFactory = actionCreatorFactory('WORKSPACE');
 
 export interface WSPayload {
-  workSpaceName: string
+  workSpaceName: string;
 }
 
 export const workspaceActionCreators = {
@@ -13,4 +13,3 @@ export const workspaceActionCreators = {
   scanResult: workspaceActionCreatorFactory<WorkSpace[]>('SCAN/RESULT'),
   updateRequest: workspaceActionCreatorFactory<WorkSpace>('UPDATE/REQUEST'),
 };
-
