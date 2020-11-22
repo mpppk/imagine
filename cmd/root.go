@@ -78,7 +78,7 @@ var rootCmd = &cobra.Command{
 			log.Printf("info: versions: db:%s app:%s", dbV.String(), appV.String())
 		}
 
-		migrationUseCase := usecase.NewMigration(client)
+		migrationUseCase := usecase.NewMigration(client.Asset, client.Meta)
 		if err := migrationUseCase.Migrate(dbV); err != nil {
 			return err
 		}
