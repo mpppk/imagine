@@ -1,12 +1,12 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"path/filepath"
-
-	"github.com/hydrogen18/stoppableListener"
+	"time"
 
 	"github.com/mpppk/imagine/infra"
 
@@ -195,10 +195,9 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 }
 
 type fsServeHandler struct {
-	assetUseCase      *usecase.Asset
-	action            *fsActionCreator
-	stoppableListener *stoppableListener.StoppableListener
-	server            *http.Server
+	assetUseCase *usecase.Asset
+	action       *fsActionCreator
+	server       *http.Server
 }
 
 func (f *fsServeHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
@@ -207,26 +206,23 @@ func (f *fsServeHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	if f.stoppableListener != nil {
-		f.stoppableListener.Stop()
-		log.Println("info: server stopped")
+	if f.server != nil {
+		log.Printf("info: server will be restarted")
+		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+		if err := f.server.Shutdown(ctx); err != nil {
+			log.Printf("error: failed to shutdown file server: %s", err)
+		}
 	}
 
 	// FIXME: port
-	server, sl, err := infra.NewFileServer(1323, payload.BasePath)
-	if err != nil {
-		return err
-	}
-	f.server = server
-	f.stoppableListener = sl
+	f.server = infra.NewFileServer(1323, payload.BasePath)
 
 	go func() {
 		log.Printf("info: server will be started to host files. base path: %s", payload.BasePath)
-		if err := f.server.Serve(f.stoppableListener); err != nil {
+		if err := f.server.ListenAndServe(); err != nil {
 			log.Printf("warn: server failed: %s", err)
-			//log.Fatal(err)
 		}
-		log.Printf("info: server stopped!!!!: %s", payload.BasePath)
+		log.Printf("info: server stopped: %s", payload.BasePath)
 	}()
 
 	return nil
