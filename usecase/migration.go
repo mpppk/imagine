@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/mpppk/imagine/util"
+
 	old0_0_1 "github.com/mpppk/imagine/domain/model/old/old0.0.1"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -14,16 +16,40 @@ import (
 )
 
 type Migration struct {
-	client *repository.Client
+	assetRepository repository.Asset
+	metaRepository  repository.Meta
 }
 
-func NewMigration(client *repository.Client) *Migration {
+func NewMigration(assetRepository repository.Asset, metaRepository repository.Meta) *Migration {
 	return &Migration{
-		client: client,
+		assetRepository: assetRepository,
+		metaRepository:  metaRepository,
 	}
 }
 
-func (m *Migration) Migrate(dbV *semver.Version) error {
+func (m *Migration) Migrate() error {
+	dbV, ok, err := m.metaRepository.GetDBVersion()
+	if err != nil {
+		return fmt.Errorf("failed to get db version: %w", err)
+	}
+
+	appV := semver.MustParse(util.Version)
+	if !ok {
+		if err := m.metaRepository.SetDBVersion(&appV); err != nil {
+			return err
+		}
+		log.Printf("info: versions: db:%s app:%s", "empty→"+appV.String(), appV.String())
+	} else {
+		log.Printf("info: versions: db:%s app:%s", dbV.String(), appV.String())
+	}
+
+	if err := m.migrateDB(dbV); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Migration) migrateDB(dbV *semver.Version) error {
 	tmpl := "info: db migration is started from %s to %s"
 	curDBV := dbV
 
@@ -42,7 +68,7 @@ func (m *Migration) migrateFrom0d0d1To0d1d0(ws model.WSName) error {
 	f := func(v []byte) bool {
 		return true
 	}
-	c, err := m.client.Asset.ListRawByAsync(context.Background(), ws, f, 100)
+	c, err := m.assetRepository.ListRawByAsync(context.Background(), ws, f, 100)
 	if err != nil {
 		return err
 	}
@@ -59,7 +85,7 @@ func (m *Migration) migrateFrom0d0d1To0d1d0(ws model.WSName) error {
 		}
 		assets = append(assets, asset)
 		if len(assets) >= batchNum {
-			if err := m.client.Asset.BatchUpdate(ws, assets); err != nil {
+			if err := m.assetRepository.BatchUpdate(ws, assets); err != nil {
 				return err
 			}
 			log.Printf("debug: assets(ID:%v-%v) are migrated. (v0.0.1→v0.1.0)", assets[0].ID, assets[len(assets)-1].ID)
@@ -67,7 +93,7 @@ func (m *Migration) migrateFrom0d0d1To0d1d0(ws model.WSName) error {
 		}
 	}
 
-	if err := m.client.Asset.BatchUpdate(ws, assets); err != nil {
+	if err := m.assetRepository.BatchUpdate(ws, assets); err != nil {
 		return err
 	}
 	if len(assets) > 0 {
@@ -75,5 +101,5 @@ func (m *Migration) migrateFrom0d0d1To0d1d0(ws model.WSName) error {
 	}
 
 	v := semver.MustParse("0.1.0")
-	return m.client.Meta.SetDBVersion(&v)
+	return m.metaRepository.SetDBVersion(&v)
 }
