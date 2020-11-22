@@ -7,3 +7,4 @@ imagine
 *.db
 infra/repoimpl/mock_*
 static/out
+statik
