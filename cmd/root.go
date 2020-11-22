@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/mpppk/imagine/infra"
+
 	"github.com/mpppk/imagine/usecase"
 
 	"github.com/blang/semver/v4"
@@ -21,6 +23,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/mitchellh/go-homedir"
+	_ "github.com/mpppk/imagine/statik"
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -105,9 +108,21 @@ var rootCmd = &cobra.Command{
 		logger := colog.NewCoLog(os.Stdout, "", 0).NewLogger()
 
 		handlers := registry.NewHandlers(db)
+
+		s, err := infra.NewHtmlServer(conf.UiPort)
+		if err != nil {
+			return err
+		}
+
+		go func() {
+			if err := s.ListenAndServe(); err != nil {
+				panic(err)
+			}
+		}()
+
 		config := &fsa.LorcaConfig{
 			AppName:          "imagine",
-			Url:              conf.UiURL,
+			Url:              fmt.Sprintf("localhost:%d", conf.UiPort),
 			Width:            1080,
 			Height:           720,
 			EnableExtensions: conf.Dev,
@@ -159,13 +174,6 @@ func registerFlags(cmd *cobra.Command) error {
 				IsPersistent: true,
 				Usage:        "config file (default is $HOME/.imagine.yaml)",
 			}},
-		&option.StringFlag{
-			BaseFlag: &option.BaseFlag{
-				Name:  "ui-url",
-				Usage: "URL of front end server",
-			},
-			Value: "localhost:3000", // FIXME embedded
-		},
 		&option.BoolFlag{
 			BaseFlag: &option.BaseFlag{
 				Name:  "dev",
@@ -178,6 +186,22 @@ func registerFlags(cmd *cobra.Command) error {
 				IsPersistent: true,
 				Usage:        "Show more logs",
 			}},
+		&option.UintFlag{
+			BaseFlag: &option.BaseFlag{
+				Name:         "ui-port",
+				IsPersistent: true,
+				Usage:        "port of ui server",
+			},
+			Value: 3001,
+		},
+		&option.UintFlag{
+			BaseFlag: &option.BaseFlag{
+				Name:         "asset-port",
+				IsPersistent: true,
+				Usage:        "port of asset server (WIP: currently does not work)",
+			},
+			Value: 1323,
+		},
 	}
 	return option.RegisterFlags(cmd, flags)
 }

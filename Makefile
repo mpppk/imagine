@@ -36,6 +36,8 @@ wire:
 .PHONY: generate
 generate: wire
 	go generate ./...
+	yarn --cwd static export
+	statik -f -src static/out
 
 .PHONY: build
 build: generate

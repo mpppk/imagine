@@ -8,10 +8,11 @@ import (
 
 // RootCmdConfig is config for root command
 type RootCmdConfig struct {
-	Verbose bool
-	DB      string
-	Dev     bool
-	UiURL   string `mapstructure:"ui-url"`
+	Verbose   bool
+	DB        string
+	Dev       bool
+	UiPort    uint `mapstructure:"ui-port"`
+	AssetPort uint `mapstructure:"asset-port"`
 }
 
 // NewRootCmdConfigFromViper generate config for sum command from viper
