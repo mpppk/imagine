@@ -42,7 +42,6 @@ const MemoizedImg = React.memo((props: { src: string }) => (
 ));
 
 const generateImageGridTile = (
-  basePath: string,
   selectedIndex: number,
   handleClickImage: (path: string, index: number) => void
 ): React.FC<AssetListItemProps> => ({ asset, index, isLoaded, style }) => {
@@ -52,7 +51,7 @@ const generateImageGridTile = (
 
   const classes = useStyles();
 
-  const pathUrl = assetPathToUrl(basePath, asset.path);
+  const pathUrl = assetPathToUrl(asset.path);
 
   const genClickImageHandler = (imgPath: string, i: number) => () => {
     handleClickImage(imgPath, i);
@@ -97,11 +96,7 @@ export const ImageGridList: React.FC<Props> = (props) => {
           itemSize={props.cellHeight}
           width={props.width}
         >
-          {generateImageGridTile(
-            props.basePath,
-            props.selectedIndex,
-            props.onClickImage
-          )}
+          {generateImageGridTile(props.selectedIndex, props.onClickImage)}
         </VirtualizedAssetList>
       </GridList>
     </div>

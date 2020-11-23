@@ -179,13 +179,6 @@ const selector = (state: State) => {
     ? findAssetIndexById(state.global.assets, state.global.selectedAsset.id)
     : -1;
 
-  // FIXME
-  const basePath =
-    state.global.currentWorkSpace === null
-      ? ''
-      : state.global.currentWorkSpace.basePath;
-  const toAssetPath = assetPathToUrl.bind(null, basePath);
-
   const boxToTagName = (tags: Tag[], box: BoundingBox) =>
     tags.find((t) => t.id === box.tagID)?.name;
   const tagNames = boxes
@@ -205,10 +198,10 @@ const selector = (state: State) => {
     selectedAssetUrl:
       state.global.selectedAsset === null
         ? undefined
-        : toAssetPath(state.global.selectedAsset.path),
+        : assetPathToUrl(state.global.selectedAsset.path),
     currentWorkSpace: state.global.currentWorkSpace,
     tags: state.global.tags,
-    imagePaths: state.global.assets.map((a) => toAssetPath(a.path)),
+    imagePaths: state.global.assets.map((a) => assetPathToUrl(a.path)),
     isLoadingWorkSpace: state.global.isLoadingWorkSpaces,
     isScanningDirectories: state.indexPage.scanning,
     selectedTagId: state.global.selectedTagId,
@@ -229,7 +222,7 @@ const generateInitialLocalState = (): LocalState => {
   };
 };
 
-export default function Test() {
+function Index() {
   const classes = useStyles();
   const [localState, setLocalState] = useState(generateInitialLocalState());
   const globalState = useSelector(selector);
@@ -291,7 +284,11 @@ export default function Test() {
   );
 }
 
-export async function getInitialProps() {
-  resetServerContext();
+Index.getInitialProps = () => {
+  if (!process.browser) {
+    resetServerContext();
+  }
   return { props: {} };
-}
+};
+
+export default Index;
