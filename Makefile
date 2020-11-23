@@ -8,6 +8,12 @@ setup:
 	go get github.com/golang/mock/mockgen@v1.4.4
 	go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.31.0
 
+.PHONY: clean
+clean:
+	rm -rf static/out
+	rm -rf statik
+	rm -f imagine
+
 .PHONY: lint
 lint: generate
 	go vet ./...
@@ -45,7 +51,7 @@ build: test
 	go build
 
 .PHONY: cross-build-snapshot
-cross-build: test
+cross-build-snapshot: test
 	goreleaser --rm-dist --snapshot
 
 .PHONY: install
