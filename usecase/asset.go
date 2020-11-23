@@ -1,8 +1,12 @@
 package usecase
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 
 	"github.com/mpppk/imagine/domain/model"
 	"github.com/mpppk/imagine/domain/repository"
@@ -22,6 +26,72 @@ func NewAsset(assetRepository repository.Asset, tagRepository repository.Tag) *A
 
 func (a *Asset) Init(ws model.WSName) error {
 	return a.assetRepository.Init(ws)
+}
+
+type AssetImportResult struct {
+	Asset *model.ImportAsset
+	Err   error
+}
+
+func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) error {
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		var asset model.ImportAsset
+		if err := json.Unmarshal(scanner.Bytes(), &asset); err != nil {
+			return fmt.Errorf("failed to unmarshal json to asset")
+		}
+		if _, _, err := a.AddImportAsset(ws, &asset, new); err != nil {
+			return fmt.Errorf("failed to import asset: %w", err)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("faield to scan asset op: %w", err)
+	}
+	return nil
+}
+
+func (a *Asset) AddImportAsset(ws model.WSName, asset *model.ImportAsset, new bool) (model.AssetID, bool, error) {
+	if asset.ID == 0 {
+		if asset.Path == "" {
+			log.Printf("warning: image path is empty")
+			return 0, false, nil
+		}
+		id, err := a.AddAssetFromImagePath(ws, asset.Path)
+		if err != nil {
+			e := fmt.Errorf("failed to add asset. image path: %s: %w", asset.Path, err)
+			return 0, false, e
+		}
+		log.Printf("debug: asset added: %#v", asset)
+		return id, true, nil
+	}
+
+	ok, err := a.assetRepository.Has(ws, asset.ID)
+	if err != nil {
+		e := fmt.Errorf("failed to check asset. image path: %s: %w", asset.Path, err)
+		return 0, false, e
+	}
+
+	if !ok {
+		if new {
+			id, err := a.assetRepository.Add(ws, asset.ToAsset())
+			if err != nil {
+				e := fmt.Errorf("failed to add asset: %w", err)
+				return 0, false, e
+			}
+			log.Printf("debug: asset added: %#v", asset)
+			return id, true, nil
+		} else {
+			log.Printf("debug: asset skipped because it does not exist: id:%d", asset.ID)
+			return 0, false, nil
+		}
+	}
+
+	if err := a.assetRepository.Update(ws, asset.ToAsset()); err != nil {
+		e := fmt.Errorf("failed to update asset: %w", err)
+		return 0, false, e
+	}
+	log.Printf("debug: asset updated: %#v", asset)
+	return asset.ID, true, nil
 }
 
 func (a *Asset) AddAssetFromImagePathListIfDoesNotExist(ws model.WSName, filePathList []string) ([]model.AssetID, error) {

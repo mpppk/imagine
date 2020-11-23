@@ -15,6 +15,11 @@ type BoundingBox struct {
 	Height int           `json:"height"`
 }
 
+type ImportBoundingBox struct {
+	*BoundingBox
+	TagName string
+}
+
 type TagID uint64
 type Tag struct {
 	ID   TagID  `json:"id"`
@@ -85,7 +90,7 @@ func AssetIDListToUint64List(assetIDList []AssetID) (idList []uint64) {
 }
 
 type Asset struct {
-	ID            AssetID        `json:"id"`
+	ID            AssetID        `json:"id,omitempty"`
 	Name          string         `json:"name"`
 	Path          string         `json:"path"`
 	BoundingBoxes []*BoundingBox `json:"boundingBoxes"`
@@ -115,6 +120,26 @@ func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 		}
 	}
 	return false
+}
+
+type ImportAsset struct {
+	*Asset        `mapstructure:",squash"`
+	BoundingBoxes []*ImportBoundingBox `json:"boundingBoxes"`
+}
+
+func (a *ImportAsset) ToAsset() *Asset {
+	var boxes []*BoundingBox
+
+	for _, box := range a.BoundingBoxes {
+		boxes = append(boxes, box.BoundingBox)
+	}
+
+	return &Asset{
+		ID:            a.ID,
+		Name:          a.Name,
+		Path:          a.Path,
+		BoundingBoxes: boxes,
+	}
 }
 
 func ReplaceBoundingBoxByID(boxes []*BoundingBox, replaceBox *BoundingBox) (newBoxes []*BoundingBox) {
