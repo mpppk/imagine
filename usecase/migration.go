@@ -38,6 +38,7 @@ func (m *Migration) Migrate() error {
 		if err := m.metaRepository.SetDBVersion(&appV); err != nil {
 			return err
 		}
+		dbV = &appV
 		log.Printf("info: versions: db:%s app:%s", "empty→"+appV.String(), appV.String())
 	} else {
 		log.Printf("info: versions: db:%s app:%s", dbV.String(), appV.String())
