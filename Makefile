@@ -49,5 +49,5 @@ cross-build: test
 	goreleaser --rm-dist --snapshot
 
 .PHONY: install
-install:
+install: build
 	go install

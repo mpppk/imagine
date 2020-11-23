@@ -10,7 +10,7 @@ import (
 func NewFileServer(port uint, basePath string) *http.Server {
 	mux := http.NewServeMux()
 	if basePath != "" {
-		mux.Handle("/static", http.FileServer(http.Dir(basePath)))
+		mux.Handle("/", http.FileServer(http.Dir(basePath)))
 	}
 	return &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),

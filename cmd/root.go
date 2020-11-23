@@ -91,16 +91,18 @@ var rootCmd = &cobra.Command{
 
 		handlers := registry.NewHandlers(db)
 
-		s, err := infra.NewHtmlServer(conf.UiPort)
-		if err != nil {
-			return err
-		}
-
-		go func() {
-			if err := s.ListenAndServe(); err != nil {
-				panic(err)
+		if !conf.Dev {
+			s, err := infra.NewHtmlServer(conf.UiPort)
+			if err != nil {
+				return err
 			}
-		}()
+
+			go func() {
+				if err := s.ListenAndServe(); err != nil {
+					panic(err)
+				}
+			}()
+		}
 
 		config := &fsa.LorcaConfig{
 			AppName:          "imagine",
