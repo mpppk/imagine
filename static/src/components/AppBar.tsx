@@ -21,7 +21,6 @@ import { useActions } from '../hooks';
 import { WorkSpaceSettingDialog } from './WorkSpaceSettingDialog';
 import { Tooltip } from '@material-ui/core';
 import SettingsIcon from '@material-ui/icons/Settings';
-import { fsActionCreators } from '../actions/fs';
 
 const useStyles = makeStyles((theme: Theme) => ({
   appBar: {
@@ -103,7 +102,6 @@ type ViewState = ReturnType<typeof useViewState>;
 const useHandlers = (localState: LocalState, viewState: ViewState) => {
   const indexActionDispatcher = useActions(indexActionCreators);
   const workspaceActionDispatcher = useActions(workspaceActionCreators);
-  const fsActionDispatcher = useActions(fsActionCreators);
 
   return {
     genDrawerHandler: (open: boolean) => () => localState.setDrawerOpen(open),
