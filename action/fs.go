@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	fsPrefix                     = "FS/"
-	FSScanRequestType   fsa.Type = fsPrefix + "SCAN/REQUEST"
-	FSScanCancelType    fsa.Type = fsPrefix + "SCAN/CANCEL"
+	fsPrefix                   = "FS/"
+	FSScanRequestType fsa.Type = fsPrefix + "SCAN/REQUEST"
+	//FSScanCancelType    fsa.Type = fsPrefix + "SCAN/CANCEL"
 	FSScanStartType     fsa.Type = fsPrefix + "SCAN/START"
 	FSScanFinishType    fsa.Type = fsPrefix + "SCAN/FINISH"
 	FSScanRunningType   fsa.Type = fsPrefix + "SCAN/RUNNING"
@@ -35,6 +35,10 @@ const (
 type ScanningImagesPayload struct {
 	*wsPayload
 	FoundedAssetsNum int `json:"foundedAssetsNum"`
+}
+
+type FsScanRequestPayload struct {
+	BasePathPayload `mapstructure:",squash"`
 }
 
 type FsScanStartPayload struct {
@@ -48,13 +52,8 @@ type FsScanFailPayload struct {
 }
 
 type BasePathPayload struct {
-	*wsPayload
-	BasePath string `json:"basePath"`
-}
-
-type BaseDirSelectRequestPayload struct {
-	*wsPayload
-	BasePath string `json:"basePath"`
+	wsPayload `mapstructure:",squash"`
+	BasePath  string `json:"basePath"`
 }
 
 type BaseDirSelectPayload struct {
@@ -81,12 +80,12 @@ func (f *fsActionCreator) scanFinish(wsName model.WSName) *fsa.Action {
 	}
 }
 
-func (f *fsActionCreator) scanCancel(wsName model.WSName) *fsa.Action {
-	return &fsa.Action{
-		Type:    FSScanCancelType,
-		Payload: newWSPayload(wsName),
-	}
-}
+//func (f *fsActionCreator) scanCancel(wsName model.WSName) *fsa.Action {
+//	return &fsa.Action{
+//		Type:    FSScanCancelType,
+//		Payload: newWSPayload(wsName),
+//	}
+//}
 
 func (f *fsActionCreator) scanRunning(wsName model.WSName, paths []string) *fsa.Action {
 	return &fsa.Action{
@@ -112,7 +111,7 @@ func (f *fsActionCreator) baseDirSelect(wsName model.WSName, basePath string) *f
 	return &fsa.Action{
 		Type: FSBaseDirSelectType,
 		Payload: &BasePathPayload{
-			wsPayload: &wsPayload{WorkSpaceName: wsName},
+			wsPayload: wsPayload{WorkSpaceName: wsName},
 			BasePath:  basePath,
 		},
 	}
@@ -124,25 +123,16 @@ type fsScanHandler struct {
 }
 
 func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	var payload wsPayload
+	var payload FsScanRequestPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
-	}
-
-	directory, selected, err := dlgs.File("Select file", "", true)
-	if err != nil {
-		return fmt.Errorf("failed to open file selector: %w", err)
-	}
-
-	if !selected {
-		return dispatch(f.action.scanCancel(payload.WorkSpaceName))
 	}
 
 	if err := f.assetUseCase.Init(payload.WorkSpaceName); err != nil {
 		return fmt.Errorf("failed to initialize asset usecase :%w", err)
 	}
 
-	if err := dispatch(f.action.scanStart(payload.WorkSpaceName, directory)); err != nil {
+	if err := dispatch(f.action.scanStart(payload.WorkSpaceName, payload.BasePath)); err != nil {
 		return err
 	}
 
@@ -156,9 +146,9 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	go func() {
 		var paths []string
 		cnt := 0
-		for p := range util.LoadImagesFromDir(directory, 500) {
+		for p := range util.LoadImagesFromDir(payload.BasePath, 500) {
 			cnt++
-			relP, err := util.ToRelPath(directory, p)
+			relP, err := util.ToRelPath(payload.BasePath, p)
 			if err != nil {
 				dispatchScanFailActionAndLogOrPanic(err)
 				continue

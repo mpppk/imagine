@@ -149,14 +149,9 @@ const useHandlers = (localState: LocalState, viewState: ViewState) => {
         return;
       }
       indexActionDispatcher.clickChangeBasePathButton({
+        needToLoadAssets,
         workSpaceName: viewState.currentWorkSpace.name,
       });
-
-      if (needToLoadAssets) {
-        fsActionDispatcher.scanRequest({
-          workSpaceName: viewState.currentWorkSpace.name,
-        });
-      }
     },
   };
 };

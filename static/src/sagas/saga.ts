@@ -42,6 +42,17 @@ const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
 
 const baseDirSelectWorker = function* (payload: BaseDirSelectPayload) {
   saveBasePath(payload.workSpaceName, payload.basePath);
+  const needToLoadAssets = yield select(
+    (state: State) => state.global.needToLoadAssets
+  );
+  if (needToLoadAssets) {
+    yield put(
+      fsActionCreators.scanRequest({
+        workSpaceName: payload.workSpaceName,
+        basePath: payload.basePath,
+      })
+    );
+  }
 };
 
 const boxMoveWorker = function* (payload: BoundingBoxMovePayload) {

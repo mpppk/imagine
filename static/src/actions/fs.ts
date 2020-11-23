@@ -3,6 +3,10 @@ import { WSPayload } from './workspace';
 
 const fsActionCreatorFactory = actionCreatorFactory('FS');
 
+export interface FSScanRequestPayload extends WSPayload {
+  basePath: string;
+}
+
 interface FSScanRunningPayload extends WSPayload {
   foundedAssetsNum: number;
 }
@@ -16,7 +20,7 @@ export interface BaseDirSelectPayload extends WSPayload {
 }
 
 export const fsActionCreators = {
-  scanRequest: fsActionCreatorFactory<WSPayload>('SCAN/REQUEST'),
+  scanRequest: fsActionCreatorFactory<FSScanRequestPayload>('SCAN/REQUEST'),
   scanCancel: fsActionCreatorFactory<WSPayload>('SCAN/CANCEL'),
   scanFinish: fsActionCreatorFactory<WSPayload>('SCAN/FINISH'),
   scanStart: fsActionCreatorFactory<FSScanStartPayload>('SCAN/START'),

@@ -8,7 +8,7 @@ import { ImageListDrawer } from '../components/ImageListDrawer';
 import { ImagePreview } from '../components/ImagePreview';
 import { TagListDrawer } from '../components/TagListDrawer';
 import { useActions, useVirtualizedAsset } from '../hooks';
-import { BoundingBox, Tag, WorkSpace } from '../models/models';
+import { BoundingBox, Tag } from '../models/models';
 import { State } from '../reducers/reducer';
 import {
   assetPathToUrl,
@@ -51,11 +51,6 @@ const useHandlers = (
   return {
     ...indexActionDispatcher,
     ...tagActionDispatcher,
-    clickChangeBasePathButton: (ws: WorkSpace) => {
-      indexActionDispatcher.clickChangeBasePathButton({
-        workSpaceName: ws.name,
-      });
-    },
     clickTag: (tag: Tag) => {
       indexActionDispatcher.selectTag(tag);
     },

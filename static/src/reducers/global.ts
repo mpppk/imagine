@@ -16,6 +16,7 @@ import { fsActionCreators } from '../actions/fs';
 
 export const globalInitialState = {
   filterEnabled: false,
+  needToLoadAssets: false, // Load assets from the directory on the next basePath update
   queries: [] as Query[],
   assets: [] as Asset[],
   selectedAsset: null as Asset | null,
@@ -33,6 +34,12 @@ export type GlobalState = typeof globalInitialState;
 export const global = reducerWithInitialState(globalInitialState)
   .case(browserActionCreators.resize, (state, payload) => {
     return { ...state, windowHeight: payload.height };
+  })
+  .case(indexActionCreators.clickChangeBasePathButton, (state, payload) => {
+    return { ...state, needToLoadAssets: payload.needToLoadAssets };
+  })
+  .case(fsActionCreators.scanRequest, (state) => {
+    return { ...state, needToLoadAssets: false };
   })
   .case(fsActionCreators.baseDirSelect, (state, payload) => {
     if (state.currentWorkSpace === null || state.workspaces === null) {
@@ -64,18 +71,6 @@ export const global = reducerWithInitialState(globalInitialState)
   })
   .case(workspaceActionCreators.select, (state, workspace) => {
     return { ...state, currentWorkSpace: { ...workspace } };
-  })
-  .case(fsActionCreators.baseDirSelect, (state, payload) => {
-    if (state.currentWorkSpace === null) {
-      return state;
-    }
-    return {
-      ...state,
-      currentWorkSpace: {
-        ...state.currentWorkSpace,
-        basePath: payload.basePath,
-      },
-    };
   })
   .case(workspaceActionCreators.updateRequest, (state, workspace) => {
     if (state.workspaces === null) {
