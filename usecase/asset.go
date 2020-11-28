@@ -7,7 +7,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/mpppk/imagine/domain/model"
 	"github.com/mpppk/imagine/domain/repository"
 )
@@ -35,6 +38,10 @@ type AssetImportResult struct {
 
 func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) error {
 	scanner := bufio.NewScanner(reader)
+	cnt := 0
+	s := spinner.New(spinner.CharSets[43], 100*time.Millisecond)
+	s.Prefix = "loading... "
+	s.Start()
 	for scanner.Scan() {
 		var asset model.ImportAsset
 		if err := json.Unmarshal(scanner.Bytes(), &asset); err != nil {
@@ -43,7 +50,10 @@ func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) er
 		if _, _, err := a.AddImportAsset(ws, &asset, new); err != nil {
 			return fmt.Errorf("failed to import asset: %w", err)
 		}
+		cnt++
+		s.Suffix = strconv.Itoa(cnt)
 	}
+	s.Stop()
 	if err := scanner.Err(); err != nil {
 		return fmt.Errorf("faield to scan asset op: %w", err)
 	}
