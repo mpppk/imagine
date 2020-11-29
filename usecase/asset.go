@@ -39,19 +39,36 @@ type AssetImportResult struct {
 func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) error {
 	scanner := bufio.NewScanner(reader)
 	cnt := 0
+	cap1 := 10000 // FIXME
+	cap2 := 5000  // FIXME
 	s := spinner.New(spinner.CharSets[43], 100*time.Millisecond)
 	s.Prefix = "loading... "
 	s.Start()
+
+	importAssets := make([]*model.ImportAsset, 0, cap1)
 	for scanner.Scan() {
 		var asset model.ImportAsset
 		if err := json.Unmarshal(scanner.Bytes(), &asset); err != nil {
 			return fmt.Errorf("failed to unmarshal json to asset")
 		}
-		if _, _, err := a.AddImportAsset(ws, &asset, new); err != nil {
-			return fmt.Errorf("failed to import asset: %w", err)
-		}
+		importAssets = append(importAssets, &asset)
 		cnt++
 		s.Suffix = strconv.Itoa(cnt)
+
+		if len(importAssets) >= cap1 {
+			s.Suffix += "(writing...)"
+			if _, err := a.AddImportAssets(ws, importAssets, cap2); err != nil {
+				return fmt.Errorf("failed to add import assets: %w", err)
+			}
+			importAssets = make([]*model.ImportAsset, 0, cap1)
+		}
+	}
+
+	if len(importAssets) > 0 {
+		s.Suffix += "(writing...)"
+		if _, err := a.AddImportAssets(ws, importAssets, cap2); err != nil {
+			return fmt.Errorf("failed to add import assets: %w", err)
+		}
 	}
 	s.Stop()
 	if err := scanner.Err(); err != nil {
@@ -60,48 +77,63 @@ func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) er
 	return nil
 }
 
-func (a *Asset) AddImportAsset(ws model.WSName, asset *model.ImportAsset, new bool) (model.AssetID, bool, error) {
-	if asset.ID == 0 {
-		if asset.Path == "" {
-			log.Printf("warning: image path is empty")
-			return 0, false, nil
-		}
-		id, err := a.AddAssetFromImagePath(ws, asset.Path)
-		if err != nil {
-			e := fmt.Errorf("failed to add asset. image path: %s: %w", asset.Path, err)
-			return 0, false, e
-		}
-		log.Printf("debug: asset added: %#v", asset)
-		return id, true, nil
-	}
+func (a *Asset) AddImportAssets(ws model.WSName, assets []*model.ImportAsset, cap int) ([]model.AssetID, error) {
+	newPaths := make([]string, 0, cap)
+	updateAssets := make([]*model.Asset, 0, cap)
+	var idList []model.AssetID
 
-	ok, err := a.assetRepository.Has(ws, asset.ID)
-	if err != nil {
-		e := fmt.Errorf("failed to check asset. image path: %s: %w", asset.Path, err)
-		return 0, false, e
-	}
-
-	if !ok {
-		if new {
-			id, err := a.assetRepository.Add(ws, asset.ToAsset())
-			if err != nil {
-				e := fmt.Errorf("failed to add asset: %w", err)
-				return 0, false, e
+	for _, asset := range assets {
+		if asset.ID == 0 {
+			if asset.Path == "" {
+				log.Printf("warning: image path is empty")
+				return nil, nil
 			}
-			log.Printf("debug: asset added: %#v", asset)
-			return id, true, nil
+			newPaths = append(newPaths, asset.Path)
 		} else {
-			log.Printf("debug: asset skipped because it does not exist: id:%d", asset.ID)
-			return 0, false, nil
+			updateAssets = append(updateAssets, asset.ToAsset())
+		}
+
+		if len(newPaths) >= cap {
+			idl, err := a.AddAssetFromImagePathListIfDoesNotExist(ws, newPaths)
+			if err != nil {
+				return nil, fmt.Errorf("failed to add asset from image path: %w", err)
+			}
+			idList = append(idList, idl...)
+			newPaths = make([]string, 0, cap)
+		}
+
+		if len(updateAssets) >= cap {
+			if err := a.assetRepository.BatchUpdate(ws, updateAssets); err != nil {
+				return nil, fmt.Errorf("failed to update assets: %w", err)
+			}
+
+			for _, updateAsset := range updateAssets {
+				idList = append(idList, updateAsset.ID)
+			}
+
+			updateAssets = make([]*model.Asset, 0, cap)
 		}
 	}
 
-	if err := a.assetRepository.Update(ws, asset.ToAsset()); err != nil {
-		e := fmt.Errorf("failed to update asset: %w", err)
-		return 0, false, e
+	if len(newPaths) > 0 {
+		idl, err := a.AddAssetFromImagePathListIfDoesNotExist(ws, newPaths)
+		if err != nil {
+			return nil, fmt.Errorf("failed to add asset from image path: %w", err)
+		}
+		idList = append(idList, idl...)
 	}
-	log.Printf("debug: asset updated: %#v", asset)
-	return asset.ID, true, nil
+
+	if len(updateAssets) > 0 {
+		if err := a.assetRepository.BatchUpdate(ws, updateAssets); err != nil {
+			return nil, fmt.Errorf("failed to update assets: %w", err)
+		}
+
+		for _, updateAsset := range updateAssets {
+			idList = append(idList, updateAsset.ID)
+		}
+	}
+
+	return idList, nil
 }
 
 func (a *Asset) AddAssetFromImagePathListIfDoesNotExist(ws model.WSName, filePathList []string) ([]model.AssetID, error) {
