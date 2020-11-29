@@ -6,7 +6,6 @@ setup:
 	go get github.com/goreleaser/goreleaser
 	go get github.com/rakyll/statik
 	go get github.com/golang/mock/mockgen@v1.4.4
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.31.0
 
 .PHONY: clean
 clean:
@@ -17,8 +16,11 @@ clean:
 .PHONY: lint
 lint: generate
 	go vet ./...
-	golangci-lint run
 	goreleaser check
+
+.PHONY: lint-all
+lint-all: lint
+	golangci-lint run
 
 .PHONY: test
 test: lint
