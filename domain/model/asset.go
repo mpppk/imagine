@@ -80,6 +80,10 @@ func (t *TagSet) SubSetBy(f func(tag *Tag) bool) *TagSet {
 	return subset
 }
 
+func (t *TagSet) ToMap() (map[TagID]*Tag, map[string]*Tag) {
+	return t.m, t.nameM
+}
+
 type AssetID uint64
 
 func AssetIDListToUint64List(assetIDList []AssetID) (idList []uint64) {

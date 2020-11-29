@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -28,6 +30,9 @@ func NewAsset(assetRepository repository.Asset, tagRepository repository.Tag) *A
 }
 
 func (a *Asset) Init(ws model.WSName) error {
+	if err := a.tagRepository.Init(ws); err != nil {
+		return err
+	}
 	return a.assetRepository.Init(ws)
 }
 
@@ -77,12 +82,31 @@ func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) er
 	return nil
 }
 
+func pathToTagName(p string) (string, bool) {
+	list := strings.Split(filepath.ToSlash(filepath.Dir(p)), "/")
+	if len(list) == 0 {
+		return "", false
+	}
+	tagName := list[len(list)-1]
+	ignoreList := []string{".", "..", "/"}
+	for _, ignoreC := range ignoreList {
+		if ignoreC == tagName {
+			return "", false
+		}
+	}
+	return tagName, true
+}
+
 func (a *Asset) AddImportAssets(ws model.WSName, assets []*model.ImportAsset, cap int) ([]model.AssetID, error) {
 	newPaths := make([]string, 0, cap)
 	updateAssets := make([]*model.Asset, 0, cap)
 	var idList []model.AssetID
+	tagSet := map[string]struct{}{}
 
 	for _, asset := range assets {
+		if tagName, ok := pathToTagName(asset.Path); ok {
+			tagSet[tagName] = struct{}{}
+		}
 		if asset.ID == 0 {
 			if asset.Path == "" {
 				log.Printf("warning: image path is empty")
@@ -131,6 +155,16 @@ func (a *Asset) AddImportAssets(ws model.WSName, assets []*model.ImportAsset, ca
 		for _, updateAsset := range updateAssets {
 			idList = append(idList, updateAsset.ID)
 		}
+	}
+
+	// Add tags
+	var tagNames []string
+	for tagName := range tagSet {
+		tagNames = append(tagNames, tagName)
+	}
+	_, err := a.tagRepository.AddByNames(ws, tagNames) // FIXME: handle tag id list
+	if err != nil {
+		return nil, fmt.Errorf("failed to add tags: %w", err)
 	}
 
 	return idList, nil
