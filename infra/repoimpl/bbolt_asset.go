@@ -43,10 +43,11 @@ func (b *BBoltAsset) AddByFilePathListIfDoesNotExist(ws model.WSName, filePathLi
 
 	var assets []*model.Asset
 	for _, p := range notExistPaths {
-		assets = append(assets, model.NewAssetFromFilePath(p))
+		asset := model.NewAssetFromFilePath(p)
+		assets = append(assets, asset)
 	}
 
-	idList, err := b.AddList(ws, assets)
+	idList, err := b.BatchAdd(ws, assets)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +69,7 @@ func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath strin
 	return id, true, nil
 }
 
-func (b *BBoltAsset) AddList(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
+func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
 	var dataList []boltData
 	var paths []string
 	for _, asset := range assets {

@@ -5,6 +5,7 @@ import "github.com/mpppk/imagine/domain/model"
 type Tag interface {
 	Init(ws model.WSName) error
 	Add(ws model.WSName, tagWithIndex *model.TagWithIndex) (model.TagID, error)
+	AddByName(ws model.WSName, tagName string) (model.TagID, bool, error)
 	AddByNames(ws model.WSName, tagNames []string) ([]model.TagID, error)
 	Get(ws model.WSName, id model.TagID) (tagWithIndex *model.TagWithIndex, exist bool, err error)
 	Update(ws model.WSName, tagWithIndex *model.TagWithIndex) error

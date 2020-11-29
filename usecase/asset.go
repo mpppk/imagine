@@ -7,9 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -82,48 +80,52 @@ func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) er
 	return nil
 }
 
-func pathToTagName(p string) (string, bool) {
-	list := strings.Split(filepath.ToSlash(filepath.Dir(p)), "/")
-	if len(list) == 0 {
-		return "", false
-	}
-	tagName := list[len(list)-1]
-	ignoreList := []string{".", "..", "/"}
-	for _, ignoreC := range ignoreList {
-		if ignoreC == tagName {
-			return "", false
-		}
-	}
-	return tagName, true
-}
-
 func (a *Asset) AddImportAssets(ws model.WSName, assets []*model.ImportAsset, cap int) ([]model.AssetID, error) {
-	newPaths := make([]string, 0, cap)
+	newAssets := make([]*model.Asset, 0, cap)
 	updateAssets := make([]*model.Asset, 0, cap)
 	var idList []model.AssetID
-	tagSet := map[string]struct{}{}
+
+	tagSet, err := a.tagRepository.ListAsSet(ws)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tag list: %w", err)
+	}
 
 	for _, asset := range assets {
-		if tagName, ok := pathToTagName(asset.Path); ok {
-			tagSet[tagName] = struct{}{}
+		for _, box := range asset.BoundingBoxes {
+			if _, ok := tagSet.GetByName(box.TagName); !ok {
+				id, _, err := a.tagRepository.AddByName(ws, box.TagName)
+				if err != nil {
+					return nil, fmt.Errorf("failed to add tag. name is %s: %w", box.TagName, err)
+				}
+				tagSet.Set(&model.Tag{
+					ID:   id,
+					Name: box.TagName,
+				})
+			}
 		}
+
+		ast, err := asset.ToAsset(tagSet)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert to asset from import asset: %w", err)
+		}
+
 		if asset.ID == 0 {
 			if asset.Path == "" {
 				log.Printf("warning: image path is empty")
 				return nil, nil
 			}
-			newPaths = append(newPaths, asset.Path)
+			newAssets = append(newAssets, ast)
 		} else {
-			updateAssets = append(updateAssets, asset.ToAsset())
+			updateAssets = append(updateAssets, ast)
 		}
 
-		if len(newPaths) >= cap {
-			idl, err := a.AddAssetFromImagePathListIfDoesNotExist(ws, newPaths)
+		if len(newAssets) >= cap {
+			idl, err := a.assetRepository.BatchAdd(ws, newAssets)
 			if err != nil {
 				return nil, fmt.Errorf("failed to add asset from image path: %w", err)
 			}
 			idList = append(idList, idl...)
-			newPaths = make([]string, 0, cap)
+			newAssets = make([]*model.Asset, 0, cap)
 		}
 
 		if len(updateAssets) >= cap {
@@ -139,8 +141,8 @@ func (a *Asset) AddImportAssets(ws model.WSName, assets []*model.ImportAsset, ca
 		}
 	}
 
-	if len(newPaths) > 0 {
-		idl, err := a.AddAssetFromImagePathListIfDoesNotExist(ws, newPaths)
+	if len(newAssets) > 0 {
+		idl, err := a.assetRepository.BatchAdd(ws, newAssets)
 		if err != nil {
 			return nil, fmt.Errorf("failed to add asset from image path: %w", err)
 		}
@@ -155,16 +157,6 @@ func (a *Asset) AddImportAssets(ws model.WSName, assets []*model.ImportAsset, ca
 		for _, updateAsset := range updateAssets {
 			idList = append(idList, updateAsset.ID)
 		}
-	}
-
-	// Add tags
-	var tagNames []string
-	for tagName := range tagSet {
-		tagNames = append(tagNames, tagName)
-	}
-	_, err := a.tagRepository.AddByNames(ws, tagNames) // FIXME: handle tag id list
-	if err != nil {
-		return nil, fmt.Errorf("failed to add tags: %w", err)
 	}
 
 	return idList, nil

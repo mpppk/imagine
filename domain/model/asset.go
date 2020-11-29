@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 )
@@ -131,11 +132,22 @@ type ImportAsset struct {
 	BoundingBoxes []*ImportBoundingBox `json:"boundingBoxes"`
 }
 
-func (a *ImportAsset) ToAsset() *Asset {
+func (a *ImportAsset) ToAsset(tagSet *TagSet) (*Asset, error) {
 	var boxes []*BoundingBox
 
 	for _, box := range a.BoundingBoxes {
-		boxes = append(boxes, box.BoundingBox)
+		newBox := box.BoundingBox
+		if newBox == nil {
+			newBox = &BoundingBox{}
+		}
+		if newBox.TagID == 0 {
+			tag, ok := tagSet.GetByName(box.TagName)
+			if !ok {
+				return nil, fmt.Errorf("unknown tag name(%s)", box.TagName)
+			}
+			newBox.TagID = tag.ID
+		}
+		boxes = append(boxes, newBox)
 	}
 
 	return &Asset{
@@ -143,7 +155,7 @@ func (a *ImportAsset) ToAsset() *Asset {
 		Name:          a.Name,
 		Path:          a.Path,
 		BoundingBoxes: boxes,
-	}
+	}, nil
 }
 
 func ReplaceBoundingBoxByID(boxes []*BoundingBox, replaceBox *BoundingBox) (newBoxes []*BoundingBox) {
@@ -171,5 +183,15 @@ func NewAssetFromFilePath(filePath string) *Asset {
 	return &Asset{
 		Name: name,
 		Path: filePath,
+	}
+}
+
+func NewImportAssetFromFilePath(filePath string) *ImportAsset {
+	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
+	return &ImportAsset{
+		Asset: &Asset{
+			Name: name,
+			Path: filePath,
+		},
 	}
 }
