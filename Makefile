@@ -42,9 +42,12 @@ codecov:  coverage
 wire:
 	go generate -tags=wireinject ./...
 
-.PHONY: generate
-generate: wire
+.PHONY: go-generate
+go-generate: wire
 	go generate ./...
+
+.PHONY: generate
+generate: go-generate
 	yarn --cwd static export
 	statik -f -src static/out
 
