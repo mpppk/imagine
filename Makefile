@@ -2,10 +2,12 @@ SHELL = /bin/bash
 
 .PHONY: setup
 setup:
-	GO111MODULE=off go get github.com/google/wire/cmd/wire
-	GO111MODULE=off go get github.com/goreleaser/goreleaser
-	GO111MODULE=off go get github.com/rakyll/statik
-	GO111MODULE=off go get github.com/golang/mock/mockgen@v1.4.4
+	go get github.com/google/wire/cmd/wire
+	go get github.com/goreleaser/goreleaser
+	go get github.com/rakyll/statik
+	go get github.com/golang/mock/mockgen@v1.4.4
+	git reset go.mod
+	git reset go.sum
 
 .PHONY: clean
 clean:
