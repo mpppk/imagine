@@ -6,8 +6,6 @@ setup:
 	go get github.com/goreleaser/goreleaser
 	go get github.com/rakyll/statik
 	go get github.com/golang/mock/mockgen@v1.4.4
-	git checkout go.mod
-	git checkout go.sum
 
 .PHONY: clean
 clean:

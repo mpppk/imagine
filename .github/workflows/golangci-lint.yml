@@ -21,12 +21,6 @@ jobs:
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
-      - name: Setup
-        run: make setup
-
-      - name: Generate
-        run: make go-generate
-
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:

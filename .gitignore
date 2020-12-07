@@ -1,6 +1,5 @@
 .idea/
 vendor/
-registry/wire_gen.go
 static/.next
 static/node_modules
 imagine
