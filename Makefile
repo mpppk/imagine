@@ -6,7 +6,6 @@ setup:
 	go get github.com/goreleaser/goreleaser
 	go get github.com/rakyll/statik
 	go get github.com/golang/mock/mockgen@v1.4.4
-	sudo curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.33.0
 
 .PHONY: clean
 clean:
