@@ -17,7 +17,7 @@ require (
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
-	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20201118155102-7b36636b60af
+	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20201208155724-d069522c0406
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.14.1 // indirect
 	github.com/onsi/gomega v1.10.2 // indirect
