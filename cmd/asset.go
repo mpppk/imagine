@@ -12,7 +12,8 @@ var assetCmd, _ = newAssetCmd(nil)
 
 func newAssetCmd(fs afero.Fs) (*cobra.Command, error) {
 	cmd := &cobra.Command{
-		Use: "asset",
+		Use:   "asset",
+		Short: "Manage assets",
 	}
 
 	registerFlags := func(cmd *cobra.Command) error {

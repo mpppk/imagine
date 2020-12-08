@@ -33,6 +33,50 @@ func (b *BBoltTag) Add(ws model.WSName, tagWithIndex *model.TagWithIndex) (model
 	return model.TagID(id), err
 }
 
+func (b *BBoltTag) AddByName(ws model.WSName, tagName string) (model.TagID, bool, error) {
+	tagSet, err := b.ListAsSet(ws)
+	if err != nil {
+		return 0, false, fmt.Errorf("failed to get tag set: %w", err)
+	}
+
+	tagMap, tagNameMap := tagSet.ToMap()
+	lastIndex := len(tagMap)
+	if _, ok := tagNameMap[tagName]; ok {
+		return 0, false, nil
+	}
+	lastIndex++
+	tag := model.TagWithIndex{Tag: &model.Tag{Name: tagName}, Index: lastIndex}
+	id, err := b.base.addByID(createTagBucketNames(ws), tag)
+	if err != nil {
+		return 0, false, fmt.Errorf("failed to add tag to db: %w", err)
+	}
+	return model.TagID(id), true, err
+}
+
+func (b *BBoltTag) AddByNames(ws model.WSName, tagNames []string) ([]model.TagID, error) {
+	tagSet, err := b.ListAsSet(ws)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tag set: %w", err)
+	}
+
+	tagMap, tagNameMap := tagSet.ToMap()
+	lastIndex := len(tagMap)
+	var idList []model.TagID
+	for _, name := range tagNames {
+		if _, ok := tagNameMap[name]; ok {
+			continue
+		}
+		lastIndex++
+		tag := model.TagWithIndex{Tag: &model.Tag{Name: name}, Index: lastIndex}
+		id, err := b.base.addByID(createTagBucketNames(ws), tag)
+		if err != nil {
+			return nil, fmt.Errorf("failed to add tag to db: %w", err)
+		}
+		idList = append(idList, model.TagID(id))
+	}
+	return idList, err
+}
+
 func (b *BBoltTag) Get(ws model.WSName, id model.TagID) (tagWithIndex *model.TagWithIndex, exist bool, err error) {
 	data, exist, err := b.base.get(createTagBucketNames(ws), uint64(id))
 	if err != nil {

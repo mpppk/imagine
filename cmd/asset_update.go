@@ -1,18 +1,12 @@
 package cmd
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/mpppk/imagine/registry"
 
 	bolt "go.etcd.io/bbolt"
-
-	"github.com/mpppk/imagine/domain/model"
-	"github.com/mpppk/imagine/infra/repoimpl"
 
 	"github.com/mpppk/imagine/cmd/option"
 	"github.com/spf13/afero"
@@ -33,51 +27,16 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 			if err != nil {
 				return err
 			}
-			assetRepository := repoimpl.NewBBoltAsset(db)
+
 			assetUseCase := registry.InitializeAssetUseCase(db)
 			if err := assetUseCase.Init(conf.WorkSpace); err != nil {
 				return fmt.Errorf("failed to initialize asset usecase: %w", err)
 			}
 
-			scanner := bufio.NewScanner(os.Stdin)
-			var asset model.Asset
-			for scanner.Scan() {
-				if err := json.Unmarshal(scanner.Bytes(), &asset); err != nil {
-					return fmt.Errorf("failed to unmarshal json to asset")
-				}
-				if asset.ID == 0 {
-					if asset.Path == "" {
-						log.Printf("warning: image path is empty: %s", scanner.Text())
-						continue
-					}
-					if _, err := assetUseCase.AddAssetFromImagePath(conf.WorkSpace, asset.Path); err != nil {
-						return fmt.Errorf("failed to add asset. image path: %s: %w", asset.Path, err)
-					}
-					log.Printf("debug: asset added: %#v", asset)
-				} else {
-					ok, err := assetRepository.Has(conf.WorkSpace, asset.ID)
-					if err != nil {
-						return fmt.Errorf("failed to check asset. image path: %s: %w", asset.Path, err)
-					} else if !ok {
-						if conf.New {
-							if _, err := assetRepository.Add(conf.WorkSpace, &asset); err != nil {
-								return fmt.Errorf("failed to add asset: %w", err)
-							}
-							log.Printf("debug: asset added: %#v", asset)
-						} else {
-							log.Printf("debug: asset skipped because it does not exist: id:%d", asset.ID)
-						}
-						continue
-					}
-					if err := assetRepository.Update(conf.WorkSpace, &asset); err != nil {
-						return fmt.Errorf("failed to update asset: %w", err)
-					}
-					log.Printf("debug: asset updated: %#v", asset)
-				}
+			if err := assetUseCase.ImportFromReader(conf.WorkSpace, os.Stdin, conf.New); err != nil {
+				return fmt.Errorf("failed to import asset from reader: %w", err)
 			}
-			if err := scanner.Err(); err != nil {
-				return fmt.Errorf("faield to scan asset op: %w", err)
-			}
+
 			return nil
 		},
 	}

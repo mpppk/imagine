@@ -6,7 +6,6 @@ setup:
 	go get github.com/goreleaser/goreleaser
 	go get github.com/rakyll/statik
 	go get github.com/golang/mock/mockgen@v1.4.4
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.31.0
 
 .PHONY: clean
 clean:
@@ -17,8 +16,8 @@ clean:
 .PHONY: lint
 lint: generate
 	go vet ./...
-	golangci-lint run
 	goreleaser check
+	golangci-lint run
 
 .PHONY: test
 test: lint
@@ -40,9 +39,12 @@ codecov:  coverage
 wire:
 	go generate -tags=wireinject ./...
 
-.PHONY: generate
-generate: wire
+.PHONY: go-generate
+go-generate: wire
 	go generate ./...
+
+.PHONY: generate
+generate: go-generate
 	yarn --cwd static export
 	statik -f -src static/out
 

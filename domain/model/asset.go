@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 )
@@ -13,6 +14,11 @@ type BoundingBox struct {
 	Y      int           `json:"y"`
 	Width  int           `json:"width"`
 	Height int           `json:"height"`
+}
+
+type ImportBoundingBox struct {
+	*BoundingBox
+	TagName string
 }
 
 type TagID uint64
@@ -75,6 +81,10 @@ func (t *TagSet) SubSetBy(f func(tag *Tag) bool) *TagSet {
 	return subset
 }
 
+func (t *TagSet) ToMap() (map[TagID]*Tag, map[string]*Tag) {
+	return t.m, t.nameM
+}
+
 type AssetID uint64
 
 func AssetIDListToUint64List(assetIDList []AssetID) (idList []uint64) {
@@ -85,7 +95,7 @@ func AssetIDListToUint64List(assetIDList []AssetID) (idList []uint64) {
 }
 
 type Asset struct {
-	ID            AssetID        `json:"id"`
+	ID            AssetID        `json:"id,omitempty"`
 	Name          string         `json:"name"`
 	Path          string         `json:"path"`
 	BoundingBoxes []*BoundingBox `json:"boundingBoxes"`
@@ -117,6 +127,37 @@ func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 	return false
 }
 
+type ImportAsset struct {
+	*Asset        `mapstructure:",squash"`
+	BoundingBoxes []*ImportBoundingBox `json:"boundingBoxes"`
+}
+
+func (a *ImportAsset) ToAsset(tagSet *TagSet) (*Asset, error) {
+	var boxes []*BoundingBox
+
+	for _, box := range a.BoundingBoxes {
+		newBox := box.BoundingBox
+		if newBox == nil {
+			newBox = &BoundingBox{}
+		}
+		if newBox.TagID == 0 {
+			tag, ok := tagSet.GetByName(box.TagName)
+			if !ok {
+				return nil, fmt.Errorf("unknown tag name(%s)", box.TagName)
+			}
+			newBox.TagID = tag.ID
+		}
+		boxes = append(boxes, newBox)
+	}
+
+	return &Asset{
+		ID:            a.ID,
+		Name:          a.Name,
+		Path:          a.Path,
+		BoundingBoxes: boxes,
+	}, nil
+}
+
 func ReplaceBoundingBoxByID(boxes []*BoundingBox, replaceBox *BoundingBox) (newBoxes []*BoundingBox) {
 	for _, box := range boxes {
 		if box.ID == replaceBox.ID {
@@ -142,5 +183,15 @@ func NewAssetFromFilePath(filePath string) *Asset {
 	return &Asset{
 		Name: name,
 		Path: filePath,
+	}
+}
+
+func NewImportAssetFromFilePath(filePath string) *ImportAsset {
+	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
+	return &ImportAsset{
+		Asset: &Asset{
+			Name: name,
+			Path: filePath,
+		},
 	}
 }
