@@ -8,8 +8,6 @@ import (
 
 	"github.com/mpppk/imagine/usecase"
 
-	"github.com/comail/colog"
-
 	"go.etcd.io/bbolt"
 
 	"github.com/mpppk/imagine/registry"
@@ -87,7 +85,7 @@ var rootCmd = &cobra.Command{
 			}
 		}()
 
-		logger := colog.NewCoLog(os.Stdout, "", 0).NewLogger()
+		logger := util.GetLogger()
 
 		handlers := registry.NewHandlers(db)
 
