@@ -211,9 +211,9 @@ func (f *fsServeHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	go func() {
 		log.Printf("info: server will be started to host files. base path: %s", payload.BasePath)
 		if err := f.server.ListenAndServe(); err != nil {
-			log.Printf("warn: server failed: %s", err)
+			log.Printf("warn: server has failed: %s", err)
 		}
-		log.Printf("info: server stopped: %s", payload.BasePath)
+		log.Printf("info: server has stopped: %s", payload.BasePath)
 	}()
 
 	return nil
