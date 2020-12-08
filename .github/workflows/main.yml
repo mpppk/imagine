@@ -40,7 +40,7 @@ jobs:
       run: |
         mkdir -p $GITHUB_WORKSPACE/bin
         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin v1.33.0
-        echo "::add-path::$GITHUB_WORKSPACEE/bin"
+        echo "::add-path::$GITHUB_WORKSPACE/bin"
         chmod +x $GITHUB_WORKSPACE/bin/golangci-lint
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
