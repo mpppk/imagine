@@ -7,3 +7,6 @@ imagine
 infra/repoimpl/mock_*
 static/out
 statik
+
+# for GitHub Actions
+bin/
