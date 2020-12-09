@@ -22,6 +22,8 @@ jobs:
         run: |
           echo "::set-env name=GOPATH::$(go env GOPATH)"
           echo "::add-path::$(go env GOPATH)/bin"
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
