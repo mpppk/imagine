@@ -69,6 +69,46 @@ func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath strin
 	return id, true, nil
 }
 
+func (b *BBoltAsset) BatchAppendBoundingBoxes(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
+	var idList []model.AssetID
+	var paths []string
+	for _, asset := range assets {
+		if asset.ID != 0 {
+			idList = append(idList, asset.ID)
+		} else if asset.Path != "" {
+			paths = append(paths, asset.Path)
+		}
+	}
+
+	idListFromPaths, err := b.pathRepository.ListByPath(ws, paths)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list asset id by paths: %w", err)
+	}
+
+	idList = append(idList, idListFromPaths...)
+
+	newAssets, err := b.ListByIDList(ws, idList)
+	if err != nil {
+		return nil, err
+	}
+
+	var dataList []boltData
+	for i, newAsset := range newAssets {
+		asset := assets[i]
+		if len(asset.BoundingBoxes) == 0 {
+			continue
+		}
+		newAsset.BoundingBoxes = append(newAsset.BoundingBoxes, asset.BoundingBoxes...)
+		dataList = append(dataList, newAsset)
+	}
+
+	if err := b.base.batchUpdateByID(createAssetBucketNames(ws), dataList); err != nil {
+		return nil, err
+	}
+
+	return idList, nil
+}
+
 func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
 	var dataList []boltData
 	var paths []string
@@ -164,6 +204,17 @@ func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (asse
 	}
 
 	return
+}
+
+func (b *BBoltAsset) ListByPath(ws model.WSName, path string) (asset *model.Asset, exist bool, err error) {
+	id, exist, err := b.pathRepository.Get(ws, path)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to get asset from path repository: %w", err)
+	}
+	if !exist {
+		return nil, false, nil
+	}
+	return b.Get(ws, id)
 }
 
 func (b *BBoltAsset) ListAsync(ctx context.Context, ws model.WSName, cap int) (assetChan <-chan *model.Asset, err error) {

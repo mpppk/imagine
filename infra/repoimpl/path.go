@@ -30,7 +30,7 @@ func (p *bboltPathRepository) Get(ws model.WSName, path string) (id model.AssetI
 
 // FilterExistPath returns paths which does not exist yet
 func (p *bboltPathRepository) FilterExistPath(ws model.WSName, paths []string) (notExistPaths []string, err error) {
-	idList, err := p.GetList(ws, paths)
+	idList, err := p.ListByPath(ws, paths)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (p *bboltPathRepository) FilterExistPath(ws model.WSName, paths []string) (
 	return
 }
 
-func (p *bboltPathRepository) GetList(ws model.WSName, paths []string) (idList []uint64, err error) {
+func (p *bboltPathRepository) ListByPath(ws model.WSName, paths []string) (idList []model.AssetID, err error) {
 	dataList, err := p.base.multipleGetByString(createPathBucketNames(ws), paths)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (p *bboltPathRepository) GetList(ws model.WSName, paths []string) (idList [
 		if data == nil {
 			idList = append(idList, 0) // FIXME
 		} else {
-			idList = append(idList, btoi(data))
+			idList = append(idList, model.AssetID(btoi(data)))
 		}
 	}
 	return

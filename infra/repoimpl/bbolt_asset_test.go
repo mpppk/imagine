@@ -2,7 +2,6 @@ package repoimpl_test
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -150,21 +149,21 @@ func TestBBoltAsset_BatchAppendBoundingBoxes(t *testing.T) {
 	fileName := "TestBBoltAsset_BatchAppendBoundingBoxes.db"
 	var wsName model.WSName = "workspace-for-test"
 	type args struct {
-		existAssets  []*model.Asset
 		updateAssets []*model.Asset
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    []*model.Asset
-		wantErr bool
+		name        string
+		existAssets []*model.Asset
+		args        args
+		want        []*model.Asset
+		wantErr     bool
 	}{
 		{
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path1"),
+				model.NewAssetFromFilePath("path2"),
+			},
 			args: args{
-				existAssets: []*model.Asset{
-					model.NewAssetFromFilePath("path1"),
-					model.NewAssetFromFilePath("path2"),
-				},
 				updateAssets: []*model.Asset{
 					{
 						Path: "path1",
@@ -175,10 +174,66 @@ func TestBBoltAsset_BatchAppendBoundingBoxes(t *testing.T) {
 				},
 			},
 			want: []*model.Asset{
-				{Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 0}}},
-				{Path: "path2", BoundingBoxes: nil},
+				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 0}}},
+				{ID: 2, Name: "path2", Path: "path2", BoundingBoxes: nil},
 			},
 			wantErr: false,
+		},
+		{
+			existAssets: []*model.Asset{
+				{
+					Name: "path1",
+					Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 0},
+					},
+				},
+				{
+					Name: "path2",
+					Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1},
+					},
+				},
+			},
+			args: args{
+				updateAssets: []*model.Asset{
+					{
+						Path: "path1",
+						BoundingBoxes: []*model.BoundingBox{
+							{TagID: 0},
+						},
+					},
+					{
+						Path: "path2",
+						BoundingBoxes: []*model.BoundingBox{
+							{TagID: 1}, {TagID: 2},
+						},
+					},
+				},
+			},
+			want: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 0}, {TagID: 0}}},
+				{ID: 2, Name: "path2", Path: "path2", BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 1}, {TagID: 2}}},
+			},
+			wantErr: false,
+		},
+		{
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path1"),
+				model.NewAssetFromFilePath("path2"),
+			},
+			args: args{
+				updateAssets: []*model.Asset{
+					{
+						Path: "path3",
+						BoundingBoxes: []*model.BoundingBox{
+							{TagID: 0},
+						},
+					},
+				},
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -186,27 +241,26 @@ func TestBBoltAsset_BatchAppendBoundingBoxes(t *testing.T) {
 			repo, db := newRepository(t, wsName, fileName)
 			defer teardown(t, fileName, db)
 
-			if _, err := repo.BatchAdd(wsName, tt.args.existAssets); (err != nil) != tt.wantErr {
-				t.Errorf("BatchAdd() error = %v, wantErr %v", err, tt.wantErr)
+			if _, err := repo.BatchAdd(wsName, tt.existAssets); err != nil {
+				t.Fatalf("BatchAdd() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			idList, err := repo.BatchAppendBoundingBoxes(wsName, tt.args.updateAssets)
+			_, err := repo.BatchAppendBoundingBoxes(wsName, tt.args.updateAssets)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			fmt.Println(idList)
-
-			var newAssets []*model.Asset
-			for _, id := range idList {
-				newAsset, exist, err := repo.Get(wsName, id)
-				if err != nil || !exist {
-					t.Errorf("failed to get asset: %v: %v", newAsset, err)
-				}
-				newAssets = append(newAssets, newAsset)
+			var wantIDList []model.AssetID
+			for _, asset := range tt.want {
+				wantIDList = append(wantIDList, asset.ID)
 			}
-			if !reflect.DeepEqual(tt.want, newAssets) {
-				t.Errorf("want: %#v, got: %#v", tt.want, newAssets)
+			gotAssets, err := repo.ListByIDList(wsName, wantIDList)
+			if err != nil {
+				t.Fatalf("ListByIDList() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if diff := cmp.Diff(gotAssets, tt.want); diff != "" {
+				t.Errorf("(-got +want)\n%s", diff)
 			}
 		})
 	}
@@ -283,17 +337,17 @@ func TestBBoltAsset_ListByIDList(t *testing.T) {
 		{
 			args:        args{[]model.AssetID{1}},
 			existAssets: []*model.Asset{},
-			wantErr: true,
+			wantErr:     true,
 		},
 		{
-			args:        args{[]model.AssetID{1, 3}},
+			args: args{[]model.AssetID{1, 3}},
 			existAssets: []*model.Asset{
 				model.NewAssetFromFilePath("path1"),
 			},
 			wantErr: true,
 		},
 		{
-			args:        args{[]model.AssetID{1,3}},
+			args: args{[]model.AssetID{1, 3}},
 			existAssets: []*model.Asset{
 				model.NewAssetFromFilePath("path1"),
 				model.NewAssetFromFilePath("path2"),
