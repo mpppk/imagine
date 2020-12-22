@@ -232,6 +232,16 @@ func (b *boltRepository) get(bucketNames []string, id uint64) (data []byte, exis
 	return data, data != nil, err
 }
 
+func (b *boltRepository) getByIDList(bucketNames []string, idList []uint64) (dataList [][]byte, err error) {
+	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		for _, id := range idList {
+			dataList = append(dataList, bucket.Get(itob(id)))
+		}
+		return nil
+	})
+	return dataList, err
+}
+
 func (b *boltRepository) multipleGetByString(bucketNames []string, keys []string) (dataList [][]byte, err error) {
 	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		for _, key := range keys {

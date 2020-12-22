@@ -1,9 +1,13 @@
 package repoimpl_test
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/mpppk/imagine/domain/repository"
 
@@ -51,6 +55,158 @@ func TestBBoltAsset_add(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, newAsset) {
 				t.Errorf("want: %#v, got: %#v", newAsset, got)
+			}
+		})
+	}
+}
+
+func consumeAllAssetsFromChan(ch <-chan *model.Asset, errCh <-chan error) (assets []*model.Asset, err error) {
+	for {
+		select {
+		case asset, ok := <-ch:
+			if !ok {
+				return assets, nil
+			}
+			assets = append(assets, asset)
+		case err := <-errCh:
+			return nil, err
+		}
+	}
+}
+
+func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
+	fileName := "TestBBoltAsset_ListByIDListAsync.db"
+	var wsName model.WSName = "workspace-for-test"
+	type args struct {
+		idList []model.AssetID
+		cap    int
+	}
+	tests := []struct {
+		name        string
+		existAssets []*model.Asset
+		args        args
+
+		want    []*model.Asset
+		wantErr bool
+	}{
+		{
+			existAssets: []*model.Asset{},
+			args:        args{idList: []model.AssetID{1}, cap: 100},
+			wantErr:     true,
+		},
+		{
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path1"),
+				model.NewAssetFromFilePath("path2"),
+				model.NewAssetFromFilePath("path3"),
+			},
+			args: args{idList: []model.AssetID{1, 3}, cap: 100},
+			want: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1"},
+				{ID: 3, Name: "path3", Path: "path3"},
+			},
+			wantErr: false,
+		},
+		{
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path1"),
+				model.NewAssetFromFilePath("path2"),
+				model.NewAssetFromFilePath("path3"),
+			},
+			args: args{idList: []model.AssetID{1, 3}, cap: 1},
+			want: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1"},
+				{ID: 3, Name: "path3", Path: "path3"},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, db := newRepository(t, wsName, fileName)
+			defer teardown(t, fileName, db)
+
+			if _, err := repo.BatchAdd(wsName, tt.existAssets); err != nil {
+				t.Fatalf("Update() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			ch, errCh, err := repo.ListByIDListAsync(context.Background(), wsName, tt.args.idList, tt.args.cap)
+			if (err != nil) && !tt.wantErr {
+				t.Fatalf("unexpected ListByIDListAsync error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			assets, err := consumeAllAssetsFromChan(ch, errCh)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("want err: %v, got: %v", tt.wantErr, err)
+			}
+			if diff := cmp.Diff(assets, tt.want); diff != "" {
+				t.Errorf("(-got +want)\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestBBoltAsset_BatchAppendBoundingBoxes(t *testing.T) {
+	fileName := "TestBBoltAsset_BatchAppendBoundingBoxes.db"
+	var wsName model.WSName = "workspace-for-test"
+	type args struct {
+		existAssets  []*model.Asset
+		updateAssets []*model.Asset
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*model.Asset
+		wantErr bool
+	}{
+		{
+			args: args{
+				existAssets: []*model.Asset{
+					model.NewAssetFromFilePath("path1"),
+					model.NewAssetFromFilePath("path2"),
+				},
+				updateAssets: []*model.Asset{
+					{
+						Path: "path1",
+						BoundingBoxes: []*model.BoundingBox{
+							{TagID: 0},
+						},
+					},
+				},
+			},
+			want: []*model.Asset{
+				{Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 0}}},
+				{Path: "path2", BoundingBoxes: nil},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, db := newRepository(t, wsName, fileName)
+			defer teardown(t, fileName, db)
+
+			if _, err := repo.BatchAdd(wsName, tt.args.existAssets); (err != nil) != tt.wantErr {
+				t.Errorf("BatchAdd() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			idList, err := repo.BatchAppendBoundingBoxes(wsName, tt.args.updateAssets)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			fmt.Println(idList)
+
+			var newAssets []*model.Asset
+			for _, id := range idList {
+				newAsset, exist, err := repo.Get(wsName, id)
+				if err != nil || !exist {
+					t.Errorf("failed to get asset: %v: %v", newAsset, err)
+				}
+				newAssets = append(newAssets, newAsset)
+			}
+			if !reflect.DeepEqual(tt.want, newAssets) {
+				t.Errorf("want: %#v, got: %#v", tt.want, newAssets)
 			}
 		})
 	}
