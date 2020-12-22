@@ -267,6 +267,65 @@ func TestBBoltAsset_Update(t *testing.T) {
 	}
 }
 
+func TestBBoltAsset_ListByIDList(t *testing.T) {
+	fileName := "TestBBoltAsset_ListByIDList.db"
+	var wsName model.WSName = "workspace-for-test"
+	type args struct {
+		idList []model.AssetID
+	}
+	tests := []struct {
+		name        string
+		args        args
+		existAssets []*model.Asset
+		want        []*model.Asset
+		wantErr     bool
+	}{
+		{
+			args:        args{[]model.AssetID{1}},
+			existAssets: []*model.Asset{},
+			wantErr: true,
+		},
+		{
+			args:        args{[]model.AssetID{1, 3}},
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path1"),
+			},
+			wantErr: true,
+		},
+		{
+			args:        args{[]model.AssetID{1,3}},
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path1"),
+				model.NewAssetFromFilePath("path2"),
+				model.NewAssetFromFilePath("path3"),
+			},
+			want: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1"},
+				{ID: 3, Name: "path3", Path: "path3"},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, db := newRepository(t, wsName, fileName)
+			defer teardown(t, fileName, db)
+
+			if _, err := repo.BatchAdd(wsName, tt.existAssets); err != nil {
+				t.Fatalf("BatchAdd() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			assets, err := repo.ListByIDList(wsName, tt.args.idList)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("failed to list assets. error: %v", err)
+			}
+			if diff := cmp.Diff(assets, tt.want); diff != "" {
+				t.Errorf("(-got +want)\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestBBoltAsset_GetByPath(t *testing.T) {
 	fileName := "TestBBoltAsset_GetByPath.db"
 	var wsName model.WSName = "workspace-for-test"
