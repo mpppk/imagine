@@ -57,3 +57,14 @@ func NewBoltClient(b *bbolt.DB) *repository.Client {
 	)
 	return nil
 }
+
+func NewBoltUseCases(b *bbolt.DB) *usecase.UseCases {
+	wire.Build(
+		usecase.New,
+		repoimpl.NewBBoltAsset,
+		repoimpl.NewBBoltTag,
+		repoimpl.NewBBoltWorkSpace,
+		repoimpl.NewBoltMeta,
+	)
+	return nil
+}

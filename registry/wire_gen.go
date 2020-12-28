@@ -48,3 +48,12 @@ func NewBoltClient(b *bbolt.DB) *repository.Client {
 	client := repository.NewClient(asset, tag, workSpace, meta)
 	return client
 }
+
+func NewBoltUseCases(b *bbolt.DB) *usecase.UseCases {
+	asset := repoimpl.NewBBoltAsset(b)
+	tag := repoimpl.NewBBoltTag(b)
+	workSpace := repoimpl.NewBBoltWorkSpace(b)
+	meta := repoimpl.NewBoltMeta(b)
+	useCases := usecase.New(asset, tag, workSpace, meta)
+	return useCases
+}

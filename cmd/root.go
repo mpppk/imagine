@@ -25,106 +25,117 @@ import (
 )
 
 var cfgFile string
+var RootCmd, rootCmdErr = NewRootCmd()
 
-// NewRootCmd generate root cmd
-var rootCmd = &cobra.Command{
-	Use:           "imagine",
-	Short:         "imagine",
-	SilenceErrors: true,
-	SilenceUsage:  true,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		cmd.SetOut(os.Stdout)
-		conf, err := option.NewRootCmdConfigFromViper()
-		if err != nil {
-			return err
-		}
-		util.InitializeLog(conf.Verbose)
-
-		db, err := bbolt.Open(conf.DB, 0600, nil)
-		if err != nil {
-			return fmt.Errorf("failed to open DB: %w", err)
-		}
-		defer func() {
-			if err := db.Close(); err != nil {
-				panic(err)
+func NewRootCmd() (*cobra.Command, error) {
+	var rootCmd = &cobra.Command{
+		Use:           "imagine",
+		Short:         "imagine",
+		SilenceErrors: true,
+		SilenceUsage:  true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SetOut(os.Stdout)
+			conf, err := option.NewRootCmdConfigFromViper()
+			if err != nil {
+				return err
 			}
-		}()
+			util.InitializeLog(conf.Verbose)
 
-		client := registry.NewBoltClient(db)
-		if err := client.Meta.Init(); err != nil {
-			return fmt.Errorf("failed to initialize meta repository: %w", err)
-		}
-
-		// for debug. set version for test
-		//v := semver.MustParse("0.0.1")
-		//if err := client.Meta.SetDBVersion(&v); err != nil {
-		//	return err
-		//}
-
-		migrationUseCase := usecase.NewMigration(client.Asset, client.Meta)
-		if err := migrationUseCase.Migrate(); err != nil {
-			return err
-		}
-
-		return nil
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		conf, err := option.NewRootCmdConfigFromViper()
-		if err != nil {
-			return err
-		}
-
-		db, err := bbolt.Open(conf.DB, 0600, nil)
-		if err != nil {
-			return fmt.Errorf("failed to open DB: %w", err)
-		}
-
-		defer func() {
-			if err := db.Close(); err != nil {
-				panic(err)
+			db, err := bbolt.Open(conf.DB, 0600, nil)
+			if err != nil {
+				return fmt.Errorf("failed to open DB file from %s: %w", conf.DB, err)
 			}
-		}()
+			defer func() {
+				if err := db.Close(); err != nil {
+					panic(err)
+				}
+			}()
 
-		logger := util.GetLogger()
+			client := registry.NewBoltClient(db)
+			if err := client.Meta.Init(); err != nil {
+				return fmt.Errorf("failed to initialize meta repository: %w", err)
+			}
 
-		handlers := registry.NewHandlers(db)
+			// for debug. set version for test
+			//v := semver.MustParse("0.0.1")
+			//if err := client.Meta.SetDBVersion(&v); err != nil {
+			//	return err
+			//}
 
-		if !conf.Dev {
-			s, err := infra.NewHtmlServer(conf.UiPort)
+			migrationUseCase := usecase.NewMigration(client.Asset, client.Meta)
+			if err := migrationUseCase.Migrate(); err != nil {
+				return err
+			}
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			conf, err := option.NewRootCmdConfigFromViper()
 			if err != nil {
 				return err
 			}
 
-			go func() {
-				if err := s.ListenAndServe(); err != nil {
+			db, err := bbolt.Open(conf.DB, 0600, nil)
+			if err != nil {
+				return fmt.Errorf("failed to open DB: %w", err)
+			}
+
+			defer func() {
+				if err := db.Close(); err != nil {
 					panic(err)
 				}
 			}()
-		}
 
-		config := &fsa.LorcaConfig{
-			AppName:          "imagine",
-			Url:              fmt.Sprintf("localhost:%d", conf.UiPort),
-			Width:            1080,
-			Height:           720,
-			EnableExtensions: conf.Dev,
-			Handlers:         handlers,
-			Logger:           logger,
-		}
+			logger := util.GetLogger()
 
-		ui, err := fsa.Start(config)
-		if err != nil {
-			panic(err)
-		}
-		defer func() {
-			if err := ui.Close(); err != nil {
+			handlers := registry.NewHandlers(db)
+
+			if !conf.Dev {
+				s, err := infra.NewHtmlServer(conf.UiPort)
+				if err != nil {
+					return err
+				}
+
+				go func() {
+					if err := s.ListenAndServe(); err != nil {
+						panic(err)
+					}
+				}()
+			}
+
+			config := &fsa.LorcaConfig{
+				AppName:          "imagine",
+				Url:              fmt.Sprintf("localhost:%d", conf.UiPort),
+				Width:            1080,
+				Height:           720,
+				EnableExtensions: conf.Dev,
+				Handlers:         handlers,
+				Logger:           logger,
+			}
+
+			ui, err := fsa.Start(config)
+			if err != nil {
 				panic(err)
 			}
-		}()
+			defer func() {
+				if err := ui.Close(); err != nil {
+					panic(err)
+				}
+			}()
 
-		fsa.Wait(ui)
-		return nil
-	},
+			fsa.Wait(ui)
+			return nil
+		},
+	}
+	if err := registerFlags(rootCmd); err != nil {
+		return nil, fmt.Errorf("failed to register flags")
+	}
+	fs := afero.NewOsFs()
+	if err := registerSubCommands(fs, rootCmd); err != nil {
+		panic(err)
+	}
+
+	return rootCmd, nil
 }
 
 func registerSubCommands(fs afero.Fs, cmd *cobra.Command) error {
@@ -189,18 +200,9 @@ func registerFlags(cmd *cobra.Command) error {
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() {
-	fs := afero.NewOsFs()
-	if err := registerSubCommands(fs, rootCmd); err != nil {
-		panic(err)
-	}
-
-	if err := registerFlags(rootCmd); err != nil {
-		panic(err)
-	}
-
-	if err := rootCmd.Execute(); err != nil {
+	if err := RootCmd.Execute(); err != nil {
 		fmt.Print(util.PrettyPrintError(err))
 		os.Exit(1)
 	}
@@ -208,6 +210,9 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	if rootCmdErr != nil {
+		panic(rootCmdErr)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.

@@ -37,5 +37,5 @@ func newAssetCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	rootCmd.AddCommand(assetCmd)
+	RootCmd.AddCommand(assetCmd)
 }

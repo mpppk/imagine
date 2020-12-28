@@ -25,7 +25,7 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 			}
 			db, err := bolt.Open(conf.DB, 0600, nil)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to open DB file from " + conf.DB)
 			}
 
 			assetUseCase := registry.InitializeAssetUseCase(db)

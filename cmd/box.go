@@ -8,12 +8,12 @@ import (
 )
 
 // FIXME: fs
-var tagCmd, _ = newTagCmd(nil)
+var boxCmd, _ = newBoxCmd(nil)
 
-func newTagCmd(fs afero.Fs) (*cobra.Command, error) {
+func newBoxCmd(fs afero.Fs) (*cobra.Command, error) {
 	cmd := &cobra.Command{
-		Use:   "tag",
-		Short: "Manage tags",
+		Use:   "box",
+		Short: "Manage bounding boxes",
 	}
 
 	registerFlags := func(cmd *cobra.Command) error {
@@ -37,5 +37,5 @@ func newTagCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	RootCmd.AddCommand(tagCmd)
+	RootCmd.AddCommand(boxCmd)
 }

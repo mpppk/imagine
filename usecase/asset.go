@@ -52,7 +52,7 @@ func (a *Asset) ImportBoundingBoxesFromReader(ws model.WSName, reader io.Reader)
 	for scanner.Scan() {
 		var asset model.ImportAsset
 		if err := json.Unmarshal(scanner.Bytes(), &asset); err != nil {
-			return fmt.Errorf("failed to unmarshal json to asset")
+			return fmt.Errorf("failed to unmarshal json to asset: %w", err)
 		}
 		importAssets = append(importAssets, &asset)
 		cnt++
@@ -69,7 +69,7 @@ func (a *Asset) ImportBoundingBoxesFromReader(ws model.WSName, reader io.Reader)
 
 	if len(importAssets) > 0 {
 		s.Suffix += "(writing...)"
-		if _, err := a.AddImportAssets(ws, importAssets, cap2); err != nil {
+		if _, err := a.AppendBoundingBoxes(ws, importAssets, cap2); err != nil {
 			return fmt.Errorf("failed to add import assets: %w", err)
 		}
 	}
