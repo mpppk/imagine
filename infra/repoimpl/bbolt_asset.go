@@ -69,6 +69,46 @@ func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath strin
 	return id, true, nil
 }
 
+func (b *BBoltAsset) BatchAppendBoundingBoxes(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
+	var idList []model.AssetID
+	var paths []string
+	for _, asset := range assets {
+		if asset.ID != 0 {
+			idList = append(idList, asset.ID)
+		} else if asset.Path != "" {
+			paths = append(paths, asset.Path)
+		}
+	}
+
+	idListFromPaths, err := b.pathRepository.ListByPath(ws, paths)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list asset id by paths: %w", err)
+	}
+
+	idList = append(idList, idListFromPaths...)
+
+	newAssets, err := b.ListByIDList(ws, idList)
+	if err != nil {
+		return nil, err
+	}
+
+	var dataList []boltData
+	for i, newAsset := range newAssets {
+		asset := assets[i]
+		if len(asset.BoundingBoxes) == 0 {
+			continue
+		}
+		newAsset.BoundingBoxes = append(newAsset.BoundingBoxes, asset.BoundingBoxes...)
+		dataList = append(dataList, newAsset)
+	}
+
+	if err := b.base.batchUpdateByID(createAssetBucketNames(ws), dataList); err != nil {
+		return nil, err
+	}
+
+	return idList, nil
+}
+
 func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
 	var dataList []boltData
 	var paths []string
@@ -145,7 +185,39 @@ func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
 	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
 
-func (b *BBoltAsset) List(ctx context.Context, ws model.WSName, cap int) (assetChan <-chan *model.Asset, err error) {
+func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (assets []*model.Asset, err error) {
+	var rawIdList []uint64
+	for _, id := range idList {
+		rawIdList = append(rawIdList, uint64(id))
+	}
+	contents, err := b.base.getByIDList(createAssetBucketNames(ws), rawIdList)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, content := range contents {
+		var asset model.Asset
+		if err := json.Unmarshal(content, &asset); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal asset: %w", err)
+		}
+		assets = append(assets, &asset)
+	}
+
+	return
+}
+
+func (b *BBoltAsset) ListByPath(ws model.WSName, path string) (asset *model.Asset, exist bool, err error) {
+	id, exist, err := b.pathRepository.Get(ws, path)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to get asset from path repository: %w", err)
+	}
+	if !exist {
+		return nil, false, nil
+	}
+	return b.Get(ws, id)
+}
+
+func (b *BBoltAsset) ListAsync(ctx context.Context, ws model.WSName, cap int) (assetChan <-chan *model.Asset, err error) {
 	f := func(asset *model.Asset) bool {
 		return true
 	}
@@ -210,6 +282,57 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 		close(ec)
 	}()
 	return c, nil
+}
+
+func getAssetByIdFromBucket(bucket *bolt.Bucket, id model.AssetID) (*model.Asset, error) {
+	v := bucket.Get(itob(uint64(id)))
+	var asset model.Asset
+	if err := json.Unmarshal(v, &asset); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal asset: %w", err)
+	}
+	return &asset, nil
+}
+
+func (b *BBoltAsset) ListByIDListAsync(ctx context.Context, ws model.WSName, idList []model.AssetID, cap int) (assetChan <-chan *model.Asset, errChan <-chan error, err error) {
+	c := make(chan *model.Asset, cap)
+	ec := make(chan error, 1)
+	go func() {
+		index := 0
+	L:
+		for index < len(idList) {
+			var assets []*model.Asset
+			err := b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
+				batchCnt := 0
+				for batchCnt <= cap {
+					if index+batchCnt >= len(idList) {
+						break
+					}
+					asset, err := getAssetByIdFromBucket(bucket, idList[index+batchCnt])
+					if err != nil {
+						return err
+					}
+					assets = append(assets, asset)
+					batchCnt++
+				}
+				index += batchCnt
+				return nil
+			})
+
+			if err != nil {
+				ec <- fmt.Errorf("failed to list assets: %w", err)
+			}
+
+			for _, asset := range assets {
+				select {
+				case <-ctx.Done():
+					break L
+				case c <- asset:
+				}
+			}
+		}
+		close(c)
+	}()
+	return c, ec, nil
 }
 
 func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func(v []byte) bool, cap int) (vc <-chan []byte, err error) {
@@ -318,7 +441,7 @@ func (b *BBoltAsset) Revalidate(ws model.WSName) error {
 	if err := b.pathRepository.DeleteAll(ws); err != nil {
 		return fmt.Errorf("failed to delete path caches while revalidating: %w", err)
 	}
-	c, err := b.List(context.Background(), ws, cap)
+	c, err := b.ListAsync(context.Background(), ws, cap)
 	if err != nil {
 		return fmt.Errorf("failed to prepare asset listing: %w", err)
 	}

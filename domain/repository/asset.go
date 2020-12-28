@@ -12,6 +12,7 @@ type Asset interface {
 	Init(ws model.WSName) error
 	Add(ws model.WSName, asset *model.Asset) (model.AssetID, error)
 	BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error)
+	BatchAppendBoundingBoxes(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error)
 	AddByFilePathIfDoesNotExist(ws model.WSName, filePath string) (id model.AssetID, added bool, err error)
 	AddByFilePathListIfDoesNotExist(ws model.WSName, filePathList []string) (idList []model.AssetID, err error)
 	Get(ws model.WSName, id model.AssetID) (asset *model.Asset, exist bool, err error)
@@ -23,6 +24,8 @@ type Asset interface {
 	ListByAsync(ctx context.Context, ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error)
 	ListRawByAsync(ctx context.Context, ws model.WSName, f func(v []byte) bool, cap int) (c <-chan []byte, err error)
 	ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset, err error)
+	ListByIDList(ws model.WSName, idList []model.AssetID) ([]*model.Asset, error)
+	ListByIDListAsync(ctx context.Context, ws model.WSName, idList []model.AssetID, cap int) (assetChan <-chan *model.Asset, errChan <-chan error, err error)
 	ForEach(ws model.WSName, f func(asset *model.Asset) error) error
 	Revalidate(ws model.WSName) error
 }

@@ -150,7 +150,7 @@ func (b *BBoltTag) ListAsSet(ws model.WSName) (set *model.TagSet, err error) {
 		return nil, err
 	}
 
-	set = model.NewTagSet()
+	set = model.NewTagSet(nil)
 	for _, tag := range tags {
 		set.Set(tag.Tag)
 	}

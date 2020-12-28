@@ -45,11 +45,15 @@ type TagSet struct {
 	nameM map[string]*Tag
 }
 
-func NewTagSet() *TagSet {
-	return &TagSet{
+func NewTagSet(tags []*Tag) *TagSet {
+	tagSet := &TagSet{
 		m:     map[TagID]*Tag{},
 		nameM: map[string]*Tag{},
 	}
+	for _, tag := range tags {
+		tagSet.Set(tag)
+	}
+	return tagSet
 }
 
 func (t *TagSet) Set(tag *Tag) bool {
@@ -72,7 +76,7 @@ func (t *TagSet) GetByName(name string) (*Tag, bool) {
 }
 
 func (t *TagSet) SubSetBy(f func(tag *Tag) bool) *TagSet {
-	subset := NewTagSet()
+	subset := NewTagSet(nil)
 	for _, tag := range t.m {
 		if f(tag) {
 			subset.Set(tag)

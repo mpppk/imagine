@@ -173,13 +173,13 @@ func Test_bboltPathRepository_GetList(t *testing.T) {
 			p := &bboltPathRepository{
 				base: tt.fields.base,
 			}
-			gotIdList, err := p.GetList(tt.args.ws, tt.args.paths)
+			gotIdList, err := p.ListByPath(tt.args.ws, tt.args.paths)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetList() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ListByPath() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(gotIdList, tt.wantIdList) {
-				t.Errorf("GetList() gotIdList = %v, want %v", gotIdList, tt.wantIdList)
+				t.Errorf("ListByPath() gotIdList = %v, want %v", gotIdList, tt.wantIdList)
 			}
 		})
 	}

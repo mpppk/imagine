@@ -1,3 +1,5 @@
+//go:generate mockgen -source=./tag.go -destination=../../infra/repoimpl/mock_tag.go -package=repoimpl
+
 package repository
 
 import "github.com/mpppk/imagine/domain/model"

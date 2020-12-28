@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/golang/mock/gomock"
 
 	"github.com/mpppk/imagine/infra/repoimpl"
@@ -73,6 +75,66 @@ func TestAsset_AssignBoundingBox(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("AssignBoundingBox() got = %#v, want %#v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAsset_AppendBoundingBoxes(t *testing.T) {
+	type args struct {
+		ws     model.WSName
+		assets []*model.ImportAsset
+		cap    int
+	}
+	tests := []struct {
+		name        string
+		args        args
+		tagSet      *model.TagSet
+		existAssets []*model.Asset
+		want        []model.AssetID
+		wantAssets  []*model.Asset
+		wantErr     bool
+	}{
+		{
+			args: args{
+				ws: testWSName,
+				assets: []*model.ImportAsset{
+					{
+						Asset: model.NewAssetFromFilePath("path1"),
+						BoundingBoxes: []*model.ImportBoundingBox{
+							{TagName: "tag1"},
+						},
+					},
+				},
+				cap: 100,
+			},
+			tagSet: model.NewTagSet([]*model.Tag{{ID: 1, Name: "tag1"}}),
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path1"),
+				model.NewAssetFromFilePath("path2"),
+			},
+			want:    []model.AssetID{1},
+			wantErr: false,
+		},
+	}
+
+	ctrl := gomock.NewController(t)
+	assetRepo := repoimpl.NewMockAsset(ctrl)
+	tagRepo := repoimpl.NewMockTag(ctrl)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tagRepo.EXPECT().ListAsSet(gomock.Eq(testWSName)).Return(tt.tagSet, nil)
+			assetRepo.EXPECT().BatchAppendBoundingBoxes(gomock.Eq(testWSName), gomock.Any()).Return(tt.want, nil)
+			a := NewAsset(assetRepo, tagRepo)
+
+			got, err := a.AppendBoundingBoxes(tt.args.ws, tt.args.assets, tt.args.cap)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AppendBoundingBoxes() error = %#v, wantErr %#v", err, tt.wantErr)
+				return
+			}
+
+			if diff := cmp.Diff(got, tt.want); diff != "" {
+				t.Errorf("(-got +want)\n%s", diff)
 			}
 		})
 	}
