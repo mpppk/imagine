@@ -42,8 +42,9 @@ func TestBBoltTag_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
-			defer teardown()
+			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			defer closer()
+			defer remover()
 
 			if err := usecases.Client.Tag.Update(wsName, tt.args.tag); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)

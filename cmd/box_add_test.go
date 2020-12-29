@@ -46,30 +46,21 @@ func TestBoXAdd(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, c.dbName, c.wsName)
-			defer teardown()
+			u := testutil.NewTestUseCaseUser(t, c.dbName, c.wsName)
+			defer u.RemoveDB()
+			u.Use(func(usecases *testutil.UseCases) {
+				usecases.Asset.AddImportAssets(c.wsName, c.importAssets, 100)
+				usecases.Tag.SetTags(c.wsName, c.importTags)
+			})
 
-			if _, err := usecases.Asset.AddImportAssets(c.wsName, c.importAssets, 100); err != nil {
-				t.Fatalf("failed to get assets: %v", err)
-			}
-
-			if err := usecases.Tag.SetTags(c.wsName, c.importTags); err != nil {
-				t.Fatalf("failed to set tags: %v", err)
-			}
-
-			reader := strings.NewReader(c.stdInText)
-			cmd.RootCmd.SetIn(reader)
+			cmd.RootCmd.SetIn(strings.NewReader(c.stdInText))
 			cmdWithFlag := c.command + " --db " + c.dbName
-			if _, err := testutil.ExecuteCommand(cmd.RootCmd, cmdWithFlag); err != nil {
-				t.Errorf("failed to execute box add command: %v", err)
-			}
+			testutil.ExecuteCommand(t, cmd.RootCmd, cmdWithFlag)
 
-			assets, err := usecases.Client.Asset.ListBy(c.wsName, func(a *model.Asset) bool { return true })
-			if err != nil {
-				t.Fatalf("faled to list assets: %v", err)
-			}
-
-			testutil.Diff(t, assets, c.wantAssets)
+			u.Use(func(usecases *testutil.UseCases) {
+				assets := usecases.Client.Asset.ListBy(c.wsName, func(a *model.Asset) bool { return true })
+				testutil.Diff(t, assets, c.wantAssets)
+			})
 		})
 	}
 }

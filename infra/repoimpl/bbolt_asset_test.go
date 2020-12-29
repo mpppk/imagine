@@ -39,8 +39,9 @@ func TestBBoltAsset_add(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
-			defer teardown()
+			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			defer closer()
+			defer remover()
 
 			if _, err := usecases.Client.Asset.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
@@ -119,8 +120,9 @@ func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
-			defer teardown()
+			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			defer closer()
+			defer remover()
 
 			if _, err := usecases.Client.Asset.BatchAdd(wsName, tt.existAssets); err != nil {
 				t.Fatalf("Update() error = %v, wantErr %v", err, tt.wantErr)
@@ -235,8 +237,9 @@ func TestBBoltAsset_BatchAppendBoundingBoxes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
-			defer teardown()
+			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			defer closer()
+			defer remover()
 
 			if _, err := usecases.Client.Asset.BatchAdd(wsName, tt.existAssets); err != nil {
 				t.Fatalf("BatchAdd() error = %v, wantErr %v", err, tt.wantErr)
@@ -295,8 +298,9 @@ func TestBBoltAsset_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
-			defer teardown()
+			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			defer closer()
+			defer remover()
 
 			for _, asset := range tt.oldAssets {
 				if _, _, err := usecases.Client.Asset.AddByFilePathIfDoesNotExist(wsName, asset.Path); err != nil {
@@ -359,8 +363,9 @@ func TestBBoltAsset_ListByIDList(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
-			defer teardown()
+			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			defer closer()
+			defer remover()
 
 			if _, err := usecases.Client.Asset.BatchAdd(wsName, tt.existAssets); err != nil {
 				t.Fatalf("BatchAdd() error = %v, wantErr %v", err, tt.wantErr)
@@ -403,8 +408,9 @@ func TestBBoltAsset_GetByPath(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
-			defer teardown()
+			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			defer closer()
+			defer remover()
 
 			for _, path := range tt.existPaths {
 				if _, ok, err := usecases.Client.Asset.AddByFilePathIfDoesNotExist(wsName, path); (err != nil) != tt.wantErr {
@@ -451,8 +457,9 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, fileName, tt.args.ws)
-			defer teardown()
+			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, tt.args.ws)
+			defer closer()
+			defer remover()
 
 			idList, err := usecases.Client.Asset.AddByFilePathListIfDoesNotExist(tt.args.ws, tt.args.filePathList)
 			if (err != nil) != tt.wantErr {

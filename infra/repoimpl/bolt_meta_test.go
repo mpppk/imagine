@@ -23,8 +23,9 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, fileName, "")
-			defer teardown()
+			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, "")
+			defer closer()
+			defer remover()
 
 			v, err := semver.New(tt.version)
 			if err != nil {
