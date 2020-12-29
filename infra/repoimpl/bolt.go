@@ -318,3 +318,7 @@ func (b *boltRepository) recreateBucket(bucketNames []string) error {
 		return nil
 	})
 }
+
+func (b *boltRepository) close() error {
+	return b.bolt.Close()
+}

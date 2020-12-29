@@ -6,6 +6,7 @@ import (
 	"github.com/google/wire"
 	"github.com/mpppk/imagine/action"
 	"github.com/mpppk/imagine/domain/repository"
+	"github.com/mpppk/imagine/infra"
 	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/mpppk/imagine/usecase"
 	"go.etcd.io/bbolt"
@@ -67,4 +68,16 @@ func NewBoltUseCases(b *bbolt.DB) *usecase.UseCases {
 		repoimpl.NewBoltMeta,
 	)
 	return nil
+}
+
+func NewBoltUseCasesWithDBPath(dbPath string) (*usecase.UseCases, error) {
+	wire.Build(
+		infra.NewBoltDB,
+		usecase.New,
+		repoimpl.NewBBoltAsset,
+		repoimpl.NewBBoltTag,
+		repoimpl.NewBBoltWorkSpace,
+		repoimpl.NewBoltMeta,
+	)
+	return nil, nil
 }

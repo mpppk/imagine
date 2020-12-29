@@ -6,10 +6,6 @@ import (
 
 	"github.com/mpppk/imagine/infra"
 
-	"github.com/mpppk/imagine/usecase"
-
-	"go.etcd.io/bbolt"
-
 	"github.com/mpppk/imagine/registry"
 	"github.com/mpppk/imagine/util"
 
@@ -41,18 +37,16 @@ func NewRootCmd() (*cobra.Command, error) {
 			}
 			util.InitializeLog(conf.Verbose)
 
-			db, err := bbolt.Open(conf.DB, 0600, nil)
+			usecases, err := registry.NewBoltUseCasesWithDBPath(conf.DB)
 			if err != nil {
-				return fmt.Errorf("failed to open DB file from %s: %w", conf.DB, err)
+				return fmt.Errorf("failed to create usecases instance: %w", err)
 			}
 			defer func() {
-				if err := db.Close(); err != nil {
+				if err := usecases.Close(); err != nil {
 					panic(err)
 				}
 			}()
-
-			client := registry.NewBoltClient(db)
-			if err := client.Meta.Init(); err != nil {
+			if err := usecases.Client.Init(); err != nil {
 				return fmt.Errorf("failed to initialize meta repository: %w", err)
 			}
 
@@ -62,8 +56,7 @@ func NewRootCmd() (*cobra.Command, error) {
 			//	return err
 			//}
 
-			migrationUseCase := usecase.NewMigration(client.Asset, client.Meta)
-			if err := migrationUseCase.Migrate(); err != nil {
+			if err := usecases.Migration.Migrate(); err != nil {
 				return err
 			}
 
@@ -75,20 +68,17 @@ func NewRootCmd() (*cobra.Command, error) {
 				return err
 			}
 
-			db, err := bbolt.Open(conf.DB, 0600, nil)
-			if err != nil {
-				return fmt.Errorf("failed to open DB: %w", err)
-			}
+			logger := util.GetLogger()
 
+			handlers, closer, err := registry.NewHandlersWithDBPath(conf.DB)
+			if err != nil {
+				return err
+			}
 			defer func() {
-				if err := db.Close(); err != nil {
+				if err := closer.Close(); err != nil {
 					panic(err)
 				}
 			}()
-
-			logger := util.GetLogger()
-
-			handlers := registry.NewHandlers(db)
 
 			if !conf.Dev {
 				s, err := infra.NewHtmlServer(conf.UiPort)

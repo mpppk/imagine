@@ -8,6 +8,7 @@ package registry
 import (
 	"github.com/mpppk/imagine/action"
 	"github.com/mpppk/imagine/domain/repository"
+	"github.com/mpppk/imagine/infra"
 	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/mpppk/imagine/usecase"
 	"go.etcd.io/bbolt"
@@ -56,4 +57,17 @@ func NewBoltUseCases(b *bbolt.DB) *usecase.UseCases {
 	meta := repoimpl.NewBoltMeta(b)
 	useCases := usecase.New(asset, tag, workSpace, meta)
 	return useCases
+}
+
+func NewBoltUseCasesWithDBPath(dbPath string) (*usecase.UseCases, error) {
+	db, err := infra.NewBoltDB(dbPath)
+	if err != nil {
+		return nil, err
+	}
+	asset := repoimpl.NewBBoltAsset(db)
+	tag := repoimpl.NewBBoltTag(db)
+	workSpace := repoimpl.NewBBoltWorkSpace(db)
+	meta := repoimpl.NewBoltMeta(db)
+	useCases := usecase.New(asset, tag, workSpace, meta)
+	return useCases, nil
 }

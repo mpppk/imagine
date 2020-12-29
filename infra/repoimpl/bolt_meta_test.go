@@ -4,13 +4,9 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/mpppk/imagine/testutil"
+
 	"github.com/blang/semver/v4"
-
-	"github.com/mpppk/imagine/domain/repository"
-
-	bolt "go.etcd.io/bbolt"
-
-	"github.com/mpppk/imagine/infra/repoimpl"
 )
 
 func TestBoltMeta_SetAndGetVersion(t *testing.T) {
@@ -27,17 +23,17 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, db := newMetaRepository(t, fileName)
-			defer teardown(t, fileName, db)
+			usecases, teardown := testutil.SetUpUseCases(t, fileName, "")
+			defer teardown()
 
 			v, err := semver.New(tt.version)
 			if err != nil {
 				t.Errorf("failed to create semver struct: %v", err)
 			}
-			if err := repo.SetDBVersion(v); (err != nil) != tt.wantErr {
+			if err := usecases.Client.Meta.SetDBVersion(v); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			gotVersion, ok, err := repo.GetDBVersion()
+			gotVersion, ok, err := usecases.Client.Meta.GetDBVersion()
 			if err != nil || !ok {
 				t.Errorf("failed to get version: %v", err)
 			}
@@ -46,19 +42,4 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 			}
 		})
 	}
-}
-
-func newMetaRepository(t *testing.T, fileName string) (repository.Meta, *bolt.DB) {
-	t.Helper()
-	db, err := bolt.Open(fileName, 0600, nil)
-	if err != nil {
-		t.Errorf("failed to create bolt db: %v", err)
-	}
-
-	repo := repoimpl.NewBoltMeta(db)
-	if err != nil {
-		t.Errorf("failed to create BBoltAsset: %v", err)
-	}
-
-	return repo, db
 }

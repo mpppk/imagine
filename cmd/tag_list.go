@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/mpppk/imagine/registry"
+
 	"github.com/mpppk/imagine/cmd/option"
-	"github.com/mpppk/imagine/infra/repoimpl"
-	"github.com/mpppk/imagine/usecase"
 	"github.com/spf13/afero"
-	bolt "go.etcd.io/bbolt"
 
 	"github.com/spf13/cobra"
 )
@@ -18,18 +17,22 @@ func newTagListCmd(fs afero.Fs) (*cobra.Command, error) {
 		Use:   "list",
 		Short: "list tags",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: tag一覧表示を実装
 			conf, err := option.NewTagListCmdConfigFromViper(args)
 			if err != nil {
 				return err
 			}
-			db, err := bolt.Open(conf.DB, 0600, &bolt.Options{ReadOnly: true})
+
+			usecases, err := registry.NewBoltUseCasesWithDBPath(conf.DB)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to create usecases instance: %w", err)
 			}
-			tagRepository := repoimpl.NewBBoltTag(db)
-			tagUseCase := usecase.NewTag(tagRepository)
-			tags, err := tagUseCase.List(conf.WorkSpace)
+			defer func() {
+				if err := usecases.Close(); err != nil {
+					panic(err)
+				}
+			}()
+
+			tags, err := usecases.Tag.List(conf.WorkSpace)
 			if err != nil {
 				return err
 			}

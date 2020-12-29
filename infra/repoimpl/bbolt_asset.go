@@ -462,6 +462,10 @@ func (b *BBoltAsset) Revalidate(ws model.WSName) error {
 	return nil
 }
 
+func (b *BBoltAsset) Close() error {
+	return b.base.close()
+}
+
 func toAssetIDList(idList []uint64) (assetIDList []model.AssetID) {
 	for _, id := range idList {
 		assetIDList = append(assetIDList, model.AssetID(id))

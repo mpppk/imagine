@@ -8,15 +8,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mpppk/imagine/infra/repoimpl"
-
 	"github.com/mpppk/imagine/registry"
 
 	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mpppk/imagine/cmd/option"
 	"github.com/spf13/afero"
-	bolt "go.etcd.io/bbolt"
 
 	"github.com/spf13/cobra"
 )
@@ -42,18 +39,22 @@ func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
 			if err != nil {
 				return err
 			}
-			db, err := bolt.Open(conf.DB, 0600, nil)
+			usecases, err := registry.NewBoltUseCasesWithDBPath(conf.DB)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to create usecases instance: %w", err)
 			}
-			assetUseCase := registry.InitializeAssetUseCase(db)
-			assetChan, err := assetUseCase.ListAsync(context.Background(), conf.WorkSpace)
+			defer func() {
+				if err := usecases.Close(); err != nil {
+					panic(err)
+				}
+			}()
+
+			assetChan, err := usecases.Asset.ListAsync(context.Background(), conf.WorkSpace)
 			if err != nil {
 				return err
 			}
 
-			tagRepository := repoimpl.NewBBoltTag(db)
-			tagSet, err := tagRepository.ListAsSet(conf.WorkSpace)
+			tagSet, err := usecases.Client.Tag.ListAsSet(conf.WorkSpace)
 			if err != nil {
 				return err
 			}

@@ -52,3 +52,7 @@ func (c *Client) CreateWorkSpace(ws model.WSName) (*model.WorkSpace, error) {
 	}
 	return workspace, nil
 }
+
+func (c *Client) Close() error {
+	return c.Asset.Close()
+}
