@@ -3,11 +3,11 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/mpppk/imagine/registry"
+
 	"github.com/mpppk/imagine/cmd/option"
-	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	bolt "go.etcd.io/bbolt"
 )
 
 func newValidateCmd(fs afero.Fs) (*cobra.Command, error) {
@@ -20,12 +20,16 @@ func newValidateCmd(fs afero.Fs) (*cobra.Command, error) {
 			if err != nil {
 				return err
 			}
-			db, err := bolt.Open(conf.DB, 0600, nil)
+			usecases, err := registry.NewBoltUseCasesWithDBPath(conf.DB)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to create usecases instance: %w", err)
 			}
-			assetRepository := repoimpl.NewBBoltAsset(db)
-			if err := assetRepository.Revalidate(conf.WorkSpace); err != nil {
+			defer func() {
+				if err := usecases.Close(); err != nil {
+					panic(err)
+				}
+			}()
+			if err := usecases.Client.Asset.Revalidate(conf.WorkSpace); err != nil {
 				return fmt.Errorf("failed to revalidate: %w", err)
 			}
 			return nil

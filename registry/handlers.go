@@ -3,7 +3,10 @@
 package registry
 
 import (
+	"io"
+
 	"github.com/mpppk/imagine/action"
+	"github.com/mpppk/imagine/infra"
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 	"go.etcd.io/bbolt"
 )
@@ -24,4 +27,11 @@ func NewHandlers(db *bbolt.DB) *fsa.Handlers {
 	handlers.Handle(action.BoxModifyRequestType, handlerCreator.Box.Modify())
 	handlers.Handle(action.BoxDeleteRequestType, handlerCreator.Box.Delete())
 	return handlers
+}
+func NewHandlersWithDBPath(dbPath string) (*fsa.Handlers, io.Closer, error) {
+	db, err := infra.NewBoltDB(dbPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	return NewHandlers(db), db, nil
 }

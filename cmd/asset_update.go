@@ -6,8 +6,6 @@ import (
 
 	"github.com/mpppk/imagine/registry"
 
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/mpppk/imagine/cmd/option"
 	"github.com/spf13/afero"
 
@@ -23,17 +21,20 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 			if err != nil {
 				return err
 			}
-			db, err := bolt.Open(conf.DB, 0600, nil)
+			usecases, err := registry.NewBoltUseCasesWithDBPath(conf.DB)
 			if err != nil {
-				return fmt.Errorf("failed to open DB file from " + conf.DB)
+				return fmt.Errorf("failed to create usecases instance: %w", err)
 			}
-
-			assetUseCase := registry.InitializeAssetUseCase(db)
-			if err := assetUseCase.Init(conf.WorkSpace); err != nil {
+			defer func() {
+				if err := usecases.Close(); err != nil {
+					panic(err)
+				}
+			}()
+			if err := usecases.InitializeWorkSpace(conf.WorkSpace); err != nil {
 				return fmt.Errorf("failed to initialize asset usecase: %w", err)
 			}
 
-			if err := assetUseCase.ImportFromReader(conf.WorkSpace, os.Stdin, conf.New); err != nil {
+			if err := usecases.Asset.ImportFromReader(conf.WorkSpace, os.Stdin, conf.New); err != nil {
 				return fmt.Errorf("failed to import asset from reader: %w", err)
 			}
 

@@ -2,15 +2,12 @@ package repoimpl_test
 
 import (
 	"context"
-	"os"
 	"reflect"
 	"testing"
 
+	"github.com/mpppk/imagine/testutil"
+
 	"github.com/google/go-cmp/cmp"
-
-	"github.com/mpppk/imagine/domain/repository"
-
-	bolt "go.etcd.io/bbolt"
 
 	"github.com/mpppk/imagine/infra/repoimpl"
 
@@ -42,13 +39,13 @@ func TestBBoltAsset_add(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, db := newRepository(t, wsName, fileName)
-			defer teardown(t, fileName, db)
+			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
+			defer teardown()
 
-			if _, err := repo.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
+			if _, err := usecases.Client.Asset.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			got, exist, err := repo.Get(wsName, tt.args.asset.ID)
+			got, exist, err := usecases.Client.Asset.Get(wsName, tt.args.asset.ID)
 			if err != nil || !exist {
 				t.Errorf("failed to get asset: %v: %v", newAsset.ID, err)
 			}
@@ -122,14 +119,14 @@ func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, db := newRepository(t, wsName, fileName)
-			defer teardown(t, fileName, db)
+			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
+			defer teardown()
 
-			if _, err := repo.BatchAdd(wsName, tt.existAssets); err != nil {
+			if _, err := usecases.Client.Asset.BatchAdd(wsName, tt.existAssets); err != nil {
 				t.Fatalf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			ch, errCh, err := repo.ListByIDListAsync(context.Background(), wsName, tt.args.idList, tt.args.cap)
+			ch, errCh, err := usecases.Client.Asset.ListByIDListAsync(context.Background(), wsName, tt.args.idList, tt.args.cap)
 			if (err != nil) && !tt.wantErr {
 				t.Fatalf("unexpected ListByIDListAsync error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -238,14 +235,14 @@ func TestBBoltAsset_BatchAppendBoundingBoxes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, db := newRepository(t, wsName, fileName)
-			defer teardown(t, fileName, db)
+			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
+			defer teardown()
 
-			if _, err := repo.BatchAdd(wsName, tt.existAssets); err != nil {
+			if _, err := usecases.Client.Asset.BatchAdd(wsName, tt.existAssets); err != nil {
 				t.Fatalf("BatchAdd() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			_, err := repo.BatchAppendBoundingBoxes(wsName, tt.args.updateAssets)
+			_, err := usecases.Client.Asset.BatchAppendBoundingBoxes(wsName, tt.args.updateAssets)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -254,7 +251,7 @@ func TestBBoltAsset_BatchAppendBoundingBoxes(t *testing.T) {
 			for _, asset := range tt.want {
 				wantIDList = append(wantIDList, asset.ID)
 			}
-			gotAssets, err := repo.ListByIDList(wsName, wantIDList)
+			gotAssets, err := usecases.Client.Asset.ListByIDList(wsName, wantIDList)
 			if err != nil {
 				t.Fatalf("ListByIDList() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -298,19 +295,19 @@ func TestBBoltAsset_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, db := newRepository(t, wsName, fileName)
-			defer teardown(t, fileName, db)
+			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
+			defer teardown()
 
 			for _, asset := range tt.oldAssets {
-				if _, _, err := repo.AddByFilePathIfDoesNotExist(wsName, asset.Path); (err != nil) != tt.wantErr {
-					t.Errorf("failed to addByID assets: %#v", asset)
+				if _, _, err := usecases.Client.Asset.AddByFilePathIfDoesNotExist(wsName, asset.Path); err != nil {
+					t.Fatalf("failed to addByID assets: %v: %#v", err, asset)
 				}
 			}
 
-			if err := repo.Update(wsName, tt.args.asset); (err != nil) != tt.wantErr {
+			if err := usecases.Client.Asset.Update(wsName, tt.args.asset); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			got, _, err := repo.Get(wsName, tt.args.asset.ID)
+			got, _, err := usecases.Client.Asset.Get(wsName, tt.args.asset.ID)
 			if err != nil {
 				t.Errorf("failed to get asset: %v: %v", newAsset.ID, err)
 			}
@@ -362,14 +359,14 @@ func TestBBoltAsset_ListByIDList(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, db := newRepository(t, wsName, fileName)
-			defer teardown(t, fileName, db)
+			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
+			defer teardown()
 
-			if _, err := repo.BatchAdd(wsName, tt.existAssets); err != nil {
+			if _, err := usecases.Client.Asset.BatchAdd(wsName, tt.existAssets); err != nil {
 				t.Fatalf("BatchAdd() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			assets, err := repo.ListByIDList(wsName, tt.args.idList)
+			assets, err := usecases.Client.Asset.ListByIDList(wsName, tt.args.idList)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("failed to list assets. error: %v", err)
 			}
@@ -406,21 +403,21 @@ func TestBBoltAsset_GetByPath(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, db := newRepository(t, wsName, fileName)
-			defer teardown(t, fileName, db)
+			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
+			defer teardown()
 
 			for _, path := range tt.existPaths {
-				if _, ok, err := repo.AddByFilePathIfDoesNotExist(wsName, path); (err != nil) != tt.wantErr {
+				if _, ok, err := usecases.Client.Asset.AddByFilePathIfDoesNotExist(wsName, path); (err != nil) != tt.wantErr {
 					t.Errorf("GetByPath() error whiile assets adding. error = %v, wantErr %v", err, tt.wantErr)
 				} else if !ok {
 					t.Errorf("failed to add asset in AddByFilePathIfDoesNotExist test exist: %v", ok)
 				}
 			}
-			_, err := repo.ListBy(wsName, func(a *model.Asset) bool { return true })
+			_, err := usecases.Client.Asset.ListBy(wsName, func(a *model.Asset) bool { return true })
 			if err != nil {
 				t.Errorf("failed to list assets. error: %v", err)
 			}
-			got, exist, err := repo.GetByPath(wsName, tt.args.path)
+			got, exist, err := usecases.Client.Asset.GetByPath(wsName, tt.args.path)
 			if err != nil || !exist {
 				t.Errorf("failed to get asset by GetByPath. exist: %v error: %v", exist, err)
 			}
@@ -454,19 +451,19 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, db := newRepository(t, tt.args.ws, fileName)
-			defer teardown(t, fileName, db)
+			usecases, teardown := testutil.SetUpUseCases(t, fileName, tt.args.ws)
+			defer teardown()
 
-			idList, err := repo.AddByFilePathListIfDoesNotExist(tt.args.ws, tt.args.filePathList)
+			idList, err := usecases.Client.Asset.AddByFilePathListIfDoesNotExist(tt.args.ws, tt.args.filePathList)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddByFilePathListifDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			for _, id := range idList {
-				asset, exist, err := repo.Get(tt.args.ws, id)
+				asset, exist, err := usecases.Client.Asset.Get(tt.args.ws, id)
 				if err != nil || !exist {
 					t.Errorf("failed to get asset which added by AddByFilePathListifDoesNotExist() exist = %v error = %v", exist, err)
 				}
-				asset2, exist, err := repo.GetByPath(tt.args.ws, asset.Path)
+				asset2, exist, err := usecases.Client.Asset.GetByPath(tt.args.ws, asset.Path)
 				if err != nil || !exist {
 					t.Errorf("failed to get asset which added by AddByFilePathListifDoesNotExist() exist = %v error = %v", exist, err)
 				}
@@ -476,33 +473,5 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 				}
 			}
 		})
-	}
-}
-
-func newRepository(t *testing.T, wsName model.WSName, fileName string) (repository.Asset, *bolt.DB) {
-	t.Helper()
-	db, err := bolt.Open(fileName, 0600, nil)
-	if err != nil {
-		t.Errorf("failed to create bolt db: %v", err)
-	}
-
-	repo := repoimpl.NewBBoltAsset(db)
-	if err != nil {
-		t.Errorf("failed to create BBoltAsset: %v", err)
-	}
-
-	if err := repo.Init(wsName); err != nil {
-		t.Errorf("failed to create BBoltAsset: %v", err)
-	}
-	return repo, db
-}
-
-func teardown(t *testing.T, fileName string, db *bolt.DB) {
-	t.Helper()
-	if err := db.Close(); err != nil {
-		t.Errorf("failed to close db: %v", err)
-	}
-	if err := os.Remove(fileName); err != nil {
-		t.Errorf("failed to remove test file: %v", err)
 	}
 }

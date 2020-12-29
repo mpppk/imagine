@@ -7,13 +7,12 @@ import (
 	"log"
 	"os"
 
+	"github.com/mpppk/imagine/registry"
+
 	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mpppk/imagine/cmd/option"
-	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/spf13/afero"
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -26,11 +25,15 @@ func newAssetDeleteCmd(fs afero.Fs) (*cobra.Command, error) {
 			if err != nil {
 				return err
 			}
-			db, err := bolt.Open(conf.DB, 0600, nil)
+			usecases, err := registry.NewBoltUseCasesWithDBPath(conf.DB)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to create usecases instance: %w", err)
 			}
-			assetRepository := repoimpl.NewBBoltAsset(db)
+			defer func() {
+				if err := usecases.Close(); err != nil {
+					panic(err)
+				}
+			}()
 			scanner := bufio.NewScanner(os.Stdin)
 			var asset model.Asset
 			for scanner.Scan() {
@@ -42,14 +45,14 @@ func newAssetDeleteCmd(fs afero.Fs) (*cobra.Command, error) {
 					continue
 				}
 
-				if ok, err := assetRepository.Has(conf.WorkSpace, asset.ID); err != nil {
+				if ok, err := usecases.Client.Asset.Has(conf.WorkSpace, asset.ID); err != nil {
 					return fmt.Errorf("failed to check asset. image path: %s: %w", asset.Path, err)
 				} else if !ok {
 					log.Printf("debug: asset skipped because it does not exist: id:%d", asset.ID)
 					continue
 				}
 
-				if err := assetRepository.Delete(conf.WorkSpace, asset.ID); err != nil {
+				if err := usecases.Client.Asset.Delete(conf.WorkSpace, asset.ID); err != nil {
 					return fmt.Errorf("failed to add asset. image path: %s: %w", asset.Path, err)
 				}
 				log.Printf("debug: asset deleted: %#v", asset)

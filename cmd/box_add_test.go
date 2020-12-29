@@ -9,8 +9,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/mpppk/imagine/registry"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -85,34 +83,32 @@ func TestBoXAdd(t *testing.T) {
 }
 
 func addTags(dbPath string, ws model.WSName, tags []*model.Tag) error {
-	db, err := bolt.Open(dbPath, 0600, nil)
+	usecases, err := registry.NewBoltUseCasesWithDBPath(dbPath)
 	if err != nil {
-		return fmt.Errorf("failed to open db file from %v: %v", dbPath, err)
+		return fmt.Errorf("failed to create usecases instance: %w", err)
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
+		if err := usecases.Close(); err != nil {
 			panic(err)
 		}
 	}()
-	usecases := registry.NewBoltUseCases(db)
-	if err := usecases.Init(ws); err != nil {
+	if err := usecases.InitializeWorkSpace(ws); err != nil {
 		return fmt.Errorf("failed to initialize workspace(%s): %w", ws, err)
 	}
 	return usecases.Tag.SetTags(ws, tags)
 }
 
 func addAssets(dbPath string, ws model.WSName, importAssets []*model.ImportAsset) error {
-	db, err := bolt.Open(dbPath, 0600, nil)
+	usecases, err := registry.NewBoltUseCasesWithDBPath(dbPath)
 	if err != nil {
-		return fmt.Errorf("failed to open db file from %v: %v", dbPath, err)
+		return fmt.Errorf("failed to create usecases instance: %w", err)
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
+		if err := usecases.Close(); err != nil {
 			panic(err)
 		}
 	}()
-	usecases := registry.NewBoltUseCases(db)
-	if err := usecases.Init(ws); err != nil {
+	if err := usecases.InitializeWorkSpace(ws); err != nil {
 		return fmt.Errorf("failed to initialize workspace(%s): %w", ws, err)
 	}
 	_, err = usecases.Asset.AddImportAssets(ws, importAssets, 100)
@@ -120,19 +116,19 @@ func addAssets(dbPath string, ws model.WSName, importAssets []*model.ImportAsset
 }
 
 func listAssets(dbPath string, ws model.WSName) ([]*model.Asset, error) {
-	db, err := bolt.Open(dbPath, 0600, nil)
+	usecases, err := registry.NewBoltUseCasesWithDBPath(dbPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open db file from %v: %v", dbPath, err)
+		return nil, fmt.Errorf("failed to create usecases instance: %w", err)
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
+		if err := usecases.Close(); err != nil {
 			panic(err)
 		}
 	}()
-	usecases := registry.NewBoltUseCases(db)
-	if err := usecases.Init(ws); err != nil {
+	if err := usecases.InitializeWorkSpace(ws); err != nil {
 		return nil, fmt.Errorf("failed to initialize workspace(%s): %w", ws, err)
 	}
+
 	assets, err := usecases.Client.Asset.ListBy(ws, func(a *model.Asset) bool { return true })
 	if err != nil {
 		return nil, fmt.Errorf("failed to get assets: %w", err)
