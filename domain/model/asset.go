@@ -1,8 +1,11 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -131,6 +134,34 @@ func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 	return false
 }
 
+func (a *Asset) ToJson() (string, error) {
+	contents, err := json.Marshal(a)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal asset to json: %w", err)
+	}
+	return string(contents), nil
+}
+
+func (a *Asset) ToCSVRow(tagSet *TagSet) (string, error) {
+	var tagNames []string
+	for _, tagID := range BoxesToTagIDList(a.BoundingBoxes) {
+		tag, ok := tagSet.Get(tagID)
+		if !ok {
+			log.Printf("warning: tag not found. id:%v", tagID)
+			continue
+		}
+		tagNames = append(tagNames, tag.Name)
+	}
+
+	line := []string{
+		strconv.Quote(strconv.Itoa(int(a.ID))),
+		strconv.Quote(a.Path),
+		strconv.Quote(strings.Join(tagNames, ",")),
+	}
+
+	return strings.Join(line, ","), nil
+}
+
 type ImportAsset struct {
 	*Asset        `mapstructure:",squash"`
 	BoundingBoxes []*ImportBoundingBox `json:"boundingBoxes"`
@@ -198,4 +229,16 @@ func NewImportAssetFromFilePath(filePath string) *ImportAsset {
 			Path: filePath,
 		},
 	}
+}
+
+func BoxesToTagIDList(boxes []*BoundingBox) (idList []TagID) {
+	tagM := map[TagID]struct{}{}
+	for _, box := range boxes {
+		tagM[box.TagID] = struct{}{}
+	}
+
+	for id := range tagM {
+		idList = append(idList, id)
+	}
+	return
 }

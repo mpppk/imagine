@@ -2,7 +2,9 @@ package testutil
 
 import (
 	"bytes"
+	"io"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -78,9 +80,17 @@ func SetUpUseCases(t *testing.T, dbPath string, wsName model.WSName) (u *usecase
 	return usecases, closer, remover
 }
 
+func setCmdOut(cmd *cobra.Command, newOut io.Writer) {
+	cmd.SetOut(newOut)
+	cmd.SetErr(newOut)
+	for _, c := range cmd.Commands() {
+		setCmdOut(c, newOut)
+	}
+}
+
 func ExecuteCommand(t *testing.T, cmd *cobra.Command, command string) string {
 	buf := new(bytes.Buffer)
-	cmd.SetOut(buf)
+	setCmdOut(cmd, buf)
 	cmdArgs := strings.Split(command, " ")
 	cmd.SetArgs(cmdArgs)
 	if err := cmd.Execute(); err != nil {

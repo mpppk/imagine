@@ -274,10 +274,6 @@ func (a *Asset) AddAssetFromImagePath(ws model.WSName, filePath string) (model.A
 	return a.assetRepository.Add(ws, model.NewAssetFromFilePath(filePath))
 }
 
-func (a *Asset) ListAsync(ctx context.Context, ws model.WSName) (<-chan *model.Asset, error) {
-	return a.assetRepository.ListByAsync(ctx, ws, nil, 50) // FIXME
-}
-
 func (a *Asset) ListAsyncByQueries(ctx context.Context, ws model.WSName, queries []*model.Query) (<-chan *model.Asset, error) {
 	tagSet, err := a.tagRepository.ListAsSet(ws)
 	if err != nil {
@@ -412,4 +408,48 @@ func (a *Asset) DeleteBoundingBox(ws model.WSName, assetID model.AssetID, boxID 
 		return fmt.Errorf("failed to update asset. asset: %#v: %w", asset, err)
 	}
 	return nil
+}
+
+func (a *Asset) ListAsyncWithFormat(wsName model.WSName, formatType string, capacity int) (<-chan string, <-chan error, error) {
+	assetChan, err := a.assetRepository.ListByAsync(context.Background(), wsName, nil, capacity)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	tagSet, err := a.tagRepository.ListAsSet(wsName)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	format := func(format string, asset *model.Asset) (string, error) {
+		switch format {
+		case "json":
+			return asset.ToJson()
+		case "csv":
+			return asset.ToCSVRow(tagSet)
+		default:
+			return "", fmt.Errorf("unknown output format: %s", format)
+		}
+	}
+
+	outCh := make(chan string, capacity)
+	errCh := make(chan error, 1)
+
+	go func() {
+		if formatType == "csv" {
+			header := []string{strconv.Quote("id"), strconv.Quote("path"), strconv.Quote("tags")}
+			outCh <- strings.Join(header, ",")
+		}
+
+		for asset := range assetChan {
+			t, err := format(formatType, asset)
+			if err != nil {
+				errCh <- err
+				return
+			}
+			outCh <- t
+		}
+		close(outCh)
+	}()
+	return outCh, errCh, nil
 }
