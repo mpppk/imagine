@@ -96,3 +96,9 @@ func Diff(t *testing.T, got, want interface{}) {
 		t.Errorf("(-got +want)\n%s", diff)
 	}
 }
+
+func DeepEqual(t *testing.T, got, want interface{}) {
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("want: %#v, got: %#v", want, got)
+	}
+}
