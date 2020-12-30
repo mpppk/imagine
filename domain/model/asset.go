@@ -19,9 +19,45 @@ type BoundingBox struct {
 	Height int           `json:"height"`
 }
 
+func (b *BoundingBox) HasTagID() bool {
+	return b.TagID != 0
+}
+
 type ImportBoundingBox struct {
-	*BoundingBox
-	TagName string
+	*BoundingBox `mapstructure:",squash"`
+	TagName      string `json:"tagName"`
+}
+
+func (b *ImportBoundingBox) Validate(tagSet *TagSet) error {
+	if !b.HasTagName() && !b.HasTagID() {
+		return fmt.Errorf("bouding box's tag name and tag id are empty")
+	}
+
+	if tagSet != nil {
+		if b.HasTagName() {
+			if _, ok := tagSet.GetByName(b.TagName); !ok {
+				return fmt.Errorf("tag name(%s) not found in tag set", b.TagName)
+			}
+		}
+
+		if b.HasTagID() {
+			if _, ok := tagSet.Get(b.TagID); !ok {
+				return fmt.Errorf("tag id(%d) not found in tag set", b.TagID)
+			}
+		}
+
+		if b.HasTagName() && b.HasTagID() {
+			if tag, _ := tagSet.Get(b.TagID); tag.Name != b.TagName {
+				return fmt.Errorf("tag id and name inconsistency. provided id:%d, name:%s, but stored name is %s", b.TagID, b.TagName, tag.Name)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (b *ImportBoundingBox) HasTagName() bool {
+	return b.TagName != ""
 }
 
 type TagID uint64
@@ -108,6 +144,13 @@ type Asset struct {
 	BoundingBoxes []*BoundingBox `json:"boundingBoxes"`
 }
 
+func (a *Asset) Validate() error {
+	if a.ID == 0 && a.Path == "" {
+		return fmt.Errorf("id and path are empty")
+	}
+	return nil
+}
+
 func (a *Asset) GetID() uint64 {
 	return uint64(a.ID)
 }
@@ -165,6 +208,33 @@ func (a *Asset) ToCSVRow(tagSet *TagSet) (string, error) {
 type ImportAsset struct {
 	*Asset        `mapstructure:",squash"`
 	BoundingBoxes []*ImportBoundingBox `json:"boundingBoxes"`
+}
+
+func NewImportAssetFromJson(contents []byte) (*ImportAsset, error) {
+	var asset ImportAsset
+	if err := json.Unmarshal(contents, &asset); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal json to import asset")
+	}
+
+	return &asset, asset.Validate(nil)
+}
+
+func (a *ImportAsset) Validate(tagSet *TagSet) error {
+	asset := a.Asset
+	if asset == nil {
+		asset = &Asset{}
+	}
+	if err := asset.Validate(); err != nil {
+		return err
+	}
+
+	for _, box := range a.BoundingBoxes {
+		if err := box.Validate(tagSet); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (a *ImportAsset) ToAsset(tagSet *TagSet) (*Asset, error) {
