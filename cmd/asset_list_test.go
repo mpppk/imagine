@@ -5,6 +5,7 @@ import (
 
 	"github.com/mpppk/imagine/cmd"
 	"github.com/mpppk/imagine/testutil"
+	"github.com/mpppk/imagine/usecase/usecasetest"
 
 	"github.com/mpppk/imagine/domain/model"
 )
@@ -37,9 +38,9 @@ func TestAssetList(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			u := testutil.NewTestUseCaseUser(t, c.dbName, c.wsName)
+			u := usecasetest.NewTestUseCaseUser(t, c.dbName, c.wsName)
 			defer u.RemoveDB()
-			u.Use(func(usecases *testutil.UseCases) {
+			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Asset.AddImportAssets(c.wsName, c.existAssets, 100)
 				usecases.Tag.SetTags(c.wsName, c.existTags)
 			})

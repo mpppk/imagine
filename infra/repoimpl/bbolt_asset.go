@@ -393,6 +393,10 @@ func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func
 	return c, nil
 }
 
+func (b *BBoltAsset) List(ws model.WSName) (assets []*model.Asset, err error) {
+	return b.ListBy(ws, func(a *model.Asset) bool { return true })
+}
+
 func (b *BBoltAsset) ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset, err error) {
 	eachF := func(asset *model.Asset) error {
 		if f(asset) {

@@ -4,9 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/mpppk/imagine/testutil"
-
 	"github.com/blang/semver/v4"
+	"github.com/mpppk/imagine/usecase/usecasetest"
 )
 
 func TestBoltMeta_SetAndGetVersion(t *testing.T) {
@@ -23,7 +22,7 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, "")
+			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, "")
 			defer closer()
 			defer remover()
 

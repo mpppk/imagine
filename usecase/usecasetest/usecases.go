@@ -1,12 +1,12 @@
-package testutil
+package usecasetest
 
 import (
 	"testing"
 
 	"github.com/mpppk/imagine/domain/repository"
+	"github.com/mpppk/imagine/usecase"
 
 	"github.com/mpppk/imagine/domain/model"
-	"github.com/mpppk/imagine/usecase"
 )
 
 type AssetRepository struct {
@@ -19,6 +19,15 @@ func newAssetRepository(t *testing.T, r repository.Asset) *AssetRepository {
 		t:          t,
 		repository: r,
 	}
+}
+
+func (a *AssetRepository) List(ws model.WSName) (assets []*model.Asset) {
+	a.t.Helper()
+	assets, err := a.repository.List(ws)
+	if err != nil {
+		a.t.Fatalf("failed to list assets: %v", err)
+	}
+	return assets
 }
 
 func (a *AssetRepository) ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset) {

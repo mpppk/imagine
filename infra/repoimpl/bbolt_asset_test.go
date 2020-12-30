@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/mpppk/imagine/testutil"
+	"github.com/mpppk/imagine/usecase/usecasetest"
 
 	"github.com/google/go-cmp/cmp"
 
@@ -39,7 +39,7 @@ func TestBBoltAsset_add(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
 			defer closer()
 			defer remover()
 
@@ -120,7 +120,7 @@ func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
 			defer closer()
 			defer remover()
 
@@ -237,7 +237,7 @@ func TestBBoltAsset_BatchAppendBoundingBoxes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
 			defer closer()
 			defer remover()
 
@@ -298,7 +298,7 @@ func TestBBoltAsset_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
 			defer closer()
 			defer remover()
 
@@ -363,7 +363,7 @@ func TestBBoltAsset_ListByIDList(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
 			defer closer()
 			defer remover()
 
@@ -408,7 +408,7 @@ func TestBBoltAsset_GetByPath(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, wsName)
+			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
 			defer closer()
 			defer remover()
 
@@ -457,7 +457,7 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := testutil.SetUpUseCases(t, fileName, tt.args.ws)
+			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, tt.args.ws)
 			defer closer()
 			defer remover()
 

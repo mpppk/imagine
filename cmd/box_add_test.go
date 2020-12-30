@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mpppk/imagine/usecase/usecasetest"
+
 	"github.com/mpppk/imagine/testutil"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -46,9 +48,9 @@ func TestBoXAdd(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			u := testutil.NewTestUseCaseUser(t, c.dbName, c.wsName)
+			u := usecasetest.NewTestUseCaseUser(t, c.dbName, c.wsName)
 			defer u.RemoveDB()
-			u.Use(func(usecases *testutil.UseCases) {
+			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Asset.AddImportAssets(c.wsName, c.importAssets, 100)
 				usecases.Tag.SetTags(c.wsName, c.importTags)
 			})
@@ -57,7 +59,7 @@ func TestBoXAdd(t *testing.T) {
 			cmdWithFlag := c.command + " --db " + c.dbName
 			testutil.ExecuteCommand(t, cmd.RootCmd, cmdWithFlag)
 
-			u.Use(func(usecases *testutil.UseCases) {
+			u.Use(func(usecases *usecasetest.UseCases) {
 				assets := usecases.Client.Asset.ListBy(c.wsName, func(a *model.Asset) bool { return true })
 				testutil.Diff(t, assets, c.wantAssets)
 			})
