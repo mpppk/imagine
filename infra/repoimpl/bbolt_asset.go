@@ -102,7 +102,8 @@ func (b *BBoltAsset) BatchAppendBoundingBoxes(ws model.WSName, assets []*model.A
 		dataList = append(dataList, newAsset)
 	}
 
-	if err := b.base.batchUpdateByID(createAssetBucketNames(ws), dataList); err != nil {
+	_, _, err = b.base.batchUpdateByID(createAssetBucketNames(ws), dataList)
+	if err != nil {
 		return nil, err
 	}
 
@@ -173,12 +174,27 @@ func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
 	return b.base.updateByID(createAssetBucketNames(ws), asset)
 }
 
-func (b *BBoltAsset) BatchUpdate(ws model.WSName, assets []*model.Asset) error {
+// BatchUpdate update assets by ID.
+// Invalid asset will be skip. For example, an asset that contains a bounding box that does not have an ID.
+func (b *BBoltAsset) BatchUpdate(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
 	var dataList []boltData
 	for _, asset := range assets {
+		if !asset.IsUpdatable() {
+			skippedAssets = append(skippedAssets, asset)
+			continue
+		}
 		dataList = append(dataList, asset)
 	}
-	return b.base.batchUpdateByID(createAssetBucketNames(ws), dataList)
+	updatedDataList, skippedDataList, err := b.base.batchUpdateByID(createAssetBucketNames(ws), dataList)
+	for _, data := range updatedDataList {
+		asset := data.(*model.Asset)
+		updatedAssets = append(updatedAssets, asset)
+	}
+	for _, data := range skippedDataList {
+		asset := data.(*model.Asset)
+		skippedAssets = append(skippedAssets, asset)
+	}
+	return
 }
 
 func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {

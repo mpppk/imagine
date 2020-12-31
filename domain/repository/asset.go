@@ -20,7 +20,7 @@ type Asset interface {
 	GetByPath(ws model.WSName, path string) (asset *model.Asset, exist bool, err error)
 	Has(ws model.WSName, id model.AssetID) (ok bool, err error)
 	Update(ws model.WSName, asset *model.Asset) error
-	BatchUpdate(ws model.WSName, assets []*model.Asset) error
+	BatchUpdate(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error)
 	Delete(ws model.WSName, id model.AssetID) error
 	ListByAsync(ctx context.Context, ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error)
 	ListRawByAsync(ctx context.Context, ws model.WSName, f func(v []byte) bool, cap int) (c <-chan []byte, err error)

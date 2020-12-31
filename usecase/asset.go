@@ -8,7 +8,10 @@ import (
 	"io"
 	"log"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/mpppk/imagine/domain/service/assetsvc"
 
 	"github.com/briandowns/spinner"
 	"github.com/mpppk/imagine/domain/model"
@@ -79,16 +82,15 @@ func (a *Asset) ImportBoundingBoxesFromReader(ws model.WSName, reader io.Reader)
 	}
 	return nil
 }
-func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) error {
+
+func (a *Asset) Read(ws model.WSName, reader io.Reader, capacity int, f func(ws model.WSName, assets []*model.ImportAsset) error) error {
 	scanner := bufio.NewScanner(reader)
 	cnt := 0
-	cap1 := 10000 // FIXME
-	cap2 := 5000  // FIXME
 	s := spinner.New(spinner.CharSets[43], 100*time.Millisecond)
 	s.Prefix = "loading... "
 	s.Start()
 
-	importAssets := make([]*model.ImportAsset, 0, cap1)
+	importAssets := make([]*model.ImportAsset, 0, capacity)
 	for scanner.Scan() {
 		var asset model.ImportAsset
 		if err := json.Unmarshal(scanner.Bytes(), &asset); err != nil {
@@ -98,9 +100,50 @@ func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) er
 		cnt++
 		s.Suffix = strconv.Itoa(cnt)
 
+		if len(importAssets) >= capacity {
+			s.Suffix += "(writing...)"
+			if err := f(ws, importAssets); err != nil {
+				return err
+			}
+			importAssets = make([]*model.ImportAsset, 0, capacity)
+		}
+	}
+
+	if len(importAssets) > 0 {
+		s.Suffix += "(writing...)"
+		if err := f(ws, importAssets); err != nil {
+			return err
+		}
+	}
+	s.Stop()
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("faield to scan asset op: %w", err)
+	}
+	return nil
+}
+
+func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) error {
+	scanner := bufio.NewScanner(reader)
+	cnt := 0
+	cap1 := 10000 // FIXME
+	s := spinner.New(spinner.CharSets[43], 100*time.Millisecond)
+	s.Prefix = "loading... "
+	s.Start()
+
+	importAssets := make([]*model.ImportAsset, 0, cap1)
+	for scanner.Scan() {
+		asset, err := model.NewImportAssetFromJson(scanner.Bytes())
+		if err != nil {
+			return err
+		}
+
+		importAssets = append(importAssets, asset)
+		cnt++
+		s.Suffix = strconv.Itoa(cnt)
+
 		if len(importAssets) >= cap1 {
 			s.Suffix += "(writing...)"
-			if _, err := a.AddImportAssets(ws, importAssets, cap2); err != nil {
+			if err := a.AddOrUpdateImportAssets(ws, importAssets); err != nil {
 				return fmt.Errorf("failed to add import assets: %w", err)
 			}
 			importAssets = make([]*model.ImportAsset, 0, cap1)
@@ -109,7 +152,7 @@ func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) er
 
 	if len(importAssets) > 0 {
 		s.Suffix += "(writing...)"
-		if _, err := a.AddImportAssets(ws, importAssets, cap2); err != nil {
+		if err := a.AddOrUpdateImportAssets(ws, importAssets); err != nil {
 			return fmt.Errorf("failed to add import assets: %w", err)
 		}
 	}
@@ -176,86 +219,39 @@ func (a *Asset) AppendBoundingBoxes(ws model.WSName, assets []*model.ImportAsset
 
 	return idList, nil
 }
-func (a *Asset) AddImportAssets(ws model.WSName, assets []*model.ImportAsset, cap int) ([]model.AssetID, error) {
-	newAssets := make([]*model.Asset, 0, cap)
-	updateAssets := make([]*model.Asset, 0, cap)
+func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, assets []*model.ImportAsset) error {
 	var idList []model.AssetID
+
+	if _, err := a.tagRepository.AddByNames(ws, assetsvc.ToUniqTagNames(assets)); err != nil {
+		return fmt.Errorf("failed to add tags by names: %w", err)
+	}
 
 	tagSet, err := a.tagRepository.ListAsSet(ws)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get tag list: %w", err)
+		return fmt.Errorf("failed to get tag list: %w", err)
 	}
 
-	for _, asset := range assets {
-		for _, box := range asset.BoundingBoxes {
-			if _, ok := tagSet.GetByName(box.TagName); !ok {
-				id, _, err := a.tagRepository.AddByName(ws, box.TagName)
-				if err != nil {
-					return nil, fmt.Errorf("failed to add tag. name is %s: %w", box.TagName, err)
-				}
-				tagSet.Set(&model.Tag{
-					ID:   id,
-					Name: box.TagName,
-				})
-			}
-		}
-
-		ast, err := asset.ToAsset(tagSet)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert to asset from import asset: %w", err)
-		}
-
-		if asset.ID == 0 {
-			if asset.Path == "" {
-				log.Printf("warning: image path is empty")
-				return nil, nil
-			}
-			newAssets = append(newAssets, ast)
-		} else {
-			updateAssets = append(updateAssets, ast)
-		}
-
-		if len(newAssets) >= cap {
-			idl, err := a.assetRepository.BatchAdd(ws, newAssets)
-			if err != nil {
-				return nil, fmt.Errorf("failed to add asset from image path: %w", err)
-			}
-			idList = append(idList, idl...)
-			newAssets = make([]*model.Asset, 0, cap)
-		}
-
-		if len(updateAssets) >= cap {
-			if err := a.assetRepository.BatchUpdate(ws, updateAssets); err != nil {
-				return nil, fmt.Errorf("failed to update assets: %w", err)
-			}
-
-			for _, updateAsset := range updateAssets {
-				idList = append(idList, updateAsset.ID)
-			}
-
-			updateAssets = make([]*model.Asset, 0, cap)
-		}
+	importAssetsWithID, importAssetsWithOutID := assetsvc.SplitIfHasID(assets)
+	assetsWithID, err := assetsvc.ToAssets(importAssetsWithID, tagSet)
+	if err != nil {
+		return err
+	}
+	assetsWithOutID, err := assetsvc.ToAssets(importAssetsWithOutID, tagSet)
+	if err != nil {
+		return err
 	}
 
-	if len(newAssets) > 0 {
-		idl, err := a.assetRepository.BatchAdd(ws, newAssets)
-		if err != nil {
-			return nil, fmt.Errorf("failed to add asset from image path: %w", err)
-		}
-		idList = append(idList, idl...)
+	idl, err := a.assetRepository.BatchAdd(ws, assetsWithOutID)
+	if err != nil {
+		return fmt.Errorf("failed to add asset from image path: %w", err)
+	}
+	idList = append(idList, idl...)
+
+	if _, _, err := a.assetRepository.BatchUpdate(ws, assetsWithID); err != nil {
+		return fmt.Errorf("failed to update assets: %w", err)
 	}
 
-	if len(updateAssets) > 0 {
-		if err := a.assetRepository.BatchUpdate(ws, updateAssets); err != nil {
-			return nil, fmt.Errorf("failed to update assets: %w", err)
-		}
-
-		for _, updateAsset := range updateAssets {
-			idList = append(idList, updateAsset.ID)
-		}
-	}
-
-	return idList, nil
+	return nil
 }
 
 func (a *Asset) AddAssetFromImagePathListIfDoesNotExist(ws model.WSName, filePathList []string) ([]model.AssetID, error) {

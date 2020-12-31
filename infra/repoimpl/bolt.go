@@ -279,19 +279,29 @@ func (b *boltRepository) updateByID(bucketNames []string, data boltData) error {
 	})
 }
 
-func (b *boltRepository) batchUpdateByID(bucketNames []string, dataList []boltData) error {
-	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+// batchUpdateByID update data by ID. If ID does not exist in bucket, skip the data.
+func (b *boltRepository) batchUpdateByID(bucketNames []string, dataList []boltData) (updatedDataList []boltData, skippedDataList []boltData, err error) {
+	err = b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		for _, data := range dataList {
+			key := itob(data.GetID())
+			if v := bucket.Get(key); v == nil {
+				skippedDataList = append(skippedDataList, data)
+				continue
+			}
+
 			s, err := json.Marshal(data)
 			if err != nil {
 				return fmt.Errorf("failed to marshal tag to json: %w", err)
 			}
-			if err := bucket.Put(itob(data.GetID()), s); err != nil {
+
+			if err := bucket.Put(key, s); err != nil {
 				return err
 			}
+			updatedDataList = append(updatedDataList, data)
 		}
 		return nil
 	})
+	return
 }
 
 func (b *boltRepository) delete(bucketNames []string, id uint64) error {

@@ -51,7 +51,7 @@ func TestBoXAdd(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, c.dbName, c.wsName)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Asset.AddImportAssets(c.wsName, c.importAssets, 100)
+				usecases.Asset.AddOrUpdateImportAssets(c.wsName, c.importAssets)
 				usecases.Tag.SetTags(c.wsName, c.importTags)
 			})
 

@@ -31,15 +31,18 @@ func ExecuteCommand(t *testing.T, cmd *cobra.Command, command string) string {
 	return buf.String()
 }
 
-func Diff(t *testing.T, got, want interface{}) {
+// Diff tests want and got are equals.
+// If there are difference, fail test and print diff.
+// See https://pkg.go.dev/github.com/google/go-cmp/cmp#Diff
+func Diff(t *testing.T, want, got interface{}) {
 	t.Helper()
-	if diff := cmp.Diff(got, want); diff != "" {
-		t.Errorf("(-got +want)\n%s", diff)
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("(-want +got)\n%s", diff)
 	}
 }
 
-func DeepEqual(t *testing.T, got, want interface{}) {
-	if !reflect.DeepEqual(got, want) {
+func DeepEqual(t *testing.T, want, got interface{}) {
+	if !reflect.DeepEqual(want, got) {
 		t.Errorf("want: %#v, got: %#v", want, got)
 	}
 }

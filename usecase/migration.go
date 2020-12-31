@@ -86,7 +86,7 @@ func (m *Migration) migrateFrom0d0d1To0d1d0(ws model.WSName) error {
 		}
 		assets = append(assets, asset)
 		if len(assets) >= batchNum {
-			if err := m.assetRepository.BatchUpdate(ws, assets); err != nil {
+			if _, _, err := m.assetRepository.BatchUpdate(ws, assets); err != nil {
 				return err
 			}
 			log.Printf("debug: assets(ID:%v-%v) are migrated. (v0.0.1→v0.1.0)", assets[0].ID, assets[len(assets)-1].ID)
@@ -94,7 +94,7 @@ func (m *Migration) migrateFrom0d0d1To0d1d0(ws model.WSName) error {
 		}
 	}
 
-	if err := m.assetRepository.BatchUpdate(ws, assets); err != nil {
+	if _, _, err := m.assetRepository.BatchUpdate(ws, assets); err != nil {
 		return err
 	}
 	if len(assets) > 0 {

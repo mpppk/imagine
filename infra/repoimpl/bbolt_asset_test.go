@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/mpppk/imagine/testutil"
+
 	"github.com/mpppk/imagine/usecase/usecasetest"
 
 	"github.com/google/go-cmp/cmp"
@@ -479,6 +481,80 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 					t.Errorf("inconsistecy detected on AddByFilePathListifDoesNotExisti() asset1: %#v, asset2: %#v", asset, asset2)
 				}
 			}
+		})
+	}
+}
+
+func TestBBoltAsset_BatchUpdate(t *testing.T) {
+	fileName := "TestBBoltAsset_BatchUpdate.db"
+	type args struct {
+		ws     model.WSName
+		assets []*model.Asset
+	}
+	tests := []struct {
+		name              string
+		args              args
+		existAssets       []*model.ImportAsset
+		existTags         []*model.Tag
+		wantUpdatedAssets []*model.Asset
+		wantSkippedAssets []*model.Asset
+		wantAssets        []*model.Asset
+		wantErr           bool
+	}{
+		{
+			existAssets: []*model.ImportAsset{
+				{Asset: model.NewAssetFromFilePath("path1")},
+				{Asset: model.NewAssetFromFilePath("path2")},
+				{Asset: model.NewAssetFromFilePath("path3")},
+			},
+			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			args: args{
+				ws: "workspace-for-test",
+				assets: []*model.Asset{
+					{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{ID: 1, TagID: 1}}},
+					{Name: "path2", Path: "path2"}, // does not have ID
+				},
+			},
+			wantUpdatedAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{ID: 1, TagID: 1}}},
+			},
+			wantSkippedAssets: []*model.Asset{
+				{Name: "path2", Path: "path2"},
+			},
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{ID: 1, TagID: 1}}},
+				{ID: 2, Name: "path2", Path: "path2"},
+				{ID: 3, Name: "path3", Path: "path3"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
+			defer u.RemoveDB()
+			u.Use(func(usecases *usecasetest.UseCases) {
+				usecases.Asset.AddOrUpdateImportAssets(tt.args.ws, tt.existAssets)
+				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
+			})
+
+			usecases, closeDB, removeDB := usecasetest.SetUpUseCases(t, fileName, tt.args.ws)
+			defer closeDB()
+			defer removeDB()
+
+			updatedAssets, skippedAssets, err := usecases.Client.Asset.BatchUpdate(tt.args.ws, tt.args.assets)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddByFilePathListifDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			closeDB()
+
+			u.Use(func(usecases *usecasetest.UseCases) {
+				assets := usecases.Client.Asset.ListBy(tt.args.ws, func(a *model.Asset) bool { return true })
+				testutil.Diff(t, assets, tt.wantAssets)
+			})
+
+			testutil.Diff(t, tt.wantUpdatedAssets, updatedAssets)
+			testutil.Diff(t, tt.wantSkippedAssets, skippedAssets)
 		})
 	}
 }

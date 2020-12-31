@@ -19,6 +19,10 @@ type BoundingBox struct {
 	Height int           `json:"height"`
 }
 
+func (b *BoundingBox) HasID() bool {
+	return b.ID != 0
+}
+
 func (b *BoundingBox) HasTagID() bool {
 	return b.TagID != 0
 }
@@ -151,8 +155,27 @@ func (a *Asset) Validate() error {
 	return nil
 }
 
+// IsUpdatable checks if this asset can be updated.
+// If asset or box which the asset has does not have ID, the asset is not updatable.
+func (a *Asset) IsUpdatable() bool {
+	if !a.HasID() {
+		return false
+	}
+
+	for _, box := range a.BoundingBoxes {
+		if !box.HasID() || !box.HasTagID() {
+			return false
+		}
+	}
+	return true
+}
+
 func (a *Asset) GetID() uint64 {
 	return uint64(a.ID)
+}
+
+func (a *Asset) HasID() bool {
+	return a.ID != 0
 }
 
 func (a *Asset) SetID(id uint64) {

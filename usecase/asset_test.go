@@ -4,6 +4,11 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/mpppk/imagine/registry"
+
+	"github.com/mpppk/imagine/testutil"
+	"github.com/mpppk/imagine/usecase/usecasetest"
+
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/golang/mock/gomock"
@@ -136,6 +141,76 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 			if diff := cmp.Diff(got, tt.want); diff != "" {
 				t.Errorf("(-got +want)\n%s", diff)
 			}
+		})
+	}
+}
+
+func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
+	type args struct {
+		ws     model.WSName
+		assets []*model.ImportAsset
+		cap    int
+	}
+	tests := []struct {
+		name        string
+		dbName      string
+		args        args
+		tagSet      *model.TagSet
+		existAssets []*model.ImportAsset
+		existTags   []*model.Tag
+		want        []model.AssetID
+		wantAssets  []*model.Asset
+		wantErr     bool
+	}{
+		{
+			args: args{
+				ws: testWSName,
+				assets: []*model.ImportAsset{
+					{
+						Asset: model.NewAssetFromFilePath("path1"),
+						BoundingBoxes: []*model.ImportBoundingBox{
+							{TagName: "tag1"},
+						},
+					},
+				},
+				cap: 100,
+			},
+			tagSet: model.NewTagSet([]*model.Tag{{ID: 1, Name: "tag1"}}),
+			existAssets: []*model.ImportAsset{
+				model.NewImportAssetFromFilePath("path1"),
+				model.NewImportAssetFromFilePath("path2"),
+			},
+			want:    []model.AssetID{1},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			usecases, err := registry.NewBoltUseCasesWithDBPath(tt.dbName)
+			if err != nil {
+				t.Fatalf("failed to create usecases instance: %v", err)
+			}
+			u := usecasetest.NewTestUseCaseUser(t, tt.dbName, tt.args.ws)
+			defer u.RemoveDB()
+			u.Use(func(tu *usecasetest.UseCases) {
+				tu.Asset.AddOrUpdateImportAssets(tt.args.ws, tt.existAssets, 100)
+				tu.Tag.SetTags(tt.args.ws, tt.existTags)
+			})
+
+			idList, err := usecases.Asset.AddOrUpdateImportAssets(tt.args.ws, tt.args.assets, tt.args.cap)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddOrUpdateImportAssets() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			} else if tt.wantErr {
+				return
+			}
+			testutil.Diff(t, idList, tt.want)
+
+			u.Use(func(usecases *usecasetest.UseCases) {
+				assets := usecases.Client.Asset.List(tt.args.ws)
+				testutil.Diff(t, assets, tt.wantAssets)
+			})
 		})
 	}
 }

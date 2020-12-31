@@ -61,13 +61,12 @@ func newAsset(t *testing.T, asset *usecase.Asset) *Asset {
 	}
 }
 
-func (a *Asset) AddImportAssets(ws model.WSName, assets []*model.ImportAsset, cap int) []model.AssetID {
+func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, assets []*model.ImportAsset) {
 	a.t.Helper()
-	idList, err := a.asset.AddImportAssets(ws, assets, cap)
+	err := a.asset.AddOrUpdateImportAssets(ws, assets)
 	if err != nil {
 		a.t.Fatalf("failed to add import assets: %v: %v", err, assets)
 	}
-	return idList
 }
 
 type Tag struct {
