@@ -163,7 +163,7 @@ func (a *Asset) IsUpdatableByID() bool {
 	}
 
 	for _, box := range a.BoundingBoxes {
-		if !box.HasID() || !box.HasTagID() {
+		if !box.HasTagID() {
 			return false
 		}
 	}

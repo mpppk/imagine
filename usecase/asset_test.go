@@ -170,14 +170,13 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 				ws: testWSName,
 				assets: []*model.ImportAsset{
 					{
-						Asset: model.NewAssetFromFilePath("path1"),
+						Asset: &model.Asset{ID: 1, Path: "path1", Name: "path1"},
 						BoundingBoxes: []*model.ImportBoundingBox{
 							{TagName: "tag1"},
 						},
 					},
-					model.NewImportAssetFromFilePath("path3"),
+					{Asset: &model.Asset{Path: "path3", Name: "path3"}},
 				},
-				cap: 100,
 			},
 			tagSet: model.NewTagSet([]*model.Tag{{ID: 1, Name: "tag1"}}),
 			existAssets: []*model.Asset{
@@ -187,9 +186,10 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 			want: []model.AssetID{1},
 			wantAssets: []*model.Asset{
 				{ID: 1, Name: "path1", Path: "path1",
-					BoundingBoxes: []*model.BoundingBox{{ID: 1, TagID: 1}},
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}},
 				},
 				{ID: 2, Name: "path2", Path: "path2"},
+				{ID: 3, Name: "path3", Path: "path3"},
 			},
 			wantErr: false,
 		},

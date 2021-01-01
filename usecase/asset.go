@@ -243,11 +243,12 @@ func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, importAssets []*model.I
 		return fmt.Errorf("failed to update importAssets: %w", err)
 	}
 
-	if _, _, err := a.assetRepository.BatchUpdateByPath(ws, assetsWithPath); err != nil {
+	_, skippedAssets, err := a.assetRepository.BatchUpdateByPath(ws, assetsWithPath)
+	if err != nil {
 		return fmt.Errorf("failed to update importAssets: %w", err)
 	}
 
-	_, err = a.assetRepository.BatchAdd(ws, assetsWithOutIDAndPath)
+	_, err = a.assetRepository.BatchAdd(ws, append(assetsWithOutIDAndPath, skippedAssets...))
 	if err != nil {
 		return fmt.Errorf("failed to add asset from image path: %w", err)
 	}
