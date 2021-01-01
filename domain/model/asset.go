@@ -155,9 +155,9 @@ func (a *Asset) Validate() error {
 	return nil
 }
 
-// IsUpdatable checks if this asset can be updated.
+// IsUpdatableByID checks if this asset can be updated.
 // If asset or box which the asset has does not have ID, the asset is not updatable.
-func (a *Asset) IsUpdatable() bool {
+func (a *Asset) IsUpdatableByID() bool {
 	if !a.HasID() {
 		return false
 	}
@@ -180,6 +180,10 @@ func (a *Asset) HasID() bool {
 
 func (a *Asset) SetID(id uint64) {
 	a.ID = AssetID(id)
+}
+
+func (a *Asset) HasPath() bool {
+	return a.Path != ""
 }
 
 func (a *Asset) HasTag(tagID TagID) bool {

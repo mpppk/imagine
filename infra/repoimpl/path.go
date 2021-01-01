@@ -43,6 +43,8 @@ func (p *bboltPathRepository) FilterExistPath(ws model.WSName, paths []string) (
 	return
 }
 
+// ListByPath lists asset ID of provided paths.
+// If path does not exist in db, 0 is used as ID.
 func (p *bboltPathRepository) ListByPath(ws model.WSName, paths []string) (idList []model.AssetID, err error) {
 	dataList, err := p.base.multipleGetByString(createPathBucketNames(ws), paths)
 	if err != nil {

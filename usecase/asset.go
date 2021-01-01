@@ -219,10 +219,10 @@ func (a *Asset) AppendBoundingBoxes(ws model.WSName, assets []*model.ImportAsset
 
 	return idList, nil
 }
-func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, assets []*model.ImportAsset) error {
-	var idList []model.AssetID
 
-	if _, err := a.tagRepository.AddByNames(ws, assetsvc.ToUniqTagNames(assets)); err != nil {
+// hoge
+func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, importAssets []*model.ImportAsset) error {
+	if _, err := a.tagRepository.AddByNames(ws, assetsvc.ToUniqTagNames(importAssets)); err != nil {
 		return fmt.Errorf("failed to add tags by names: %w", err)
 	}
 
@@ -231,24 +231,25 @@ func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, assets []*model.ImportA
 		return fmt.Errorf("failed to get tag list: %w", err)
 	}
 
-	importAssetsWithID, importAssetsWithOutID := assetsvc.SplitIfHasID(assets)
-	assetsWithID, err := assetsvc.ToAssets(importAssetsWithID, tagSet)
-	if err != nil {
-		return err
-	}
-	assetsWithOutID, err := assetsvc.ToAssets(importAssetsWithOutID, tagSet)
+	assets, err := assetsvc.ToAssets(importAssets, tagSet)
 	if err != nil {
 		return err
 	}
 
-	idl, err := a.assetRepository.BatchAdd(ws, assetsWithOutID)
+	assetsWithID, assetsWithOutID := assetsvc.SplitByID(assets)
+	assetsWithPath, assetsWithOutIDAndPath := assetsvc.SplitByPath(assetsWithOutID)
+
+	if _, _, err := a.assetRepository.BatchUpdateByID(ws, assetsWithID); err != nil {
+		return fmt.Errorf("failed to update importAssets: %w", err)
+	}
+
+	if _, _, err := a.assetRepository.BatchUpdateByPath(ws, assetsWithPath); err != nil {
+		return fmt.Errorf("failed to update importAssets: %w", err)
+	}
+
+	_, err = a.assetRepository.BatchAdd(ws, assetsWithOutIDAndPath)
 	if err != nil {
 		return fmt.Errorf("failed to add asset from image path: %w", err)
-	}
-	idList = append(idList, idl...)
-
-	if _, _, err := a.assetRepository.BatchUpdate(ws, assetsWithID); err != nil {
-		return fmt.Errorf("failed to update assets: %w", err)
 	}
 
 	return nil

@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/mpppk/imagine/domain/service/assetsvc"
+
 	"github.com/mpppk/imagine/domain/repository"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -176,10 +178,10 @@ func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
 
 // BatchUpdate update assets by ID.
 // Invalid asset will be skip. For example, an asset that contains a bounding box that does not have an ID.
-func (b *BBoltAsset) BatchUpdate(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
+func (b *BBoltAsset) BatchUpdateByID(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
 	var dataList []boltData
 	for _, asset := range assets {
-		if !asset.IsUpdatable() {
+		if !asset.IsUpdatableByID() {
 			skippedAssets = append(skippedAssets, asset)
 			continue
 		}
@@ -195,6 +197,21 @@ func (b *BBoltAsset) BatchUpdate(ws model.WSName, assets []*model.Asset) (update
 		skippedAssets = append(skippedAssets, asset)
 	}
 	return
+}
+
+// BatchUpdate update assets by path.
+// Invalid asset will be skip. For example, an asset that contains a bounding box that does not have an ID.
+func (b *BBoltAsset) BatchUpdateByPath(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
+	assetIDList, err := b.pathRepository.ListByPath(ws, assetsvc.ToPaths(assets))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for i, asset := range assets {
+		asset.ID = assetIDList[i]
+	}
+
+	return b.BatchUpdateByID(ws, assets)
 }
 
 func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {

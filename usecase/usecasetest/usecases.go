@@ -30,6 +30,15 @@ func (a *AssetRepository) List(ws model.WSName) (assets []*model.Asset) {
 	return assets
 }
 
+func (a *AssetRepository) BatchAdd(ws model.WSName, assets []*model.Asset) []model.AssetID {
+	a.t.Helper()
+	idList, err := a.repository.BatchAdd(ws, assets)
+	if err != nil {
+		a.t.Fatalf("failed to add assets: %v", err)
+	}
+	return idList
+}
+
 func (a *AssetRepository) ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset) {
 	a.t.Helper()
 	assets, err := a.repository.ListBy(ws, f)
@@ -39,13 +48,35 @@ func (a *AssetRepository) ListBy(ws model.WSName, f func(asset *model.Asset) boo
 	return assets
 }
 
+type TagRepository struct {
+	t          *testing.T
+	repository repository.Tag
+}
+
+func newTagRepository(t *testing.T, r repository.Tag) *TagRepository {
+	return &TagRepository{
+		t:          t,
+		repository: r,
+	}
+}
+
+func (t *TagRepository) Add(ws model.WSName, tagWithIndex *model.TagWithIndex) model.TagID {
+	tag, err := t.repository.Add(ws, tagWithIndex)
+	if err != nil {
+		t.t.Fatalf("failed to add tag: %v: %v", err, tagWithIndex)
+	}
+	return tag
+}
+
 type Client struct {
 	Asset *AssetRepository
+	Tag   *TagRepository
 }
 
 func newClient(t *testing.T, c *repository.Client) *Client {
 	return &Client{
 		Asset: newAssetRepository(t, c.Asset),
+		Tag:   newTagRepository(t, c.Tag),
 	}
 }
 
