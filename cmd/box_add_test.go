@@ -44,6 +44,53 @@ func TestBoXAdd(t *testing.T) {
 			command: `box add`, want: "",
 			stdInText: `{"path": "path1", "boundingBoxes": [{"tagName": "tag1"}]}`,
 		},
+		{
+			name:   "add same id box",
+			dbName: "box_add_test.imagine",
+			wsName: "default-workspace",
+			importAssets: []*model.ImportAsset{
+				{Asset: &model.Asset{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1, X: 5}},
+				}},
+				{Asset: model.NewAssetFromFilePath("path1")},
+				{Asset: model.NewAssetFromFilePath("path2")},
+				{Asset: model.NewAssetFromFilePath("path3")},
+			},
+			importTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1},
+					{TagID: 1, X: 5},
+				}},
+				{ID: 2, Name: "path2", Path: "path2"},
+				{ID: 3, Name: "path3", Path: "path3"},
+			},
+			command: `box add`, want: "",
+			stdInText: `{"path": "path1", "boundingBoxes": [{"tagName": "tag1"}]}`,
+		},
+		{
+			name:   "skip if same box is added",
+			dbName: "box_add_test.imagine",
+			wsName: "default-workspace",
+			importAssets: []*model.ImportAsset{
+				{Asset: &model.Asset{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}},
+				}},
+				{Asset: model.NewAssetFromFilePath("path1")},
+				{Asset: model.NewAssetFromFilePath("path2")},
+				{Asset: model.NewAssetFromFilePath("path3")},
+			},
+			importTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1},
+				}},
+				{ID: 2, Name: "path2", Path: "path2"},
+				{ID: 3, Name: "path3", Path: "path3"},
+			},
+			command: `box add`, want: "",
+			stdInText: `{"path": "path1", "boundingBoxes": [{"tagName": "tag1"}]}`,
+		},
 	}
 
 	for _, c := range cases {

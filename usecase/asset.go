@@ -220,7 +220,6 @@ func (a *Asset) AppendBoundingBoxes(ws model.WSName, assets []*model.ImportAsset
 	return idList, nil
 }
 
-// hoge
 func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, importAssets []*model.ImportAsset) error {
 	if _, err := a.tagRepository.AddByNames(ws, assetsvc.ToUniqTagNames(importAssets)); err != nil {
 		return fmt.Errorf("failed to add tags by names: %w", err)
