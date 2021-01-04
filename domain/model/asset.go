@@ -204,6 +204,18 @@ func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 	return false
 }
 
+// Merge merge the itself and argument asset properties.
+// This is destructive method.
+func (a *Asset) Merge(asset *Asset) {
+	if asset.HasPath() {
+		a.Path = asset.Path
+	}
+
+	if asset.BoundingBoxes != nil {
+		a.BoundingBoxes = asset.BoundingBoxes
+	}
+}
+
 func (a *Asset) ToJson() (string, error) {
 	contents, err := json.Marshal(a)
 	if err != nil {

@@ -40,6 +40,57 @@ func TestReplaceBoundingBoxByID(t *testing.T) {
 	}
 }
 
+func TestAssetMerge(t *testing.T) {
+	type args struct {
+		asset *Asset
+	}
+	tests := []struct {
+		name  string
+		args  args
+		asset *Asset
+		want  *Asset
+	}{
+		{
+			name:  "update path",
+			asset: &Asset{ID: 1, Path: "path1"},
+			args: args{
+				asset: &Asset{ID: 1, Path: "path2"},
+			},
+			want: &Asset{ID: 1, Path: "path2"},
+		},
+		{
+			name:  "reserve path because the property is omitted",
+			asset: &Asset{ID: 1, Path: "path1"},
+			args: args{
+				asset: &Asset{ID: 1},
+			},
+			want: &Asset{ID: 1, Path: "path1"},
+		},
+		{
+			name:  "update bounding boxes",
+			asset: &Asset{ID: 1, Path: "path1"},
+			args: args{
+				asset: &Asset{ID: 1, BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+			},
+			want: &Asset{ID: 1, Path: "path1", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+		},
+		{
+			name:  "update path and reserve boxes",
+			asset: &Asset{ID: 1, Path: "path1", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+			args: args{
+				asset: &Asset{ID: 1, Path: "path2"},
+			},
+			want: &Asset{ID: 1, Path: "path2", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.asset.Merge(tt.args.asset)
+			testutil.Diff(t, tt.want, tt.asset)
+		})
+	}
+}
+
 func TestNewImportAssetFromJson(t *testing.T) {
 	type args struct {
 		json string
