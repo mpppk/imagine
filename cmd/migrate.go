@@ -39,5 +39,5 @@ func newMigrateCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	cmdGenerators = append(cmdGenerators, newMigrateCmd)
+	rootSubCmdGenerator = append(rootSubCmdGenerator, newMigrateCmd)
 }

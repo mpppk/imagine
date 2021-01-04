@@ -2,7 +2,6 @@ package testutil
 
 import (
 	"bytes"
-	"io"
 	"reflect"
 	"strings"
 	"testing"
@@ -11,17 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func setCmdOut(cmd *cobra.Command, newOut io.Writer) {
-	cmd.SetOut(newOut)
-	cmd.SetErr(newOut)
-	for _, c := range cmd.Commands() {
-		setCmdOut(c, newOut)
+func ExecuteCommand(t *testing.T, cmd *cobra.Command, command, in string) string {
+	if in != "" {
+		cmd.SetIn(strings.NewReader(in))
 	}
-}
 
-func ExecuteCommand(t *testing.T, cmd *cobra.Command, command string) string {
 	buf := new(bytes.Buffer)
-	setCmdOut(cmd, buf)
+	cmd.SetOut(buf)
 	cmdArgs := strings.Split(command, " ")
 	cmd.SetArgs(cmdArgs)
 	if err := cmd.Execute(); err != nil {

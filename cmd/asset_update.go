@@ -34,7 +34,8 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 				return fmt.Errorf("failed to initialize asset usecase: %w", err)
 			}
 
-			if err := usecases.Asset.ImportFromReader(conf.WorkSpace, os.Stdin, conf.New); err != nil {
+			// FIXME: capacity
+			if err := usecases.Asset.AddOrUpdateImportAssetsFromReader(conf.WorkSpace, os.Stdin, 10000); err != nil {
 				return fmt.Errorf("failed to import asset from reader: %w", err)
 			}
 
@@ -62,10 +63,5 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	// FIXME: fs
-	assetUpdateCmd, err := newAssetUpdateCmd(nil)
-	if err != nil {
-		panic(err)
-	}
-	assetCmd.AddCommand(assetUpdateCmd)
+	assetSubCmdGenerator = append(assetSubCmdGenerator, newAssetUpdateCmd)
 }

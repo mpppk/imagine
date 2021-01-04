@@ -1,7 +1,6 @@
 package cmd_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/mpppk/imagine/usecase/usecasetest"
@@ -9,8 +8,6 @@ import (
 	"github.com/mpppk/imagine/testutil"
 
 	"github.com/mpppk/imagine/domain/model"
-
-	"github.com/mpppk/imagine/cmd"
 )
 
 func TestBoXAdd(t *testing.T) {
@@ -101,10 +98,9 @@ func TestBoXAdd(t *testing.T) {
 				usecases.Asset.AddOrUpdateImportAssets(c.wsName, c.importAssets)
 				usecases.Tag.SetTags(c.wsName, c.importTags)
 			})
-
-			cmd.RootCmd.SetIn(strings.NewReader(c.stdInText))
+			rootCmd := newRootCmd(t)
 			cmdWithFlag := c.command + " --db " + c.dbName
-			testutil.ExecuteCommand(t, cmd.RootCmd, cmdWithFlag)
+			testutil.ExecuteCommand(t, rootCmd, cmdWithFlag, c.stdInText)
 
 			u.Use(func(usecases *usecasetest.UseCases) {
 				assets := usecases.Client.Asset.ListBy(c.wsName, func(a *model.Asset) bool { return true })

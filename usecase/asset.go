@@ -83,7 +83,7 @@ func (a *Asset) ImportBoundingBoxesFromReader(ws model.WSName, reader io.Reader)
 	return nil
 }
 
-func (a *Asset) Read(ws model.WSName, reader io.Reader, capacity int, f func(ws model.WSName, assets []*model.ImportAsset) error) error {
+func (a *Asset) ReadImportAssetsWithProgressBar(ws model.WSName, reader io.Reader, capacity int, f func(assets []*model.ImportAsset) error) error {
 	scanner := bufio.NewScanner(reader)
 	cnt := 0
 	s := spinner.New(spinner.CharSets[43], 100*time.Millisecond)
@@ -102,7 +102,7 @@ func (a *Asset) Read(ws model.WSName, reader io.Reader, capacity int, f func(ws 
 
 		if len(importAssets) >= capacity {
 			s.Suffix += "(writing...)"
-			if err := f(ws, importAssets); err != nil {
+			if err := f(importAssets); err != nil {
 				return err
 			}
 			importAssets = make([]*model.ImportAsset, 0, capacity)
@@ -111,7 +111,7 @@ func (a *Asset) Read(ws model.WSName, reader io.Reader, capacity int, f func(ws 
 
 	if len(importAssets) > 0 {
 		s.Suffix += "(writing...)"
-		if err := f(ws, importAssets); err != nil {
+		if err := f(importAssets); err != nil {
 			return err
 		}
 	}
@@ -122,45 +122,15 @@ func (a *Asset) Read(ws model.WSName, reader io.Reader, capacity int, f func(ws 
 	return nil
 }
 
-func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) error {
-	scanner := bufio.NewScanner(reader)
-	cnt := 0
-	cap1 := 10000 // FIXME
-	s := spinner.New(spinner.CharSets[43], 100*time.Millisecond)
-	s.Prefix = "loading... "
-	s.Start()
-
-	importAssets := make([]*model.ImportAsset, 0, cap1)
-	for scanner.Scan() {
-		asset, err := model.NewImportAssetFromJson(scanner.Bytes())
-		if err != nil {
-			return err
-		}
-
-		importAssets = append(importAssets, asset)
-		cnt++
-		s.Suffix = strconv.Itoa(cnt)
-
-		if len(importAssets) >= cap1 {
-			s.Suffix += "(writing...)"
-			if err := a.AddOrUpdateImportAssets(ws, importAssets); err != nil {
-				return fmt.Errorf("failed to add import assets: %w", err)
-			}
-			importAssets = make([]*model.ImportAsset, 0, cap1)
-		}
-	}
-
-	if len(importAssets) > 0 {
-		s.Suffix += "(writing...)"
+func (a *Asset) AddOrUpdateImportAssetsFromReader(ws model.WSName, reader io.Reader, capacity int) error {
+	f := func(importAssets []*model.ImportAsset) error {
+		log.Printf("debug: new batch: %d assets are loaded from reader", capacity)
 		if err := a.AddOrUpdateImportAssets(ws, importAssets); err != nil {
-			return fmt.Errorf("failed to add import assets: %w", err)
+			return fmt.Errorf("faled to add or update assets from reader: %w", err)
 		}
+		return nil
 	}
-	s.Stop()
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("faield to scan asset op: %w", err)
-	}
-	return nil
+	return a.ReadImportAssetsWithProgressBar(ws, reader, capacity, f)
 }
 
 func (a *Asset) AppendBoundingBoxes(ws model.WSName, assets []*model.ImportAsset, cap int) ([]model.AssetID, error) {
@@ -246,6 +216,8 @@ func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, importAssets []*model.I
 	if err != nil {
 		return fmt.Errorf("failed to update importAssets: %w", err)
 	}
+
+	log.Println("")
 
 	_, err = a.assetRepository.BatchAdd(ws, append(assetsWithOutIDAndPath, skippedAssets...))
 	if err != nil {

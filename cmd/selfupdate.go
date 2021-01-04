@@ -28,5 +28,5 @@ func newSelfUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	cmdGenerators = append(cmdGenerators, newSelfUpdateCmd)
+	rootSubCmdGenerator = append(rootSubCmdGenerator, newSelfUpdateCmd)
 }

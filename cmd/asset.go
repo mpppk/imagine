@@ -1,14 +1,15 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/mpppk/imagine/cmd/option"
 	"github.com/spf13/afero"
 
 	"github.com/spf13/cobra"
 )
 
-// FIXME: fs
-var assetCmd, _ = newAssetCmd(nil)
+var assetSubCmdGenerator []cmdGenerator
 
 func newAssetCmd(fs afero.Fs) (*cobra.Command, error) {
 	cmd := &cobra.Command{
@@ -33,9 +34,13 @@ func newAssetCmd(fs afero.Fs) (*cobra.Command, error) {
 		return nil, err
 	}
 
+	if err := registerSubCommands(fs, cmd, assetSubCmdGenerator); err != nil {
+		return nil, fmt.Errorf("failed to rergister asset sub commands: %w", err)
+	}
+
 	return cmd, nil
 }
 
 func init() {
-	RootCmd.AddCommand(assetCmd)
+	rootSubCmdGenerator = append(rootSubCmdGenerator, newAssetCmd)
 }

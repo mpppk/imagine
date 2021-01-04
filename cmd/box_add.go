@@ -43,10 +43,5 @@ func newBoxAddCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	// FIXME: fs
-	boxAddCmd, err := newBoxAddCmd(nil)
-	if err != nil {
-		panic(err)
-	}
-	boxCmd.AddCommand(boxAddCmd)
+	boxSubCmdGenerator = append(boxSubCmdGenerator, newBoxAddCmd)
 }

@@ -67,10 +67,5 @@ func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	// FIXME: fs
-	assetListCmd, err := newAssetListCmd(nil)
-	if err != nil {
-		panic(err)
-	}
-	assetCmd.AddCommand(assetListCmd)
+	assetSubCmdGenerator = append(assetSubCmdGenerator, newAssetListCmd)
 }

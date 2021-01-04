@@ -3,7 +3,6 @@ package cmd_test
 import (
 	"testing"
 
-	"github.com/mpppk/imagine/cmd"
 	"github.com/mpppk/imagine/testutil"
 	"github.com/mpppk/imagine/usecase/usecasetest"
 
@@ -46,7 +45,7 @@ func TestAssetList(t *testing.T) {
 			})
 
 			cmdWithFlag := c.command + " --db " + c.dbName
-			testutil.ExecuteCommand(t, cmd.RootCmd, cmdWithFlag)
+			testutil.ExecuteCommand(t, newRootCmd(t), cmdWithFlag, "")
 			//testutil.DeepEqual(t, gotOut, c.want) // FIXME: gotOut is always empty
 		})
 	}
