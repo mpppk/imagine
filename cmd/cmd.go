@@ -6,5 +6,3 @@ import (
 )
 
 type cmdGenerator func(fs afero.Fs) (*cobra.Command, error)
-
-var cmdGenerators []cmdGenerator

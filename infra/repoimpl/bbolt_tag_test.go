@@ -1,16 +1,15 @@
 package repoimpl_test
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/mpppk/imagine/testutil"
 
 	"github.com/mpppk/imagine/domain/model"
+	"github.com/mpppk/imagine/usecase/usecasetest"
 )
 
 func TestBBoltTag_Update(t *testing.T) {
-	fileName := "TestBBoltTag_Update.db"
 	var wsName model.WSName = "workspace-for-test"
 	oldTag := &model.TagWithIndex{
 		Tag: &model.Tag{
@@ -41,20 +40,18 @@ func TestBBoltTag_Update(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			usecases, teardown := testutil.SetUpUseCases(t, fileName, wsName)
-			defer teardown()
-
-			if err := usecases.Client.Tag.Update(wsName, tt.args.tag); (err != nil) != tt.wantErr {
+		tt := tt
+		usecasetest.RunParallelWithUseCases(t, tt.name, wsName, func(t *testing.T, ut *usecasetest.UseCases) {
+			if err := ut.Usecases.Client.Tag.Update(wsName, tt.args.tag); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			got, _, err := usecases.Client.Tag.Get(wsName, tt.args.tag.ID)
+
+			got, _, err := ut.Usecases.Client.Tag.Get(wsName, tt.args.tag.ID)
 			if err != nil {
 				t.Errorf("failed to get tag: %v: %v", newTag.ID, err)
 			}
-			if !reflect.DeepEqual(got, newTag) {
-				t.Errorf("want: %#v, got: %#v", newTag, got)
-			}
+
+			testutil.Diff(t, newTag, got)
 		})
 	}
 }

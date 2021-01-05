@@ -21,7 +21,7 @@ import (
 )
 
 var cfgFile string
-var RootCmd, rootCmdErr = NewRootCmd()
+var rootSubCmdGenerator []cmdGenerator
 
 func NewRootCmd() (*cobra.Command, error) {
 	var rootCmd = &cobra.Command{
@@ -30,7 +30,6 @@ func NewRootCmd() (*cobra.Command, error) {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			cmd.SetOut(os.Stdout)
 			conf, err := option.NewRootCmdConfigFromViper()
 			if err != nil {
 				return err
@@ -117,18 +116,67 @@ func NewRootCmd() (*cobra.Command, error) {
 			return nil
 		},
 	}
+
+	registerFlags := func(cmd *cobra.Command) error {
+		flags := []option.Flag{
+			&option.StringFlag{
+				BaseFlag: &option.BaseFlag{
+					Name:         "db",
+					Usage:        "db file path",
+					IsRequired:   true,
+					IsPersistent: true,
+				},
+			},
+			&option.StringFlag{
+				BaseFlag: &option.BaseFlag{
+					Name:         "config",
+					IsPersistent: true,
+					Usage:        "config file (default is $HOME/.imagine.yaml)",
+				}},
+			&option.BoolFlag{
+				BaseFlag: &option.BaseFlag{
+					Name:  "dev",
+					Usage: "Launch as developer mode",
+				}},
+			&option.BoolFlag{
+				BaseFlag: &option.BaseFlag{
+					Name:         "verbose",
+					Shorthand:    "v",
+					IsPersistent: true,
+					Usage:        "Show more logs",
+				}},
+			&option.UintFlag{
+				BaseFlag: &option.BaseFlag{
+					Name:         "ui-port",
+					IsPersistent: true,
+					Usage:        "port of ui server",
+				},
+				Value: 3001,
+			},
+			&option.UintFlag{
+				BaseFlag: &option.BaseFlag{
+					Name:         "asset-port",
+					IsPersistent: true,
+					Usage:        "port of asset server (WIP: currently does not work)",
+				},
+				Value: 1323,
+			},
+		}
+		return option.RegisterFlags(cmd, flags)
+	}
 	if err := registerFlags(rootCmd); err != nil {
 		return nil, fmt.Errorf("failed to register flags")
 	}
+
 	fs := afero.NewOsFs()
-	if err := registerSubCommands(fs, rootCmd); err != nil {
+	if err := registerSubCommands(fs, rootCmd, rootSubCmdGenerator); err != nil {
 		panic(err)
 	}
 
 	return rootCmd, nil
 }
 
-func registerSubCommands(fs afero.Fs, cmd *cobra.Command) error {
+func registerSubCommands(fs afero.Fs, parentCmd *cobra.Command, cmdGenerators []cmdGenerator) error {
 	var subCmds []*cobra.Command
 	for _, cmdGen := range cmdGenerators {
 		subCmd, err := cmdGen(fs)
@@ -137,62 +185,18 @@ func registerSubCommands(fs afero.Fs, cmd *cobra.Command) error {
 		}
 		subCmds = append(subCmds, subCmd)
 	}
-	cmd.AddCommand(subCmds...)
+	parentCmd.AddCommand(subCmds...)
 	return nil
-}
-
-func registerFlags(cmd *cobra.Command) error {
-	flags := []option.Flag{
-		&option.StringFlag{
-			BaseFlag: &option.BaseFlag{
-				Name:         "db",
-				Usage:        "db file path",
-				IsRequired:   true,
-				IsPersistent: true,
-			},
-		},
-		&option.StringFlag{
-			BaseFlag: &option.BaseFlag{
-				Name:         "config",
-				IsPersistent: true,
-				Usage:        "config file (default is $HOME/.imagine.yaml)",
-			}},
-		&option.BoolFlag{
-			BaseFlag: &option.BaseFlag{
-				Name:  "dev",
-				Usage: "Launch as developer mode",
-			}},
-		&option.BoolFlag{
-			BaseFlag: &option.BaseFlag{
-				Name:         "verbose",
-				Shorthand:    "v",
-				IsPersistent: true,
-				Usage:        "Show more logs",
-			}},
-		&option.UintFlag{
-			BaseFlag: &option.BaseFlag{
-				Name:         "ui-port",
-				IsPersistent: true,
-				Usage:        "port of ui server",
-			},
-			Value: 3001,
-		},
-		&option.UintFlag{
-			BaseFlag: &option.BaseFlag{
-				Name:         "asset-port",
-				IsPersistent: true,
-				Usage:        "port of asset server (WIP: currently does not work)",
-			},
-			Value: 1323,
-		},
-	}
-	return option.RegisterFlags(cmd, flags)
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() {
-	if err := RootCmd.Execute(); err != nil {
+	rootCmd, err := NewRootCmd()
+	if err != nil {
+		panic(err)
+	}
+	if err := rootCmd.Execute(); err != nil {
 		fmt.Print(util.PrettyPrintError(err))
 		os.Exit(1)
 	}
@@ -200,9 +204,6 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	if rootCmdErr != nil {
-		panic(rootCmdErr)
-	}
 }
 
 // initConfig reads in config file and ENV variables if set.

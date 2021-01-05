@@ -68,10 +68,5 @@ func newAssetDeleteCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	// FIXME: fs
-	assetListCmd, err := newAssetDeleteCmd(nil)
-	if err != nil {
-		panic(err)
-	}
-	assetCmd.AddCommand(assetListCmd)
+	assetSubCmdGenerator = append(assetSubCmdGenerator, newAssetDeleteCmd)
 }

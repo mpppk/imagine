@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/mpppk/imagine/domain/service/assetsvc"
+
 	"github.com/mpppk/imagine/domain/repository"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -69,54 +71,20 @@ func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath strin
 	return id, true, nil
 }
 
-func (b *BBoltAsset) BatchAppendBoundingBoxes(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
-	var idList []model.AssetID
-	var paths []string
-	for _, asset := range assets {
-		if asset.ID != 0 {
-			idList = append(idList, asset.ID)
-		} else if asset.Path != "" {
-			paths = append(paths, asset.Path)
-		}
-	}
-
-	idListFromPaths, err := b.pathRepository.ListByPath(ws, paths)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list asset id by paths: %w", err)
-	}
-
-	idList = append(idList, idListFromPaths...)
-
-	newAssets, err := b.ListByIDList(ws, idList)
-	if err != nil {
-		return nil, err
-	}
-
-	var dataList []boltData
-	for i, newAsset := range newAssets {
-		asset := assets[i]
-		if len(asset.BoundingBoxes) == 0 {
-			continue
-		}
-		newAsset.BoundingBoxes = append(newAsset.BoundingBoxes, asset.BoundingBoxes...)
-		dataList = append(dataList, newAsset)
-	}
-
-	if err := b.base.batchUpdateByID(createAssetBucketNames(ws), dataList); err != nil {
-		return nil, err
-	}
-
-	return idList, nil
-}
-
+// BatchAdd add Assets.
+// provided assets must not have ID and must have path. If asset does not satisfy them, error will be returned.
 func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
 	var dataList []boltData
 	var paths []string
 	for _, asset := range assets {
+		if !asset.IsAddable() {
+			return nil, fmt.Errorf("failed to add asset because it is not addable. asset:%#v", asset)
+		}
+
 		dataList = append(dataList, asset)
 		paths = append(paths, asset.Path)
 	}
-	idList, err := b.base.addJsonListByID(createAssetBucketNames(ws), dataList)
+	idList, err := b.base.addJsonListWithID(createAssetBucketNames(ws), dataList)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +98,7 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 }
 
 func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, error) {
-	id, err := b.base.addByID(createAssetBucketNames(ws), asset)
+	id, err := b.base.addWithID(createAssetBucketNames(ws), asset)
 	if err != nil {
 		return 0, err
 	}
@@ -173,18 +141,50 @@ func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
 	return b.base.updateByID(createAssetBucketNames(ws), asset)
 }
 
-func (b *BBoltAsset) BatchUpdate(ws model.WSName, assets []*model.Asset) error {
+// BatchUpdate update assets by ID.
+// Invalid asset will be skip. For example, an asset that contains a bounding box that does not have an ID.
+func (b *BBoltAsset) BatchUpdateByID(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
 	var dataList []boltData
 	for _, asset := range assets {
+		if !asset.IsUpdatableByID() {
+			skippedAssets = append(skippedAssets, asset)
+			continue
+		}
 		dataList = append(dataList, asset)
 	}
-	return b.base.batchUpdateByID(createAssetBucketNames(ws), dataList)
+	updatedDataList, skippedDataList, err := b.base.batchUpdateByID(createAssetBucketNames(ws), dataList)
+	for _, data := range updatedDataList {
+		asset := data.(*model.Asset)
+		updatedAssets = append(updatedAssets, asset)
+	}
+	for _, data := range skippedDataList {
+		asset := data.(*model.Asset)
+		skippedAssets = append(skippedAssets, asset)
+	}
+	return
+}
+
+// BatchUpdate update assets by path.
+// Invalid asset will be skip. For example, an asset that contains a bounding box that does not have an ID.
+func (b *BBoltAsset) BatchUpdateByPath(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
+	assetIDList, err := b.pathRepository.ListByPath(ws, assetsvc.ToPaths(assets))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for i, asset := range assets {
+		asset.ID = assetIDList[i]
+	}
+
+	return b.BatchUpdateByID(ws, assets)
 }
 
 func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
 	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
 
+// ListByIDList list assets by provided id ID list.
+// If ID which does not exist is provided, nil will be returned.
 func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (assets []*model.Asset, err error) {
 	var rawIdList []uint64
 	for _, id := range idList {
@@ -196,25 +196,30 @@ func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (asse
 	}
 
 	for _, content := range contents {
-		var asset model.Asset
-		if err := json.Unmarshal(content, &asset); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal asset: %w", err)
+		if content == nil {
+			assets = append(assets, nil)
+			continue
 		}
-		assets = append(assets, &asset)
+		asset, err := model.NewAssetFromBytes(content)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create new asset from json: %w", err)
+		}
+		assets = append(assets, asset)
 	}
 
 	return
 }
 
-func (b *BBoltAsset) ListByPath(ws model.WSName, path string) (asset *model.Asset, exist bool, err error) {
-	id, exist, err := b.pathRepository.Get(ws, path)
+func (b *BBoltAsset) ListByPaths(ws model.WSName, paths []string) (assets []*model.Asset, err error) {
+	idList, err := b.pathRepository.ListByPath(ws, paths)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to get asset from path repository: %w", err)
+		return nil, fmt.Errorf("failed to list asset ID from path repository: %w", err)
 	}
-	if !exist {
-		return nil, false, nil
+	assets, err = b.ListByIDList(ws, idList)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list assets from asset ID: %w", err)
 	}
-	return b.Get(ws, id)
+	return
 }
 
 func (b *BBoltAsset) ListAsync(ctx context.Context, ws model.WSName, cap int) (assetChan <-chan *model.Asset, err error) {
@@ -391,6 +396,10 @@ func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func
 		close(ec)
 	}()
 	return c, nil
+}
+
+func (b *BBoltAsset) List(ws model.WSName) (assets []*model.Asset, err error) {
+	return b.ListBy(ws, func(a *model.Asset) bool { return true })
 }
 
 func (b *BBoltAsset) ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset, err error) {

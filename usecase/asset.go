@@ -8,7 +8,10 @@ import (
 	"io"
 	"log"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/mpppk/imagine/domain/service/assetsvc"
 
 	"github.com/briandowns/spinner"
 	"github.com/mpppk/imagine/domain/model"
@@ -39,56 +42,54 @@ type AssetImportResult struct {
 	Err   error
 }
 
-func (a *Asset) ImportBoundingBoxesFromReader(ws model.WSName, reader io.Reader) error {
+//func (a *Asset) ImportBoundingBoxesFromReader(ws model.WSName, reader io.Reader) error {
+//	scanner := bufio.NewScanner(reader)
+//	cnt := 0
+//	cap1 := 10000 // FIXME
+//	s := spinner.New(spinner.CharSets[43], 100*time.Millisecond)
+//	s.Prefix = "loading... "
+//	s.Start()
+//
+//	importAssets := make([]*model.ImportAsset, 0, cap1)
+//	for scanner.Scan() {
+//		var asset model.ImportAsset
+//		if err := json.Unmarshal(scanner.Bytes(), &asset); err != nil {
+//			return fmt.Errorf("failed to unmarshal json to asset: %w", err)
+//		}
+//		importAssets = append(importAssets, &asset)
+//		cnt++
+//		s.Suffix = strconv.Itoa(cnt)
+//
+//		if len(importAssets) >= cap1 {
+//			s.Suffix += "(writing...)"
+//			if _, err := a.AppendBoundingBoxes(ws, importAssets); err != nil {
+//				return fmt.Errorf("failed to add import assets: %w", err)
+//			}
+//			importAssets = make([]*model.ImportAsset, 0, cap1)
+//		}
+//	}
+//
+//	if len(importAssets) > 0 {
+//		s.Suffix += "(writing...)"
+//		if _, err := a.AppendBoundingBoxes(ws, importAssets); err != nil {
+//			return fmt.Errorf("failed to add import assets: %w", err)
+//		}
+//	}
+//	s.Stop()
+//	if err := scanner.Err(); err != nil {
+//		return fmt.Errorf("faield to scan asset op: %w", err)
+//	}
+//	return nil
+//}
+
+func (a *Asset) ReadImportAssetsWithProgressBar(ws model.WSName, reader io.Reader, capacity int, f func(assets []*model.ImportAsset) error) error {
 	scanner := bufio.NewScanner(reader)
 	cnt := 0
-	cap1 := 10000 // FIXME
-	cap2 := 5000  // FIXME
 	s := spinner.New(spinner.CharSets[43], 100*time.Millisecond)
 	s.Prefix = "loading... "
 	s.Start()
 
-	importAssets := make([]*model.ImportAsset, 0, cap1)
-	for scanner.Scan() {
-		var asset model.ImportAsset
-		if err := json.Unmarshal(scanner.Bytes(), &asset); err != nil {
-			return fmt.Errorf("failed to unmarshal json to asset: %w", err)
-		}
-		importAssets = append(importAssets, &asset)
-		cnt++
-		s.Suffix = strconv.Itoa(cnt)
-
-		if len(importAssets) >= cap1 {
-			s.Suffix += "(writing...)"
-			if _, err := a.AppendBoundingBoxes(ws, importAssets, cap2); err != nil {
-				return fmt.Errorf("failed to add import assets: %w", err)
-			}
-			importAssets = make([]*model.ImportAsset, 0, cap1)
-		}
-	}
-
-	if len(importAssets) > 0 {
-		s.Suffix += "(writing...)"
-		if _, err := a.AppendBoundingBoxes(ws, importAssets, cap2); err != nil {
-			return fmt.Errorf("failed to add import assets: %w", err)
-		}
-	}
-	s.Stop()
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("faield to scan asset op: %w", err)
-	}
-	return nil
-}
-func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) error {
-	scanner := bufio.NewScanner(reader)
-	cnt := 0
-	cap1 := 10000 // FIXME
-	cap2 := 5000  // FIXME
-	s := spinner.New(spinner.CharSets[43], 100*time.Millisecond)
-	s.Prefix = "loading... "
-	s.Start()
-
-	importAssets := make([]*model.ImportAsset, 0, cap1)
+	importAssets := make([]*model.ImportAsset, 0, capacity)
 	for scanner.Scan() {
 		var asset model.ImportAsset
 		if err := json.Unmarshal(scanner.Bytes(), &asset); err != nil {
@@ -98,19 +99,19 @@ func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) er
 		cnt++
 		s.Suffix = strconv.Itoa(cnt)
 
-		if len(importAssets) >= cap1 {
+		if len(importAssets) >= capacity {
 			s.Suffix += "(writing...)"
-			if _, err := a.AddImportAssets(ws, importAssets, cap2); err != nil {
-				return fmt.Errorf("failed to add import assets: %w", err)
+			if err := f(importAssets); err != nil {
+				return err
 			}
-			importAssets = make([]*model.ImportAsset, 0, cap1)
+			importAssets = make([]*model.ImportAsset, 0, capacity)
 		}
 	}
 
 	if len(importAssets) > 0 {
 		s.Suffix += "(writing...)"
-		if _, err := a.AddImportAssets(ws, importAssets, cap2); err != nil {
-			return fmt.Errorf("failed to add import assets: %w", err)
+		if err := f(importAssets); err != nil {
+			return err
 		}
 	}
 	s.Stop()
@@ -120,142 +121,149 @@ func (a *Asset) ImportFromReader(ws model.WSName, reader io.Reader, new bool) er
 	return nil
 }
 
-func (a *Asset) AppendBoundingBoxes(ws model.WSName, assets []*model.ImportAsset, cap int) ([]model.AssetID, error) {
-	updateAssets := make([]*model.Asset, 0, cap)
-	var idList []model.AssetID
-
-	tagSet, err := a.tagRepository.ListAsSet(ws)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tag list: %w", err)
+func (a *Asset) AddOrMergeImportAssetsFromReader(ws model.WSName, reader io.Reader, capacity int) error {
+	f := func(importAssets []*model.ImportAsset) error {
+		log.Printf("debug: new batch: %d assets are loaded from reader", capacity)
+		if err := a.AddOrMergeImportAssets(ws, importAssets); err != nil {
+			return fmt.Errorf("faled to add or update assets from reader: %w", err)
+		}
+		return nil
 	}
-
-	for _, asset := range assets {
-		for _, box := range asset.BoundingBoxes {
-			if _, ok := tagSet.GetByName(box.TagName); !ok {
-				id, _, err := a.tagRepository.AddByName(ws, box.TagName)
-				if err != nil {
-					return nil, fmt.Errorf("failed to add tag. name is %s: %w", box.TagName, err)
-				}
-				tagSet.Set(&model.Tag{
-					ID:   id,
-					Name: box.TagName,
-				})
-			}
-		}
-
-		ast, err := asset.ToAsset(tagSet)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert to asset from import asset: %w", err)
-		}
-
-		if asset.Path != "" {
-			updateAssets = append(updateAssets, ast)
-		} else {
-			log.Printf("warning: json line is ignored because image path is empty")
-		}
-
-		if len(updateAssets) >= cap {
-			idl, err := a.assetRepository.BatchAppendBoundingBoxes(ws, updateAssets)
-			if err != nil {
-				return nil, fmt.Errorf("failed to append bounding boxes: %w", err)
-			}
-
-			idList = append(idList, idl...)
-			updateAssets = make([]*model.Asset, 0, cap)
-		}
-	}
-
-	if len(updateAssets) > 0 {
-		idl, err := a.assetRepository.BatchAppendBoundingBoxes(ws, updateAssets)
-		if err != nil {
-			return nil, fmt.Errorf("failed to append bounding boxes: %w", err)
-		}
-
-		idList = append(idList, idl...)
-	}
-
-	return idList, nil
+	return a.ReadImportAssetsWithProgressBar(ws, reader, capacity, f)
 }
-func (a *Asset) AddImportAssets(ws model.WSName, assets []*model.ImportAsset, cap int) ([]model.AssetID, error) {
-	newAssets := make([]*model.Asset, 0, cap)
-	updateAssets := make([]*model.Asset, 0, cap)
-	var idList []model.AssetID
+
+//func (a *Asset) AppendBoundingBoxes(ws model.WSName, assets []*model.ImportAsset) ([]model.AssetID, error) {
+//	updateAssets := make([]*model.Asset, 0, len(assets))
+//	var idList []model.AssetID
+//
+//	tagSet, err := a.tagRepository.ListAsSet(ws)
+//	if err != nil {
+//		return nil, fmt.Errorf("failed to get tag list: %w", err)
+//	}
+//
+//	for _, asset := range assets {
+//		for _, box := range asset.BoundingBoxes {
+//			if _, ok := tagSet.GetByName(box.TagName); !ok {
+//				id, _, err := a.tagRepository.AddByName(ws, box.TagName)
+//				if err != nil {
+//					return nil, fmt.Errorf("failed to add tag. name is %s: %w", box.TagName, err)
+//				}
+//				tagSet.Set(&model.Tag{
+//					ID:   id,
+//					Name: box.TagName,
+//				})
+//			}
+//		}
+//
+//		ast, err := asset.ToAsset(tagSet)
+//		if err != nil {
+//			return nil, fmt.Errorf("failed to convert to asset from import asset: %w", err)
+//		}
+//
+//		if asset.Path != "" {
+//			updateAssets = append(updateAssets, ast)
+//		} else {
+//			log.Printf("warning: json line is ignored because image path is empty")
+//		}
+//
+//	}
+//
+//	idl, err := a.assetRepository.BatchAppendBoundingBoxes(ws, updateAssets)
+//	if err != nil {
+//		return nil, fmt.Errorf("failed to append bounding boxes: %w", err)
+//	}
+//
+//	idList = append(idList, idl...)
+//
+//	return idList, nil
+//}
+
+// AddOrMergeImportAssets updates assets by ID or path.
+// If ID is specified, find asset by ID and update properties. (includes path if it specified)
+// If ID is not specified and path is specified, find asset by path and update properties.
+// Specified properties are updated and omitted properties are reserved.
+func (a *Asset) AddOrMergeImportAssets(ws model.WSName, importAssets []*model.ImportAsset) error {
+	if _, err := a.tagRepository.AddByNames(ws, assetsvc.ToUniqTagNames(importAssets)); err != nil {
+		return fmt.Errorf("failed to add tags by names: %w", err)
+	}
 
 	tagSet, err := a.tagRepository.ListAsSet(ws)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get tag list: %w", err)
+		return fmt.Errorf("failed to get tag list: %w", err)
 	}
 
-	for _, asset := range assets {
-		for _, box := range asset.BoundingBoxes {
-			if _, ok := tagSet.GetByName(box.TagName); !ok {
-				id, _, err := a.tagRepository.AddByName(ws, box.TagName)
-				if err != nil {
-					return nil, fmt.Errorf("failed to add tag. name is %s: %w", box.TagName, err)
-				}
-				tagSet.Set(&model.Tag{
-					ID:   id,
-					Name: box.TagName,
-				})
-			}
-		}
-
-		ast, err := asset.ToAsset(tagSet)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert to asset from import asset: %w", err)
-		}
-
-		if asset.ID == 0 {
-			if asset.Path == "" {
-				log.Printf("warning: image path is empty")
-				return nil, nil
-			}
-			newAssets = append(newAssets, ast)
-		} else {
-			updateAssets = append(updateAssets, ast)
-		}
-
-		if len(newAssets) >= cap {
-			idl, err := a.assetRepository.BatchAdd(ws, newAssets)
-			if err != nil {
-				return nil, fmt.Errorf("failed to add asset from image path: %w", err)
-			}
-			idList = append(idList, idl...)
-			newAssets = make([]*model.Asset, 0, cap)
-		}
-
-		if len(updateAssets) >= cap {
-			if err := a.assetRepository.BatchUpdate(ws, updateAssets); err != nil {
-				return nil, fmt.Errorf("failed to update assets: %w", err)
-			}
-
-			for _, updateAsset := range updateAssets {
-				idList = append(idList, updateAsset.ID)
-			}
-
-			updateAssets = make([]*model.Asset, 0, cap)
-		}
+	assets, err := assetsvc.ToAssets(importAssets, tagSet)
+	if err != nil {
+		return err
 	}
 
-	if len(newAssets) > 0 {
-		idl, err := a.assetRepository.BatchAdd(ws, newAssets)
-		if err != nil {
-			return nil, fmt.Errorf("failed to add asset from image path: %w", err)
-		}
-		idList = append(idList, idl...)
+	assetsWithID, assetsWithOutID := assetsvc.SplitByID(assets)
+	assetsWithPath, assetsWithOutIDAndPath := assetsvc.SplitByPath(assetsWithOutID)
+
+	needToAddAssets := assetsWithOutIDAndPath
+
+	_, skippedAssets, err := a.BatchMergeByID(ws, assetsWithID)
+	if err != nil {
+		return err
 	}
 
-	if len(updateAssets) > 0 {
-		if err := a.assetRepository.BatchUpdate(ws, updateAssets); err != nil {
-			return nil, fmt.Errorf("failed to update assets: %w", err)
-		}
+	needToAddAssets = append(needToAddAssets, skippedAssets...)
 
-		for _, updateAsset := range updateAssets {
-			idList = append(idList, updateAsset.ID)
-		}
+	_, skippedAssets, err = a.BatchMergeByPath(ws, assetsWithPath)
+	if err != nil {
+		return fmt.Errorf("failed to update importAssets: %w", err)
 	}
 
-	return idList, nil
+	needToAddAssets = append(needToAddAssets, skippedAssets...)
+
+	_, err = a.assetRepository.BatchAdd(ws, needToAddAssets)
+	if err != nil {
+		return fmt.Errorf("failed to add asset from image path: %w", err)
+	}
+
+	return nil
+}
+
+// BatchMergeByID update by provided assets.
+// If DB already has same ID asset, merge it and provided asset, then save the asset.
+// If DB does not have same ID asset, do nothing and return as skippedAssets.
+func (a *Asset) BatchMergeByID(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
+	assetIDList := assetsvc.ToAssetIDList(assets)
+	newAssets, err := a.assetRepository.ListByIDList(ws, assetIDList)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to list assets: %w", err)
+	}
+
+	assetsvc.Merge(newAssets, assets)
+
+	updatedAssets, skippedAssets, err = a.assetRepository.BatchUpdateByID(ws, newAssets)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to update assets by ID: %w", err)
+	}
+	return
+}
+
+func (a *Asset) BatchMergeByPath(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
+	assetPaths := assetsvc.ToPaths(assets)
+	newAssets, err := a.assetRepository.ListByPaths(ws, assetPaths)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to list assets: %w", err)
+	}
+
+	for i, newAsset := range newAssets {
+		if newAsset == nil {
+			skippedAssets = append(skippedAssets, assets[i])
+		}
+	}
+	assetsvc.Merge(newAssets, assets)
+	newAssets = assetsvc.FilterNil(newAssets)
+
+	updatedAssets, skippedAssets2, err := a.assetRepository.BatchUpdateByPath(ws, newAssets)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to update assets by ID: %w", err)
+	}
+	skippedAssets = append(skippedAssets, skippedAssets2...)
+	return
 }
 
 func (a *Asset) AddAssetFromImagePathListIfDoesNotExist(ws model.WSName, filePathList []string) ([]model.AssetID, error) {
@@ -272,10 +280,6 @@ func (a *Asset) AddAssetFromImagePath(ws model.WSName, filePath string) (model.A
 		return 0, err
 	}
 	return a.assetRepository.Add(ws, model.NewAssetFromFilePath(filePath))
-}
-
-func (a *Asset) ListAsync(ctx context.Context, ws model.WSName) (<-chan *model.Asset, error) {
-	return a.assetRepository.ListByAsync(ctx, ws, nil, 50) // FIXME
 }
 
 func (a *Asset) ListAsyncByQueries(ctx context.Context, ws model.WSName, queries []*model.Query) (<-chan *model.Asset, error) {
@@ -412,4 +416,48 @@ func (a *Asset) DeleteBoundingBox(ws model.WSName, assetID model.AssetID, boxID 
 		return fmt.Errorf("failed to update asset. asset: %#v: %w", asset, err)
 	}
 	return nil
+}
+
+func (a *Asset) ListAsyncWithFormat(wsName model.WSName, formatType string, capacity int) (<-chan string, <-chan error, error) {
+	assetChan, err := a.assetRepository.ListByAsync(context.Background(), wsName, nil, capacity)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	tagSet, err := a.tagRepository.ListAsSet(wsName)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	format := func(format string, asset *model.Asset) (string, error) {
+		switch format {
+		case "json":
+			return asset.ToJson()
+		case "csv":
+			return asset.ToCSVRow(tagSet)
+		default:
+			return "", fmt.Errorf("unknown output format: %s", format)
+		}
+	}
+
+	outCh := make(chan string, capacity)
+	errCh := make(chan error, 1)
+
+	go func() {
+		if formatType == "csv" {
+			header := []string{strconv.Quote("id"), strconv.Quote("path"), strconv.Quote("tags")}
+			outCh <- strings.Join(header, ",")
+		}
+
+		for asset := range assetChan {
+			t, err := format(formatType, asset)
+			if err != nil {
+				errCh <- err
+				return
+			}
+			outCh <- t
+		}
+		close(outCh)
+	}()
+	return outCh, errCh, nil
 }

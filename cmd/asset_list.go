@@ -1,34 +1,15 @@
 package cmd
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
-	"log"
-	"strconv"
-	"strings"
 
 	"github.com/mpppk/imagine/registry"
-
-	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mpppk/imagine/cmd/option"
 	"github.com/spf13/afero"
 
 	"github.com/spf13/cobra"
 )
-
-func boxesToTagIDList(boxes []*model.BoundingBox) (idList []model.TagID) {
-	tagM := map[model.TagID]struct{}{}
-	for _, box := range boxes {
-		tagM[box.TagID] = struct{}{}
-	}
-
-	for id := range tagM {
-		idList = append(idList, id)
-	}
-	return
-}
 
 func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
 	cmd := &cobra.Command{
@@ -49,60 +30,21 @@ func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
 				}
 			}()
 
-			assetChan, err := usecases.Asset.ListAsync(context.Background(), conf.WorkSpace)
+			fCh, errCh, err := usecases.Asset.ListAsyncWithFormat(conf.WorkSpace, conf.Format, 100)
 			if err != nil {
 				return err
 			}
-
-			tagSet, err := usecases.Client.Tag.ListAsSet(conf.WorkSpace)
-			if err != nil {
-				return err
-			}
-
-			format := func(format string, asset *model.Asset) (string, error) {
-				switch format {
-				case "json":
-					contents, err := json.Marshal(asset)
-					if err != nil {
-						return "", fmt.Errorf("failed to marshal asset to json: %w", err)
+			for {
+				select {
+				case formattedAsset, ok := <-fCh:
+					if !ok {
+						return nil
 					}
-					return string(contents), nil
-				case "csv":
-					var tagNames []string
-					for _, tagID := range boxesToTagIDList(asset.BoundingBoxes) {
-						tag, ok := tagSet.Get(tagID)
-						if !ok {
-							log.Printf("warning: tag not found. id:%v", tagID)
-							continue
-						}
-						tagNames = append(tagNames, tag.Name)
-					}
-
-					line := []string{
-						strconv.Quote(strconv.Itoa(int(asset.ID))),
-						strconv.Quote(asset.Path),
-						strconv.Quote(strings.Join(tagNames, ",")),
-					}
-
-					return strings.Join(line, ","), nil
-				default:
-					return "", fmt.Errorf("unknown output format: %s", format)
-				}
-			}
-
-			if conf.Format == "csv" {
-				header := []string{strconv.Quote("id"), strconv.Quote("path"), strconv.Quote("tags")}
-				cmd.Println(strings.Join(header, ","))
-			}
-
-			for asset := range assetChan {
-				t, err := format(conf.Format, asset)
-				if err != nil {
+					cmd.Println(formattedAsset)
+				case err := <-errCh:
 					return err
 				}
-				cmd.Println(t)
 			}
-			return nil
 		},
 	}
 
@@ -125,10 +67,5 @@ func newAssetListCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	// FIXME: fs
-	assetListCmd, err := newAssetListCmd(nil)
-	if err != nil {
-		panic(err)
-	}
-	assetCmd.AddCommand(assetListCmd)
+	assetSubCmdGenerator = append(assetSubCmdGenerator, newAssetListCmd)
 }

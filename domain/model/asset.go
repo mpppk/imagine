@@ -1,8 +1,11 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -16,9 +19,80 @@ type BoundingBox struct {
 	Height int           `json:"height"`
 }
 
+func (b *BoundingBox) HasID() bool {
+	return b.ID != 0
+}
+
+func (b *BoundingBox) HasTagID() bool {
+	return b.TagID != 0
+}
+
+// IsSame checks if tow boxes are the same.
+// This method ignore ID.
+func (b *BoundingBox) IsSame(box *BoundingBox) bool {
+	return b.TagID == box.TagID &&
+		b.X == box.X && b.Y == box.Y &&
+		b.Width == box.Width && b.Height == box.Height
+}
+
+type BoundingBoxes []*BoundingBox
+
+// Merge merge boxes
+func (boxes BoundingBoxes) Merge(otherBoxes []*BoundingBox) []*BoundingBox {
+	var newBoxes BoundingBoxes = make([]*BoundingBox, len(boxes))
+	copy(newBoxes, boxes)
+	for _, box := range otherBoxes {
+		if !newBoxes.HasSameBox(box) {
+			newBoxes = append(newBoxes, box)
+		}
+	}
+	return newBoxes
+}
+
+func (boxes BoundingBoxes) HasSameBox(box *BoundingBox) bool {
+	for _, boundingBox := range boxes {
+		if boundingBox.IsSame(box) {
+			return true
+		}
+	}
+	return false
+}
+
 type ImportBoundingBox struct {
-	*BoundingBox
-	TagName string
+	*BoundingBox `mapstructure:",squash"`
+	TagName      string `json:"tagName"`
+}
+
+func (b *ImportBoundingBox) Validate(tagSet *TagSet) error {
+	if !b.HasTagName() && !b.HasTagID() {
+		return fmt.Errorf("bouding box's tag name and tag id are empty")
+	}
+
+	if tagSet != nil {
+		if b.HasTagName() {
+			if _, ok := tagSet.GetByName(b.TagName); !ok {
+				return fmt.Errorf("tag name(%s) not found in tag set", b.TagName)
+			}
+		}
+
+		if b.HasTagID() {
+			if _, ok := tagSet.Get(b.TagID); !ok {
+				return fmt.Errorf("tag id(%d) not found in tag set", b.TagID)
+			}
+		}
+
+		if b.HasTagName() && b.HasTagID() {
+			if tag, _ := tagSet.Get(b.TagID); tag.Name != b.TagName {
+				return fmt.Errorf("tag id and name inconsistency. provided id:%d, name:%s, but stored name is %s", b.TagID, b.TagName, tag.Name)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (b *ImportBoundingBox) HasTagName() bool {
+	return b.TagName != ""
 }
 
 type TagID uint64
@@ -105,12 +179,61 @@ type Asset struct {
 	BoundingBoxes []*BoundingBox `json:"boundingBoxes"`
 }
 
+func NewAssetFromBytes(bytes []byte) (*Asset, error) {
+	var asset Asset
+	if err := json.Unmarshal(bytes, &asset); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal asset: %w", err)
+	}
+	return &asset, nil
+}
+
+func (a *Asset) Validate() error {
+	if a.ID == 0 && a.Path == "" {
+		return fmt.Errorf("id and path are empty")
+	}
+	return nil
+}
+
+func (a *Asset) IsAddable() bool {
+	return a != nil && !a.HasID() && a.HasPath()
+}
+
+// IsUpdatableByID checks if this asset can be updated.
+// If asset or box which the asset has does not have ID, the asset is not updatable.
+func (a *Asset) IsUpdatableByID() bool {
+	if a == nil || !a.HasID() {
+		return false
+	}
+
+	for _, box := range a.BoundingBoxes {
+		if !box.HasTagID() {
+			return false
+		}
+	}
+	return true
+}
+
+func (a *Asset) IsSavable() bool {
+	if !a.IsUpdatableByID() {
+		return false
+	}
+	return a.HasPath()
+}
+
 func (a *Asset) GetID() uint64 {
 	return uint64(a.ID)
 }
 
+func (a *Asset) HasID() bool {
+	return a.ID != 0
+}
+
 func (a *Asset) SetID(id uint64) {
 	a.ID = AssetID(id)
+}
+
+func (a *Asset) HasPath() bool {
+	return a.Path != ""
 }
 
 func (a *Asset) HasTag(tagID TagID) bool {
@@ -131,9 +254,89 @@ func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 	return false
 }
 
+// Merge merge the itself and argument asset properties. This is destructive method.
+// If receiver or arg asset is nil, Merge method do nothing.
+func (a *Asset) Merge(asset *Asset) {
+	if a == nil || asset == nil {
+		return
+	}
+
+	if asset.HasPath() {
+		a.Path = asset.Path
+		a.Name = assetPathToName(a.Path)
+	}
+
+	if asset.BoundingBoxes != nil {
+		if a.BoundingBoxes == nil {
+			a.BoundingBoxes = asset.BoundingBoxes
+		} else {
+			a.BoundingBoxes = (BoundingBoxes)(a.BoundingBoxes).Merge(asset.BoundingBoxes)
+		}
+	}
+}
+
+func (a *Asset) ToJson() (string, error) {
+	contents, err := json.Marshal(a)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal asset to json: %w", err)
+	}
+	return string(contents), nil
+}
+
+func (a *Asset) ToCSVRow(tagSet *TagSet) (string, error) {
+	var tagNames []string
+	for _, tagID := range BoxesToTagIDList(a.BoundingBoxes) {
+		tag, ok := tagSet.Get(tagID)
+		if !ok {
+			log.Printf("warning: tag not found. id:%v", tagID)
+			continue
+		}
+		tagNames = append(tagNames, tag.Name)
+	}
+
+	line := []string{
+		strconv.Quote(strconv.Itoa(int(a.ID))),
+		strconv.Quote(a.Path),
+		strconv.Quote(strings.Join(tagNames, ",")),
+	}
+
+	return strings.Join(line, ","), nil
+}
+
+func assetPathToName(p string) string {
+	return strings.Replace(filepath.Base(p), filepath.Ext(p), "", -1)
+}
+
 type ImportAsset struct {
 	*Asset        `mapstructure:",squash"`
 	BoundingBoxes []*ImportBoundingBox `json:"boundingBoxes"`
+}
+
+func NewImportAssetFromJson(contents []byte) (*ImportAsset, error) {
+	var asset ImportAsset
+	if err := json.Unmarshal(contents, &asset); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal json to import asset")
+	}
+
+	return &asset, asset.Validate(nil)
+}
+
+func (a *ImportAsset) Validate(tagSet *TagSet) error {
+	asset := a.Asset
+	if asset == nil {
+		asset = &Asset{}
+	}
+	if err := asset.Validate(); err != nil {
+		return err
+	}
+
+	for _, box := range a.BoundingBoxes {
+		if err := box.Validate(tagSet); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (a *ImportAsset) ToAsset(tagSet *TagSet) (*Asset, error) {
@@ -183,7 +386,7 @@ func RemoveBoundingBoxByID(boxes []*BoundingBox, replaceBoxID BoundingBoxID) (ne
 }
 
 func NewAssetFromFilePath(filePath string) *Asset {
-	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
+	name := assetPathToName(filePath)
 	return &Asset{
 		Name: name,
 		Path: filePath,
@@ -191,11 +394,23 @@ func NewAssetFromFilePath(filePath string) *Asset {
 }
 
 func NewImportAssetFromFilePath(filePath string) *ImportAsset {
-	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
+	name := assetPathToName(filePath)
 	return &ImportAsset{
 		Asset: &Asset{
 			Name: name,
 			Path: filePath,
 		},
 	}
+}
+
+func BoxesToTagIDList(boxes []*BoundingBox) (idList []TagID) {
+	tagM := map[TagID]struct{}{}
+	for _, box := range boxes {
+		tagM[box.TagID] = struct{}{}
+	}
+
+	for id := range tagM {
+		idList = append(idList, id)
+	}
+	return
 }

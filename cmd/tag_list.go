@@ -51,10 +51,5 @@ func newTagListCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	// FIXME: fs
-	tagListCmd, err := newTagListCmd(nil)
-	if err != nil {
-		panic(err)
-	}
-	tagCmd.AddCommand(tagListCmd)
+	tagSubCmdGenerator = append(tagSubCmdGenerator, newTagListCmd)
 }

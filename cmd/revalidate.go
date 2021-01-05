@@ -39,5 +39,5 @@ func newValidateCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	cmdGenerators = append(cmdGenerators, newValidateCmd)
+	rootSubCmdGenerator = append(rootSubCmdGenerator, newValidateCmd)
 }
