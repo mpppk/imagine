@@ -51,11 +51,13 @@ func NewTempDBFile(t *testing.T) (file *os.File, closeF func(), removeF func()) 
 		t.Fatalf("failed to create temp db file: %v", err)
 	}
 	closeF = func() {
+		t.Helper()
 		if err := file.Close(); err != nil {
 			t.Fatalf("failed to close temp file: %v", err)
 		}
 	}
 	removeF = func() {
+		t.Helper()
 		if err := os.Remove(file.Name()); err != nil {
 			t.Fatalf("failed to remove db file from %s: %v", file.Name(), err)
 		}

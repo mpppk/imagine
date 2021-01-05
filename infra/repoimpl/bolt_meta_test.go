@@ -1,8 +1,9 @@
 package repoimpl_test
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/mpppk/imagine/testutil"
 
 	"github.com/blang/semver/v4"
 	"github.com/mpppk/imagine/usecase/usecasetest"
@@ -24,8 +25,8 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, "")
-			defer closer()
 			defer remover()
+			defer closer()
 
 			v, err := semver.New(tt.version)
 			if err != nil {
@@ -38,9 +39,8 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 			if err != nil || !ok {
 				t.Errorf("failed to get version: %v", err)
 			}
-			if !reflect.DeepEqual(v, gotVersion) {
-				t.Errorf("want: %#v, got: %#v", v, gotVersion)
-			}
+
+			testutil.Diff(t, v, gotVersion)
 		})
 	}
 }

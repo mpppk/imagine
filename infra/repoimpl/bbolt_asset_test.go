@@ -9,15 +9,12 @@ import (
 
 	"github.com/mpppk/imagine/usecase/usecasetest"
 
-	"github.com/google/go-cmp/cmp"
-
 	"github.com/mpppk/imagine/infra/repoimpl"
 
 	"github.com/mpppk/imagine/domain/model"
 )
 
 func TestBBoltAsset_add(t *testing.T) {
-	fileName := "TestBBoltAsset_Add.db"
 	var wsName model.WSName = "workspace-for-test"
 	newAsset := &model.Asset{
 		ID:            0,
@@ -43,9 +40,9 @@ func TestBBoltAsset_add(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
-			defer closer()
+			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
 			defer remover()
+			defer closer()
 
 			if _, err := usecases.Client.Asset.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
@@ -54,9 +51,8 @@ func TestBBoltAsset_add(t *testing.T) {
 			if err != nil || !exist {
 				t.Errorf("failed to get asset: %v: %v", newAsset.ID, err)
 			}
-			if !reflect.DeepEqual(got, newAsset) {
-				t.Errorf("wantAssets: %#v, got: %#v", newAsset, got)
-			}
+
+			testutil.Diff(t, newAsset, got)
 		})
 	}
 }
@@ -113,8 +109,8 @@ func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
-			defer closer()
 			defer remover()
+			defer closer()
 
 			if _, err := usecases.Client.Asset.BatchAdd(wsName, tt.existAssets); err != nil {
 				t.Fatalf("Update() error = %v, wantErr %v", err, tt.wantErr)
@@ -129,15 +125,13 @@ func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("wantAssets err: %v, got: %v", tt.wantErr, err)
 			}
-			if diff := cmp.Diff(assets, tt.want); diff != "" {
-				t.Errorf("(-got +wantAssets)\n%s", diff)
-			}
+
+			testutil.Diff(t, tt.want, assets)
 		})
 	}
 }
 
 func TestBBoltAsset_Update(t *testing.T) {
-	fileName := "TestBBoltAsset_Update.db"
 	var wsName model.WSName = "workspace-for-test"
 	oldAsset := &model.Asset{
 		ID:            0,
@@ -170,9 +164,9 @@ func TestBBoltAsset_Update(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
-			defer closer()
+			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
 			defer remover()
+			defer closer()
 
 			for _, asset := range tt.oldAssets {
 				if _, _, err := usecases.Client.Asset.AddByFilePathIfDoesNotExist(wsName, asset.Path); err != nil {
@@ -187,9 +181,8 @@ func TestBBoltAsset_Update(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed to get asset: %v: %v", newAsset.ID, err)
 			}
-			if !reflect.DeepEqual(got, newAsset) {
-				t.Errorf("wantAssets: %#v, got: %#v", newAsset, got)
-			}
+
+			testutil.Diff(t, newAsset, got)
 		})
 	}
 }
@@ -237,8 +230,8 @@ func TestBBoltAsset_ListByIDList(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
-			defer closer()
 			defer remover()
+			defer closer()
 
 			if _, err := usecases.Client.Asset.BatchAdd(wsName, tt.existAssets); err != nil {
 				t.Fatalf("BatchAdd() error = %v, wantErr %v", err, tt.wantErr)
@@ -248,15 +241,13 @@ func TestBBoltAsset_ListByIDList(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("failed to list assets. error: %v", err)
 			}
-			if diff := cmp.Diff(assets, tt.want); diff != "" {
-				t.Errorf("(-got +wantAssets)\n%s", diff)
-			}
+
+			testutil.Diff(t, tt.want, assets)
 		})
 	}
 }
 
 func TestBBoltAsset_GetByPath(t *testing.T) {
-	fileName := "TestBBoltAsset_GetByPath.db"
 	var wsName model.WSName = "workspace-for-test"
 	type args struct {
 		path string
@@ -283,9 +274,9 @@ func TestBBoltAsset_GetByPath(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
-			defer closer()
+			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
 			defer remover()
+			defer closer()
 
 			for _, path := range tt.existPaths {
 				if _, ok, err := usecases.Client.Asset.AddByFilePathIfDoesNotExist(wsName, path); (err != nil) != tt.wantErr {
@@ -303,15 +294,12 @@ func TestBBoltAsset_GetByPath(t *testing.T) {
 				t.Errorf("failed to get asset by GetByPath. exist: %v error: %v", exist, err)
 			}
 
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("wantAssets: %#v, got: %#v", tt.want, got)
-			}
+			testutil.Diff(t, tt.want, got)
 		})
 	}
 }
 
 func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
-	fileName := "TestBBoltAsset_AddByFlePathListIfDoesNotExist.db"
 	type args struct {
 		ws           model.WSName
 		filePathList []string
@@ -334,9 +322,9 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, tt.args.ws)
-			defer closer()
+			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, tt.args.ws)
 			defer remover()
+			defer closer()
 
 			idList, err := usecases.Client.Asset.AddByFilePathListIfDoesNotExist(tt.args.ws, tt.args.filePathList)
 			if (err != nil) != tt.wantErr {
@@ -352,6 +340,7 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 					t.Errorf("failed to get asset which added by AddByFilePathListifDoesNotExist() exist = %v error = %v", exist, err)
 				}
 
+				testutil.Diff(t, asset, asset2)
 				if !reflect.DeepEqual(asset, asset2) {
 					t.Errorf("inconsistecy detected on AddByFilePathListifDoesNotExisti() asset1: %#v, asset2: %#v", asset, asset2)
 				}

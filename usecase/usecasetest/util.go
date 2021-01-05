@@ -66,12 +66,17 @@ func SetUpUseCases(t *testing.T, dbPath string, wsName model.WSName) (u *usecase
 	}
 
 	remover = func() {
+		t.Helper()
+		if err := usecases.Close();err != nil {
+			t.Fatalf("failed to close usecases: %v", err)
+		}
 		if err := os.Remove(dbPath); err != nil {
 			t.Errorf("failed to remove test file: %v", err)
 		}
 	}
 
 	closer = func() {
+		t.Helper()
 		if err := usecases.Close(); err != nil {
 			t.Fatalf("failed to close usecases: %v", err)
 		}

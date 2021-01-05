@@ -1,8 +1,9 @@
 package repoimpl_test
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/mpppk/imagine/testutil"
 
 	"github.com/mpppk/imagine/domain/model"
 	"github.com/mpppk/imagine/usecase/usecasetest"
@@ -43,8 +44,8 @@ func TestBBoltTag_Update(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
-			defer closer()
 			defer remover()
+			defer closer()
 
 			if err := usecases.Client.Tag.Update(wsName, tt.args.tag); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
@@ -53,9 +54,8 @@ func TestBBoltTag_Update(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed to get tag: %v: %v", newTag.ID, err)
 			}
-			if !reflect.DeepEqual(got, newTag) {
-				t.Errorf("want: %#v, got: %#v", newTag, got)
-			}
+
+			testutil.Diff(t, newTag, got)
 		})
 	}
 }
