@@ -27,6 +27,37 @@ func (b *BoundingBox) HasTagID() bool {
 	return b.TagID != 0
 }
 
+// IsSame checks if tow boxes are the same.
+// This method ignore ID.
+func (b *BoundingBox) IsSame(box *BoundingBox) bool {
+	return b.TagID == box.TagID &&
+		b.X == box.X && b.Y == box.Y &&
+		b.Width == box.Width && b.Height == box.Height
+}
+
+type BoundingBoxes []*BoundingBox
+
+// Merge merge boxes
+func (boxes BoundingBoxes) Merge(otherBoxes []*BoundingBox) []*BoundingBox {
+	var newBoxes BoundingBoxes = make([]*BoundingBox, len(boxes))
+	copy(newBoxes, boxes)
+	for _, box := range otherBoxes {
+		if !newBoxes.HasSameBox(box) {
+			newBoxes = append(newBoxes, box)
+		}
+	}
+	return newBoxes
+}
+
+func (boxes BoundingBoxes) HasSameBox(box *BoundingBox) bool {
+	for _, boundingBox := range boxes {
+		if boundingBox.IsSame(box) {
+			return true
+		}
+	}
+	return false
+}
+
 type ImportBoundingBox struct {
 	*BoundingBox `mapstructure:",squash"`
 	TagName      string `json:"tagName"`
@@ -236,7 +267,11 @@ func (a *Asset) Merge(asset *Asset) {
 	}
 
 	if asset.BoundingBoxes != nil {
-		a.BoundingBoxes = asset.BoundingBoxes
+		if a.BoundingBoxes == nil {
+			a.BoundingBoxes = asset.BoundingBoxes
+		} else {
+			(BoundingBoxes)(a.BoundingBoxes).Merge(asset.BoundingBoxes)
+		}
 	}
 }
 

@@ -46,7 +46,6 @@ func (a *Asset) ImportBoundingBoxesFromReader(ws model.WSName, reader io.Reader)
 	scanner := bufio.NewScanner(reader)
 	cnt := 0
 	cap1 := 10000 // FIXME
-	cap2 := 5000  // FIXME
 	s := spinner.New(spinner.CharSets[43], 100*time.Millisecond)
 	s.Prefix = "loading... "
 	s.Start()
@@ -63,7 +62,7 @@ func (a *Asset) ImportBoundingBoxesFromReader(ws model.WSName, reader io.Reader)
 
 		if len(importAssets) >= cap1 {
 			s.Suffix += "(writing...)"
-			if _, err := a.AppendBoundingBoxes(ws, importAssets, cap2); err != nil {
+			if _, err := a.AppendBoundingBoxes(ws, importAssets); err != nil {
 				return fmt.Errorf("failed to add import assets: %w", err)
 			}
 			importAssets = make([]*model.ImportAsset, 0, cap1)
@@ -72,7 +71,7 @@ func (a *Asset) ImportBoundingBoxesFromReader(ws model.WSName, reader io.Reader)
 
 	if len(importAssets) > 0 {
 		s.Suffix += "(writing...)"
-		if _, err := a.AppendBoundingBoxes(ws, importAssets, cap2); err != nil {
+		if _, err := a.AppendBoundingBoxes(ws, importAssets); err != nil {
 			return fmt.Errorf("failed to add import assets: %w", err)
 		}
 	}
@@ -125,7 +124,7 @@ func (a *Asset) ReadImportAssetsWithProgressBar(ws model.WSName, reader io.Reade
 func (a *Asset) AddOrUpdateImportAssetsFromReader(ws model.WSName, reader io.Reader, capacity int) error {
 	f := func(importAssets []*model.ImportAsset) error {
 		log.Printf("debug: new batch: %d assets are loaded from reader", capacity)
-		if err := a.AddOrUpdateImportAssets(ws, importAssets); err != nil {
+		if err := a.AddOrMergeImportAssets(ws, importAssets); err != nil {
 			return fmt.Errorf("faled to add or update assets from reader: %w", err)
 		}
 		return nil
@@ -133,8 +132,8 @@ func (a *Asset) AddOrUpdateImportAssetsFromReader(ws model.WSName, reader io.Rea
 	return a.ReadImportAssetsWithProgressBar(ws, reader, capacity, f)
 }
 
-func (a *Asset) AppendBoundingBoxes(ws model.WSName, assets []*model.ImportAsset, cap int) ([]model.AssetID, error) {
-	updateAssets := make([]*model.Asset, 0, cap)
+func (a *Asset) AppendBoundingBoxes(ws model.WSName, assets []*model.ImportAsset) ([]model.AssetID, error) {
+	updateAssets := make([]*model.Asset, 0, len(assets))
 	var idList []model.AssetID
 
 	tagSet, err := a.tagRepository.ListAsSet(ws)
@@ -167,34 +166,23 @@ func (a *Asset) AppendBoundingBoxes(ws model.WSName, assets []*model.ImportAsset
 			log.Printf("warning: json line is ignored because image path is empty")
 		}
 
-		if len(updateAssets) >= cap {
-			idl, err := a.assetRepository.BatchAppendBoundingBoxes(ws, updateAssets)
-			if err != nil {
-				return nil, fmt.Errorf("failed to append bounding boxes: %w", err)
-			}
-
-			idList = append(idList, idl...)
-			updateAssets = make([]*model.Asset, 0, cap)
-		}
 	}
 
-	if len(updateAssets) > 0 {
-		idl, err := a.assetRepository.BatchAppendBoundingBoxes(ws, updateAssets)
-		if err != nil {
-			return nil, fmt.Errorf("failed to append bounding boxes: %w", err)
-		}
-
-		idList = append(idList, idl...)
+	idl, err := a.assetRepository.BatchAppendBoundingBoxes(ws, updateAssets)
+	if err != nil {
+		return nil, fmt.Errorf("failed to append bounding boxes: %w", err)
 	}
+
+	idList = append(idList, idl...)
 
 	return idList, nil
 }
 
-// AddOrUpdateImportAssets updates assets by ID or path.
+// AddOrMergeImportAssets updates assets by ID or path.
 // If ID is specified, find asset by ID and update properties. (includes path if it specified)
 // If ID is not specified and path is specified, find asset by path and update properties.
 // Specified properties are updated and omitted properties are reserved.
-func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, importAssets []*model.ImportAsset) error {
+func (a *Asset) AddOrMergeImportAssets(ws model.WSName, importAssets []*model.ImportAsset) error {
 	if _, err := a.tagRepository.AddByNames(ws, assetsvc.ToUniqTagNames(importAssets)); err != nil {
 		return fmt.Errorf("failed to add tags by names: %w", err)
 	}

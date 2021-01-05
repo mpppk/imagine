@@ -88,7 +88,6 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 	type args struct {
 		ws     model.WSName
 		assets []*model.ImportAsset
-		cap    int
 	}
 	tests := []struct {
 		name        string
@@ -112,7 +111,6 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 						},
 					},
 				},
-				cap: 100,
 			},
 			existTags: []*model.Tag{{ID: 1, Name: "tag1"}},
 			existAssets: []*model.ImportAsset{
@@ -141,7 +139,6 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 						},
 					},
 				},
-				cap: 100,
 			},
 			existTags: []*model.Tag{{ID: 1, Name: "tag1"}, {ID: 2, Name: "tag2"}},
 			existAssets: []*model.ImportAsset{
@@ -180,7 +177,7 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 				}
 			}()
 
-			got, err := usecases.Asset.AppendBoundingBoxes(tt.args.ws, tt.args.assets, tt.args.cap)
+			got, err := usecases.Asset.AppendBoundingBoxes(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AppendBoundingBoxes() error = %#v, wantErr %#v", err, tt.wantErr)
 				return
@@ -291,9 +288,9 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 				t.Fatalf("failed to create usecases instance: %v", err)
 			}
 
-			err = usecases.Asset.AddOrUpdateImportAssets(tt.args.ws, tt.args.assets)
+			err = usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AddOrUpdateImportAssets() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("AddOrMergeImportAssets() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			} else if tt.wantErr {
 				return

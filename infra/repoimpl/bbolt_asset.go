@@ -71,7 +71,7 @@ func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath strin
 	return id, true, nil
 }
 
-func (b *BBoltAsset) BatchAppendBoundingBoxes(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
+func (b *BBoltAsset) BatchAppendBoundingBoxesByPath(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
 	var idList []model.AssetID
 	var paths []string
 	for _, asset := range assets {
@@ -82,14 +82,7 @@ func (b *BBoltAsset) BatchAppendBoundingBoxes(ws model.WSName, assets []*model.A
 		}
 	}
 
-	idListFromPaths, err := b.pathRepository.ListByPath(ws, paths)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list asset id by paths: %w", err)
-	}
-
-	idList = append(idList, idListFromPaths...)
-
-	newAssets, err := b.ListByIDList(ws, idList)
+	newAssets, err := b.ListByPaths(ws, assetsvc.ToPaths(assets))
 	if err != nil {
 		return nil, err
 	}
@@ -107,6 +100,45 @@ func (b *BBoltAsset) BatchAppendBoundingBoxes(ws model.WSName, assets []*model.A
 		dataList = append(dataList, newAsset)
 	}
 
+	b.BatchUpdateByID(ws, newAssets)
+	_, _, err = b.base.batchUpdateByID(createAssetBucketNames(ws), dataList)
+	if err != nil {
+		return nil, err
+	}
+
+	return idList, nil
+}
+
+func (b *BBoltAsset) BatchAppendBoundingBoxes(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
+	var idList []model.AssetID
+	var paths []string
+	for _, asset := range assets {
+		if asset.ID != 0 {
+			idList = append(idList, asset.ID)
+		} else if asset.Path != "" {
+			paths = append(paths, asset.Path)
+		}
+	}
+
+	newAssets, err := b.ListByPaths(ws, assetsvc.ToPaths(assets))
+	if err != nil {
+		return nil, err
+	}
+
+	var dataList []boltData
+	for i, newAsset := range newAssets {
+		if newAsset == nil {
+			return nil, fmt.Errorf("failed to append bounding box because provided ID does not exist in DB. ID:%d", assets[i].ID)
+		}
+		asset := assets[i]
+		if len(asset.BoundingBoxes) == 0 {
+			continue
+		}
+		newAsset.BoundingBoxes = append(newAsset.BoundingBoxes, asset.BoundingBoxes...)
+		dataList = append(dataList, newAsset)
+	}
+
+	b.BatchUpdateByID(ws, newAssets)
 	_, _, err = b.base.batchUpdateByID(createAssetBucketNames(ws), dataList)
 	if err != nil {
 		return nil, err

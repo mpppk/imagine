@@ -94,7 +94,7 @@ func newAsset(t *testing.T, asset *usecase.Asset) *Asset {
 
 func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, assets []*model.ImportAsset) {
 	a.t.Helper()
-	err := a.asset.AddOrUpdateImportAssets(ws, assets)
+	err := a.asset.AddOrMergeImportAssets(ws, assets)
 	if err != nil {
 		a.t.Fatalf("failed to add import assets: %v: %v", err, assets)
 	}
