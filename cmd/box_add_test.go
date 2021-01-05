@@ -70,12 +70,9 @@ func TestBoXAdd(t *testing.T) {
 			dbName: "box_add_test.imagine",
 			wsName: "default-workspace",
 			importAssets: []*model.ImportAsset{
-				{Asset: &model.Asset{ID: 1, Name: "path1", Path: "path1",
-					BoundingBoxes: []*model.BoundingBox{{TagID: 1}},
-				}},
-				{Asset: model.NewAssetFromFilePath("path1")},
-				{Asset: model.NewAssetFromFilePath("path2")},
-				{Asset: model.NewAssetFromFilePath("path3")},
+				{Asset: &model.Asset{Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}}},
+				model.NewImportAssetFromFilePath("path2"),
+				model.NewImportAssetFromFilePath("path3"),
 			},
 			importTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
 			wantAssets: []*model.Asset{

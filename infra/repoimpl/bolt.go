@@ -279,25 +279,6 @@ func (b *boltRepository) updateByID(bucketNames []string, data boltData) error {
 	})
 }
 
-// batchSaveByID save data by ID. If ID does not exist in bucket, add the data.
-// This method is fast than updateByID, because updateByID retrieve data before set data, but batchSaveByID don't do it.
-func (b *boltRepository) batchSaveByID(bucketNames []string, dataList []boltData) error {
-	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		for _, data := range dataList {
-			key := itob(data.GetID())
-			s, err := json.Marshal(data)
-			if err != nil {
-				return fmt.Errorf("failed to marshal tag to json: %w", err)
-			}
-
-			if err := bucket.Put(key, s); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
 // batchUpdateByID update data by ID. If ID does not exist in bucket, skip the data.
 func (b *boltRepository) batchUpdateByID(bucketNames []string, dataList []boltData) (updatedDataList []boltData, skippedDataList []boltData, err error) {
 	err = b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {

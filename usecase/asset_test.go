@@ -95,13 +95,13 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 		dbName      string
 		args        args
 		existTags   []*model.Tag
-		existAssets []*model.Asset
+		existAssets []*model.ImportAsset
 		want        []model.AssetID
 		wantAssets  []*model.Asset
 		wantErr     bool
 	}{
 		{
-			dbName: "TestAsset_AddOrUpdateImportAssets_add_box.db",
+			dbName: "TestAsset_AppendBoundingBoxes.db",
 			args: args{
 				ws: testWSName,
 				assets: []*model.ImportAsset{
@@ -115,9 +115,9 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 				cap: 100,
 			},
 			existTags: []*model.Tag{{ID: 1, Name: "tag1"}},
-			existAssets: []*model.Asset{
-				model.NewAssetFromFilePath("path1"),
-				model.NewAssetFromFilePath("path2"),
+			existAssets: []*model.ImportAsset{
+				model.NewImportAssetFromFilePath("path1"),
+				model.NewImportAssetFromFilePath("path2"),
 			},
 			want: []model.AssetID{1},
 			wantAssets: []*model.Asset{
@@ -130,7 +130,7 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 		},
 		{
 			name:   "append box",
-			dbName: "TestAsset_AddOrUpdateImportAssets_add_box.db",
+			dbName: "TestAsset_AppendBoundingBoxes_append_box.db",
 			args: args{
 				ws: testWSName,
 				assets: []*model.ImportAsset{
@@ -144,11 +144,11 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 				cap: 100,
 			},
 			existTags: []*model.Tag{{ID: 1, Name: "tag1"}, {ID: 2, Name: "tag2"}},
-			existAssets: []*model.Asset{
-				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{
+			existAssets: []*model.ImportAsset{
+				{Asset: &model.Asset{Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{
 					{TagID: 1},
-				}},
-				model.NewAssetFromFilePath("path2"),
+				}}},
+				model.NewImportAssetFromFilePath("path2"),
 			},
 			want: []model.AssetID{1},
 			wantAssets: []*model.Asset{
@@ -166,7 +166,7 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, tt.dbName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(tu *usecasetest.UseCases) {
-				tu.Client.Asset.BatchSave(tt.args.ws, tt.existAssets)
+				tu.Asset.AddOrUpdateImportAssets(tt.args.ws, tt.existAssets)
 				tu.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
@@ -209,7 +209,7 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 		name        string
 		dbName      string
 		args        args
-		existAssets []*model.Asset
+		existAssets []*model.ImportAsset
 		existTags   []*model.Tag
 		want        []model.AssetID
 		wantAssets  []*model.Asset
@@ -217,7 +217,7 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 	}{
 		{
 			name:   "add and update assets",
-			dbName: "TestAsset_AddOrUpdateImportAssets_add_box.db",
+			dbName: "TestAsset_AddOrUpdateImportAssets_add_and_update_assets.db",
 			args: args{
 				ws: testWSName,
 				assets: []*model.ImportAsset{
@@ -231,9 +231,9 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 				},
 			},
 			existTags: []*model.Tag{{ID: 1, Name: "tag1"}},
-			existAssets: []*model.Asset{
-				{ID: 1, Path: "path1", Name: "path1"},
-				{ID: 2, Path: "path2", Name: "path2"},
+			existAssets: []*model.ImportAsset{
+				model.NewImportAssetFromFilePath("path1"),
+				model.NewImportAssetFromFilePath("path2"),
 			},
 			want: []model.AssetID{1},
 			wantAssets: []*model.Asset{
@@ -247,7 +247,7 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 		},
 		{
 			name:   "refer a tag that doesn't exist",
-			dbName: "TestAsset_AddOrUpdateImportAssets_add_box.db",
+			dbName: "TestAsset_AddOrUpdateImportAssets_refer_doesnt_exist_tag_db",
 			args: args{
 				ws: testWSName,
 				assets: []*model.ImportAsset{
@@ -261,9 +261,9 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 				},
 			},
 			existTags: []*model.Tag{{ID: 1, Name: "tag1"}},
-			existAssets: []*model.Asset{
-				{ID: 1, Path: "path1", Name: "path1"},
-				{ID: 2, Path: "path2", Name: "path2"},
+			existAssets: []*model.ImportAsset{
+				model.NewImportAssetFromFilePath("path1"),
+				model.NewImportAssetFromFilePath("path2"),
 			},
 			want: []model.AssetID{1},
 			wantAssets: []*model.Asset{
@@ -282,7 +282,7 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, tt.dbName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(tu *usecasetest.UseCases) {
-				tu.Client.Asset.BatchSave(tt.args.ws, tt.existAssets)
+				tu.Asset.AddOrUpdateImportAssets(tt.args.ws, tt.existAssets)
 				tu.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 

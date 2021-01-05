@@ -24,12 +24,12 @@ func TestAssetUpdate(t *testing.T) {
 	}{
 		{
 			name:   "Do nothing",
-			dbName: "asset_update.imagine",
+			dbName: "asset_update_do_nothing.imagine",
 			wsName: "default-workspace",
 			existAssets: []*model.ImportAsset{
-				{Asset: model.NewAssetFromFilePath("path1")},
-				{Asset: model.NewAssetFromFilePath("path2")},
-				{Asset: model.NewAssetFromFilePath("path3")},
+				model.NewImportAssetFromFilePath("path1"),
+				model.NewImportAssetFromFilePath("path2"),
+				model.NewImportAssetFromFilePath("path3"),
 			},
 			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
 			command:   `asset update`,
@@ -41,12 +41,12 @@ func TestAssetUpdate(t *testing.T) {
 		},
 		{
 			name:   "find by tag and update bounding box",
-			dbName: "asset_update.imagine",
+			dbName: "asset_update_find_by_tag.imagine",
 			wsName: "default-workspace",
 			existAssets: []*model.ImportAsset{
-				{Asset: model.NewAssetFromFilePath("path1")},
-				{Asset: model.NewAssetFromFilePath("path2")},
-				{Asset: model.NewAssetFromFilePath("path3")},
+				model.NewImportAssetFromFilePath("path1"),
+				model.NewImportAssetFromFilePath("path2"),
+				model.NewImportAssetFromFilePath("path3"),
 			},
 			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
 			command:   `asset update`,
@@ -59,7 +59,7 @@ func TestAssetUpdate(t *testing.T) {
 		},
 		{
 			name:   "find by path and update bounding box",
-			dbName: "asset_update.imagine",
+			dbName: "asset_update_find_by_path.imagine",
 			wsName: "default-workspace",
 			existAssets: []*model.ImportAsset{
 				{Asset: model.NewAssetFromFilePath("path1")},

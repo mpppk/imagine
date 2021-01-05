@@ -39,15 +39,6 @@ func (a *AssetRepository) BatchAdd(ws model.WSName, assets []*model.Asset) []mod
 	return idList
 }
 
-func (a *AssetRepository) BatchSave(ws model.WSName, assets []*model.Asset) (savedAssets, skippedAssets []*model.Asset) {
-	a.t.Helper()
-	savedAssets, skippedAssets, err := a.repository.BatchSave(ws, assets)
-	if err != nil {
-		a.t.Fatalf("failed to add assets: %v", err)
-	}
-	return
-}
-
 func (a *AssetRepository) ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset) {
 	a.t.Helper()
 	assets, err := a.repository.ListBy(ws, f)

@@ -12,7 +12,6 @@ type Asset interface {
 	Init(ws model.WSName) error
 	Add(ws model.WSName, asset *model.Asset) (model.AssetID, error)
 	BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error)
-	BatchSave(ws model.WSName, assets []*model.Asset) (savedAssets, skippedAssets []*model.Asset, err error)
 	BatchAppendBoundingBoxes(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error)
 	Close() error
 	AddByFilePathIfDoesNotExist(ws model.WSName, filePath string) (id model.AssetID, added bool, err error)

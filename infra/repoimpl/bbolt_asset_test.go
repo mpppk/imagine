@@ -494,7 +494,7 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 	tests := []struct {
 		name              string
 		args              args
-		existAssets       []*model.Asset
+		existAssets       []*model.ImportAsset
 		existTags         []*model.Tag
 		wantUpdatedAssets []*model.Asset
 		wantSkippedAssets []*model.Asset
@@ -502,10 +502,10 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 		wantErr           bool
 	}{
 		{
-			existAssets: []*model.Asset{
-				{ID: 1, Path: "path1", Name: "path1"},
-				{ID: 2, Path: "path2", Name: "path2"},
-				{ID: 3, Path: "path3", Name: "path3"},
+			existAssets: []*model.ImportAsset{
+				model.NewImportAssetFromFilePath("path1"),
+				model.NewImportAssetFromFilePath("path2"),
+				model.NewImportAssetFromFilePath("path3"),
 			},
 			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
 			args: args{
@@ -533,7 +533,7 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Client.Asset.BatchSave(tt.args.ws, tt.existAssets)
+				usecases.Asset.AddOrUpdateImportAssets(tt.args.ws, tt.existAssets)
 				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
@@ -560,7 +560,7 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 }
 
 func TestBBoltAsset_BatchAdd(t *testing.T) {
-	fileName := "TestBBoltAsset_Add.db"
+	fileName := "TestBBoltAsset_BatchAdd.db"
 	type args struct {
 		ws     model.WSName
 		assets []*model.Asset
@@ -640,6 +640,7 @@ func TestBBoltAsset_BatchAdd(t *testing.T) {
 		})
 	}
 }
+
 func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 	fileName := "TestBBoltAsset_BatchUpdateByPath.db"
 	type args struct {
@@ -649,7 +650,7 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 	tests := []struct {
 		name              string
 		args              args
-		existAssets       []*model.Asset
+		existAssets       []*model.ImportAsset
 		existTags         []*model.Tag
 		wantUpdatedAssets []*model.Asset
 		wantSkippedAssets []*model.Asset
@@ -657,10 +658,10 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 		wantErr           bool
 	}{
 		{
-			existAssets: []*model.Asset{
-				{ID: 1, Path: "path1", Name: "path1"},
-				{ID: 2, Path: "path2", Name: "path2"},
-				{ID: 3, Path: "path3", Name: "path3"},
+			existAssets: []*model.ImportAsset{
+				model.NewImportAssetFromFilePath("path1"),
+				model.NewImportAssetFromFilePath("path2"),
+				model.NewImportAssetFromFilePath("path3"),
 			},
 			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
 			args: args{
@@ -690,7 +691,7 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Client.Asset.BatchSave(tt.args.ws, tt.existAssets)
+				usecases.Asset.AddOrUpdateImportAssets(tt.args.ws, tt.existAssets)
 				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
