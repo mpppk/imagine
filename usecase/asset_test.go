@@ -93,7 +93,7 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 		name        string
 		dbName      string
 		args        args
-		existAssets []*model.ImportAsset
+		existAssets []*model.Asset
 		existTags   []*model.Tag
 		want        []model.AssetID
 		wantAssets  []*model.Asset
@@ -115,9 +115,9 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 				},
 			},
 			existTags: []*model.Tag{{ID: 1, Name: "tag1"}},
-			existAssets: []*model.ImportAsset{
-				model.NewImportAssetFromFilePath("path1"),
-				model.NewImportAssetFromFilePath("path2"),
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path1"),
+				model.NewAssetFromFilePath("path2"),
 			},
 			want: []model.AssetID{1},
 			wantAssets: []*model.Asset{
@@ -145,9 +145,9 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 				},
 			},
 			existTags: []*model.Tag{{ID: 1, Name: "tag1"}},
-			existAssets: []*model.ImportAsset{
-				model.NewImportAssetFromFilePath("path1"),
-				model.NewImportAssetFromFilePath("path2"),
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path1"),
+				model.NewAssetFromFilePath("path2"),
 			},
 			want: []model.AssetID{1},
 			wantAssets: []*model.Asset{
@@ -159,6 +159,35 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name:   "append boxes",
+			dbName: "TestAsset_AddOrMergeImportAssets_append_boxes_db",
+			args: args{
+				ws: testWSName,
+				assets: []*model.ImportAsset{
+					{
+						Asset: &model.Asset{ID: 1, Path: "path1", Name: "path1"},
+						BoundingBoxes: []*model.ImportBoundingBox{
+							{TagName: "tag1", BoundingBox: &model.BoundingBox{X: 1}},
+							{TagName: "tag2"},
+						},
+					},
+				},
+			},
+			existTags: []*model.Tag{{ID: 1, Name: "tag1"}, {ID: 2, Name: "tag2"}},
+			existAssets: []*model.Asset{
+				{Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 2},
+				}},
+			},
+			want: []model.AssetID{1},
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 2}, {TagID: 1, X: 1}},
+				},
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -166,7 +195,7 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, tt.dbName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(tu *usecasetest.UseCases) {
-				tu.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
+				tu.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
 				tu.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
