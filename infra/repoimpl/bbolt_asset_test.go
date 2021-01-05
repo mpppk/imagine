@@ -307,7 +307,7 @@ func TestBBoltAsset_Update(t *testing.T) {
 
 			for _, asset := range tt.oldAssets {
 				if _, _, err := usecases.Client.Asset.AddByFilePathIfDoesNotExist(wsName, asset.Path); err != nil {
-					t.Fatalf("failed to addByID assets: %v: %#v", err, asset)
+					t.Fatalf("failed to addWithID assets: %v: %#v", err, asset)
 				}
 			}
 
@@ -533,7 +533,7 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
+				usecases.Client.Asset.BatchSave(tt.args.ws, tt.existAssets)
 				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
@@ -690,7 +690,7 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
+				usecases.Client.Asset.BatchSave(tt.args.ws, tt.existAssets)
 				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 

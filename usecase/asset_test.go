@@ -166,7 +166,7 @@ func TestAsset_AppendBoundingBoxes(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, tt.dbName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(tu *usecasetest.UseCases) {
-				tu.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
+				tu.Client.Asset.BatchSave(tt.args.ws, tt.existAssets)
 				tu.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
@@ -282,7 +282,7 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, tt.dbName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(tu *usecasetest.UseCases) {
-				tu.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
+				tu.Client.Asset.BatchSave(tt.args.ws, tt.existAssets)
 				tu.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 

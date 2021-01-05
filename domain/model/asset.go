@@ -182,6 +182,13 @@ func (a *Asset) IsUpdatableByID() bool {
 	return true
 }
 
+func (a *Asset) IsSavable() bool {
+	if !a.IsUpdatableByID() {
+		return false
+	}
+	return a.HasPath()
+}
+
 func (a *Asset) GetID() uint64 {
 	return uint64(a.ID)
 }
