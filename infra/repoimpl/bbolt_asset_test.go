@@ -146,135 +146,6 @@ func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
 	}
 }
 
-func TestBBoltAsset_BatchAppendBoundingBoxes(t *testing.T) {
-	fileName := "TestBBoltAsset_BatchAppendBoundingBoxes.db"
-	var wsName model.WSName = "workspace-for-test"
-	type args struct {
-		updateAssets []*model.Asset
-	}
-	tests := []struct {
-		name        string
-		existAssets []*model.ImportAsset
-		args        args
-		want        []model.AssetID
-		wantAssets  []*model.Asset
-		wantErr     bool
-	}{
-		{
-			name: "append box by path",
-			existAssets: []*model.ImportAsset{
-				model.NewImportAssetFromFilePath("path1"),
-				model.NewImportAssetFromFilePath("path2"),
-			},
-			args: args{
-				updateAssets: []*model.Asset{
-					{
-						Path: "path1",
-						BoundingBoxes: []*model.BoundingBox{
-							{TagID: 1},
-						},
-					},
-				},
-			},
-			want: []model.AssetID{1},
-			wantAssets: []*model.Asset{
-				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
-				{ID: 2, Name: "path2", Path: "path2", BoundingBoxes: nil},
-			},
-			wantErr: false,
-		},
-		{
-			name: "skip already exist box",
-			existAssets: []*model.ImportAsset{
-				{
-					Asset: &model.Asset{
-						Name: "path1",
-						Path: "path1",
-						BoundingBoxes: []*model.BoundingBox{
-							{TagID: 1},
-						},
-					},
-				},
-				{
-					Asset: &model.Asset{
-						Name: "path2",
-						Path: "path2",
-						BoundingBoxes: []*model.BoundingBox{
-							{TagID: 2},
-						},
-					},
-				},
-			},
-			args: args{
-				updateAssets: []*model.Asset{
-					{
-						Path: "path1",
-						BoundingBoxes: []*model.BoundingBox{
-							{TagID: 1},
-						},
-					},
-					{
-						Path: "path2",
-						BoundingBoxes: []*model.BoundingBox{
-							{TagID: 1}, {TagID: 2},
-						},
-					},
-				},
-			},
-			want: []model.AssetID{1, 2},
-			wantAssets: []*model.Asset{
-				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
-				{ID: 2, Name: "path2", Path: "path2", BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 2}}},
-			},
-			wantErr: false,
-		},
-		{
-			name: "error if asset which id does not exist in DB is provided",
-			existAssets: []*model.ImportAsset{
-				model.NewImportAssetFromFilePath("path1"),
-				model.NewImportAssetFromFilePath("path2"),
-			},
-			args: args{
-				updateAssets: []*model.Asset{
-					{
-						Path: "path3",
-						BoundingBoxes: []*model.BoundingBox{
-							{TagID: 1},
-						},
-					},
-				},
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			u := usecasetest.NewTestUseCaseUser(t, fileName, wsName)
-			defer u.RemoveDB()
-			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Asset.AddOrUpdateImportAssets(wsName, tt.existAssets)
-			})
-
-			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
-			defer closer()
-			defer remover()
-
-			assetIDList, err := usecases.Client.Asset.BatchAppendBoundingBoxes(wsName, tt.args.updateAssets)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			testutil.Diff(t, tt.want, assetIDList)
-
-			closer()
-			u.Use(func(usecases *usecasetest.UseCases) {
-				assets := usecases.Client.Asset.List(wsName)
-				testutil.Diff(t, tt.wantAssets, assets)
-			})
-		})
-	}
-}
-
 func TestBBoltAsset_Update(t *testing.T) {
 	fileName := "TestBBoltAsset_Update.db"
 	var wsName model.WSName = "workspace-for-test"
@@ -540,7 +411,7 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Asset.AddOrUpdateImportAssets(tt.args.ws, tt.existAssets)
+				usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
 				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
@@ -698,7 +569,7 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Asset.AddOrUpdateImportAssets(tt.args.ws, tt.existAssets)
+				usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
 				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 

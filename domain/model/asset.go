@@ -270,7 +270,7 @@ func (a *Asset) Merge(asset *Asset) {
 		if a.BoundingBoxes == nil {
 			a.BoundingBoxes = asset.BoundingBoxes
 		} else {
-			(BoundingBoxes)(a.BoundingBoxes).Merge(asset.BoundingBoxes)
+			a.BoundingBoxes = (BoundingBoxes)(a.BoundingBoxes).Merge(asset.BoundingBoxes)
 		}
 	}
 }

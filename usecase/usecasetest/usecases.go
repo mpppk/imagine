@@ -92,7 +92,7 @@ func newAsset(t *testing.T, asset *usecase.Asset) *Asset {
 	}
 }
 
-func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, assets []*model.ImportAsset) {
+func (a *Asset) AddOrMergeImportAssets(ws model.WSName, assets []*model.ImportAsset) {
 	a.t.Helper()
 	err := a.asset.AddOrMergeImportAssets(ws, assets)
 	if err != nil {

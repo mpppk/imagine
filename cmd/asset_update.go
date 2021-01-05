@@ -34,7 +34,7 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 			}
 
 			// FIXME: capacity
-			if err := usecases.Asset.AddOrUpdateImportAssetsFromReader(conf.WorkSpace, cmd.InOrStdin(), 10000); err != nil {
+			if err := usecases.Asset.AddOrMergeImportAssetsFromReader(conf.WorkSpace, cmd.InOrStdin(), 10000); err != nil {
 				return fmt.Errorf("failed to import asset from reader: %w", err)
 			}
 

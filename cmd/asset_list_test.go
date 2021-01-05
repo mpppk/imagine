@@ -40,7 +40,7 @@ func TestAssetList(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, c.dbName, c.wsName)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Asset.AddOrUpdateImportAssets(c.wsName, c.existAssets)
+				usecases.Asset.AddOrMergeImportAssets(c.wsName, c.existAssets)
 				usecases.Tag.SetTags(c.wsName, c.existTags)
 			})
 
