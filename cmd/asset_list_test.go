@@ -29,7 +29,8 @@ func TestAssetList(t *testing.T) {
 			command:   `asset list`,
 			want: `{"id":1,"name":"path1","path":"path1","boundingBoxes":null}
 {"id":2,"name":"path2","path":"path2","boundingBoxes":null}
-{"id":3,"name":"path3","path":"path3","boundingBoxes":null}`,
+{"id":3,"name":"path3","path":"path3","boundingBoxes":null}
+`,
 		},
 	}
 
@@ -43,8 +44,8 @@ func TestAssetList(t *testing.T) {
 			})
 
 			cmdWithFlag := c.command + " --db " + u.DBPath
-			testutil.ExecuteCommand(t, newRootCmd(t), cmdWithFlag, "")
-			//testutil.DeepEqual(t, gotOut, c.want) // FIXME: gotOut is always empty
+			gotOut := testutil.ExecuteCommand(t, newRootCmd(t), cmdWithFlag, "")
+			testutil.Diff(t, gotOut, c.want)
 		})
 	}
 }
