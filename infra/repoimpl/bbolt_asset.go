@@ -218,6 +218,8 @@ func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
 	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
 
+// ListByIDList list assets by provided id ID list.
+// If ID which does not exist is provided, nil will be returned.
 func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (assets []*model.Asset, err error) {
 	var rawIdList []uint64
 	for _, id := range idList {
@@ -229,25 +231,30 @@ func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (asse
 	}
 
 	for _, content := range contents {
-		var asset model.Asset
-		if err := json.Unmarshal(content, &asset); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal asset: %w", err)
+		if content == nil {
+			assets = append(assets, nil)
+			continue
 		}
-		assets = append(assets, &asset)
+		asset, err := model.NewAssetFromBytes(content)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create new asset from json: %w", err)
+		}
+		assets = append(assets, asset)
 	}
 
 	return
 }
 
-func (b *BBoltAsset) ListByPath(ws model.WSName, path string) (asset *model.Asset, exist bool, err error) {
-	id, exist, err := b.pathRepository.Get(ws, path)
+func (b *BBoltAsset) ListByPaths(ws model.WSName, paths []string) (assets []*model.Asset, err error) {
+	idList, err := b.pathRepository.ListByPath(ws, paths)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to get asset from path repository: %w", err)
+		return nil, fmt.Errorf("failed to list asset ID from path repository: %w", err)
 	}
-	if !exist {
-		return nil, false, nil
+	assets, err = b.ListByIDList(ws, idList)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list assets from asset ID: %w", err)
 	}
-	return b.Get(ws, id)
+	return
 }
 
 func (b *BBoltAsset) ListAsync(ctx context.Context, ws model.WSName, cap int) (assetChan <-chan *model.Asset, err error) {

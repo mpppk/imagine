@@ -323,7 +323,6 @@ func TestBBoltAsset_Update(t *testing.T) {
 		})
 	}
 }
-
 func TestBBoltAsset_ListByIDList(t *testing.T) {
 	fileName := "TestBBoltAsset_ListByIDList.db"
 	var wsName model.WSName = "workspace-for-test"
@@ -338,16 +337,17 @@ func TestBBoltAsset_ListByIDList(t *testing.T) {
 		wantErr     bool
 	}{
 		{
+			name:        "return nil if ID does not exist",
 			args:        args{[]model.AssetID{1}},
 			existAssets: []*model.Asset{},
-			wantErr:     true,
+			want:        []*model.Asset{nil},
 		},
 		{
 			args: args{[]model.AssetID{1, 3}},
 			existAssets: []*model.Asset{
 				model.NewAssetFromFilePath("path1"),
 			},
-			wantErr: true,
+			want: []*model.Asset{{ID: 1, Name: "path1", Path: "path1"}, nil},
 		},
 		{
 			args: args{[]model.AssetID{1, 3}},
@@ -360,7 +360,6 @@ func TestBBoltAsset_ListByIDList(t *testing.T) {
 				{ID: 1, Name: "path1", Path: "path1"},
 				{ID: 3, Name: "path3", Path: "path3"},
 			},
-			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

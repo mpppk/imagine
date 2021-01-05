@@ -148,6 +148,14 @@ type Asset struct {
 	BoundingBoxes []*BoundingBox `json:"boundingBoxes"`
 }
 
+func NewAssetFromBytes(bytes []byte) (*Asset, error) {
+	var asset Asset
+	if err := json.Unmarshal(bytes, &asset); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal asset: %w", err)
+	}
+	return &asset, nil
+}
+
 func (a *Asset) Validate() error {
 	if a.ID == 0 && a.Path == "" {
 		return fmt.Errorf("id and path are empty")
@@ -158,7 +166,7 @@ func (a *Asset) Validate() error {
 // IsUpdatableByID checks if this asset can be updated.
 // If asset or box which the asset has does not have ID, the asset is not updatable.
 func (a *Asset) IsUpdatableByID() bool {
-	if !a.HasID() {
+	if a == nil || !a.HasID() {
 		return false
 	}
 
@@ -204,11 +212,16 @@ func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 	return false
 }
 
-// Merge merge the itself and argument asset properties.
-// This is destructive method.
+// Merge merge the itself and argument asset properties. This is destructive method.
+// If receiver or arg asset is nil, Merge method do nothing.
 func (a *Asset) Merge(asset *Asset) {
+	if a == nil || asset == nil {
+		return
+	}
+
 	if asset.HasPath() {
 		a.Path = asset.Path
+		a.Name = assetPathToName(a.Path)
 	}
 
 	if asset.BoundingBoxes != nil {
@@ -242,6 +255,10 @@ func (a *Asset) ToCSVRow(tagSet *TagSet) (string, error) {
 	}
 
 	return strings.Join(line, ","), nil
+}
+
+func assetPathToName(p string) string {
+	return strings.Replace(filepath.Base(p), filepath.Ext(p), "", -1)
 }
 
 type ImportAsset struct {
@@ -323,7 +340,7 @@ func RemoveBoundingBoxByID(boxes []*BoundingBox, replaceBoxID BoundingBoxID) (ne
 }
 
 func NewAssetFromFilePath(filePath string) *Asset {
-	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
+	name := assetPathToName(filePath)
 	return &Asset{
 		Name: name,
 		Path: filePath,
@@ -331,7 +348,7 @@ func NewAssetFromFilePath(filePath string) *Asset {
 }
 
 func NewImportAssetFromFilePath(filePath string) *ImportAsset {
-	name := strings.Replace(filepath.Base(filePath), filepath.Ext(filePath), "", -1)
+	name := assetPathToName(filePath)
 	return &ImportAsset{
 		Asset: &Asset{
 			Name: name,

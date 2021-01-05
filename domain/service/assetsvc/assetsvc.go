@@ -37,10 +37,10 @@ func SplitByPath(assets []*model.Asset) (assetsWithPath, assetsWithOutPath []*mo
 
 func SplitByID(assets []*model.Asset) (assetsWithID, assetsWithOutID []*model.Asset) {
 	for _, asset := range assets {
-		if asset.ID == 0 {
-			assetsWithOutID = append(assetsWithOutID, asset)
-		} else {
+		if asset.HasID() {
 			assetsWithID = append(assetsWithID, asset)
+		} else {
+			assetsWithOutID = append(assetsWithOutID, asset)
 		}
 	}
 	return
@@ -57,9 +57,32 @@ func ToAssets(importAssets []*model.ImportAsset, tagSet *model.TagSet) (assets [
 	return
 }
 
+func ToAssetIDList(assets []*model.Asset) (assetIDList []model.AssetID) {
+	for _, asset := range assets {
+		assetIDList = append(assetIDList, asset.ID)
+	}
+	return
+}
+
+// Merge merge provided base assets and other assets.
+func Merge(baseAssets, otherAssets []*model.Asset) {
+	for i, baseAsset := range baseAssets {
+		baseAsset.Merge(otherAssets[i])
+	}
+}
+
 func ToPaths(assets []*model.Asset) (paths []string) {
 	for _, asset := range assets {
 		paths = append(paths, asset.Path)
+	}
+	return
+}
+
+func FilterNil(assets []*model.Asset) (filteredAssets []*model.Asset) {
+	for _, asset := range assets {
+		if asset != nil {
+			filteredAssets = append(filteredAssets, asset)
+		}
 	}
 	return
 }

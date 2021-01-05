@@ -40,6 +40,51 @@ func TestReplaceBoundingBoxByID(t *testing.T) {
 	}
 }
 
+func TestAssetIsUpdatableByID(t *testing.T) {
+	tests := []struct {
+		name  string
+		asset *Asset
+		want  bool
+	}{
+		{
+			name:  "return true if asset has ID",
+			asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
+			want:  true,
+		},
+		{
+			name: "return true if asset has ID and boxes have tag ID",
+			asset: &Asset{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*BoundingBox{
+				{TagID: 1}, {TagID: 2},
+			}},
+			want: true,
+		},
+		{
+			name:  "return false if asset does not have ID",
+			asset: &Asset{Name: "path1", Path: "path1"},
+			want:  false,
+		},
+		{
+			name: "return false if box does not have tag ID",
+			asset: &Asset{Name: "path1", Path: "path1", BoundingBoxes: []*BoundingBox{
+				{},
+			}},
+			want: false,
+		},
+		{
+			name:  "return false if asset is nil",
+			asset: nil,
+			want:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.asset.IsUpdatableByID(); got != tt.want {
+				t.Errorf("want: %v, got: %v", tt.want, got)
+			}
+		})
+	}
+}
+
 func TestAssetMerge(t *testing.T) {
 	type args struct {
 		asset *Asset
@@ -51,36 +96,44 @@ func TestAssetMerge(t *testing.T) {
 		want  *Asset
 	}{
 		{
+			name:  "do nothing if arg asset is nil",
+			asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
+			args: args{
+				asset: nil,
+			},
+			want: &Asset{ID: 1, Name: "path1", Path: "path1"},
+		},
+		{
 			name:  "update path",
-			asset: &Asset{ID: 1, Path: "path1"},
+			asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
 			args: args{
 				asset: &Asset{ID: 1, Path: "path2"},
 			},
-			want: &Asset{ID: 1, Path: "path2"},
+			want: &Asset{ID: 1, Name: "path2", Path: "path2"},
 		},
 		{
 			name:  "reserve path because the property is omitted",
-			asset: &Asset{ID: 1, Path: "path1"},
+			asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
 			args: args{
 				asset: &Asset{ID: 1},
 			},
-			want: &Asset{ID: 1, Path: "path1"},
+			want: &Asset{ID: 1, Name: "path1", Path: "path1"},
 		},
 		{
 			name:  "update bounding boxes",
-			asset: &Asset{ID: 1, Path: "path1"},
+			asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
 			args: args{
 				asset: &Asset{ID: 1, BoundingBoxes: []*BoundingBox{{TagID: 1}}},
 			},
-			want: &Asset{ID: 1, Path: "path1", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+			want: &Asset{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
 		},
 		{
 			name:  "update path and reserve boxes",
-			asset: &Asset{ID: 1, Path: "path1", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+			asset: &Asset{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
 			args: args{
 				asset: &Asset{ID: 1, Path: "path2"},
 			},
-			want: &Asset{ID: 1, Path: "path2", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+			want: &Asset{ID: 1, Name: "path2", Path: "path2", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
 		},
 	}
 	for _, tt := range tests {

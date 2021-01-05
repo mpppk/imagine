@@ -216,6 +216,7 @@ func TestAsset_AddOrUpdateImportAssets(t *testing.T) {
 		wantErr     bool
 	}{
 		{
+			name:   "add and update assets",
 			dbName: "TestAsset_AddOrUpdateImportAssets_add_box.db",
 			args: args{
 				ws: testWSName,

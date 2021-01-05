@@ -28,6 +28,7 @@ type Asset interface {
 	List(ws model.WSName) (assets []*model.Asset, err error)
 	ListBy(ws model.WSName, f func(asset *model.Asset) bool) (assets []*model.Asset, err error)
 	ListByIDList(ws model.WSName, idList []model.AssetID) ([]*model.Asset, error)
+	ListByPaths(ws model.WSName, paths []string) ([]*model.Asset, error)
 	ListByIDListAsync(ctx context.Context, ws model.WSName, idList []model.AssetID, cap int) (assetChan <-chan *model.Asset, errChan <-chan error, err error)
 	ForEach(ws model.WSName, f func(asset *model.Asset) error) error
 	Revalidate(ws model.WSName) error

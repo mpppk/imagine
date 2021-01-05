@@ -190,6 +190,10 @@ func (a *Asset) AppendBoundingBoxes(ws model.WSName, assets []*model.ImportAsset
 	return idList, nil
 }
 
+// AddOrUpdateImportAssets updates assets by ID or path.
+// If ID is specified, find asset by ID and update properties. (includes path if it specified)
+// If ID is not specified and path is specified, find asset by path and update properties.
+// Specified properties are updated and omitted properties are reserved.
 func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, importAssets []*model.ImportAsset) error {
 	if _, err := a.tagRepository.AddByNames(ws, assetsvc.ToUniqTagNames(importAssets)); err != nil {
 		return fmt.Errorf("failed to add tags by names: %w", err)
@@ -208,23 +212,70 @@ func (a *Asset) AddOrUpdateImportAssets(ws model.WSName, importAssets []*model.I
 	assetsWithID, assetsWithOutID := assetsvc.SplitByID(assets)
 	assetsWithPath, assetsWithOutIDAndPath := assetsvc.SplitByPath(assetsWithOutID)
 
-	if _, _, err := a.assetRepository.BatchUpdateByID(ws, assetsWithID); err != nil {
-		return fmt.Errorf("failed to update importAssets: %w", err)
+	needToAddAssets := assetsWithOutIDAndPath
+
+	_, skippedAssets, err := a.BatchMergeByID(ws, assetsWithID)
+	if err != nil {
+		return err
 	}
 
-	_, skippedAssets, err := a.assetRepository.BatchUpdateByPath(ws, assetsWithPath)
+	needToAddAssets = append(needToAddAssets, skippedAssets...)
+
+	_, skippedAssets, err = a.BatchMergeByPath(ws, assetsWithPath)
 	if err != nil {
 		return fmt.Errorf("failed to update importAssets: %w", err)
 	}
 
-	log.Println("")
+	needToAddAssets = append(needToAddAssets, skippedAssets...)
 
-	_, err = a.assetRepository.BatchAdd(ws, append(assetsWithOutIDAndPath, skippedAssets...))
+	_, err = a.assetRepository.BatchAdd(ws, needToAddAssets)
 	if err != nil {
 		return fmt.Errorf("failed to add asset from image path: %w", err)
 	}
 
 	return nil
+}
+
+// BatchMergeByID update by provided assets.
+// If DB already has same ID asset, merge it and provided asset, then save the asset.
+// If DB does not have same ID asset, do nothing and return as skippedAssets.
+func (a *Asset) BatchMergeByID(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
+	assetIDList := assetsvc.ToAssetIDList(assets)
+	newAssets, err := a.assetRepository.ListByIDList(ws, assetIDList)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to list assets: %w", err)
+	}
+
+	assetsvc.Merge(newAssets, assets)
+
+	updatedAssets, skippedAssets, err = a.assetRepository.BatchUpdateByID(ws, newAssets)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to update assets by ID: %w", err)
+	}
+	return
+}
+
+func (a *Asset) BatchMergeByPath(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
+	assetPaths := assetsvc.ToPaths(assets)
+	newAssets, err := a.assetRepository.ListByPaths(ws, assetPaths)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to list assets: %w", err)
+	}
+
+	for i, newAsset := range newAssets {
+		if newAsset == nil {
+			skippedAssets = append(skippedAssets, assets[i])
+		}
+	}
+	assetsvc.Merge(newAssets, assets)
+	newAssets = assetsvc.FilterNil(newAssets)
+
+	updatedAssets, skippedAssets2, err := a.assetRepository.BatchUpdateByPath(ws, newAssets)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to update assets by ID: %w", err)
+	}
+	skippedAssets = append(skippedAssets, skippedAssets2...)
+	return
 }
 
 func (a *Asset) AddAssetFromImagePathListIfDoesNotExist(ws model.WSName, filePathList []string) ([]model.AssetID, error) {

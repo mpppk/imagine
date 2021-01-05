@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/mpppk/imagine/registry"
 
@@ -35,7 +34,7 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 			}
 
 			// FIXME: capacity
-			if err := usecases.Asset.AddOrUpdateImportAssetsFromReader(conf.WorkSpace, os.Stdin, 10000); err != nil {
+			if err := usecases.Asset.AddOrUpdateImportAssetsFromReader(conf.WorkSpace, cmd.InOrStdin(), 10000); err != nil {
 				return fmt.Errorf("failed to import asset from reader: %w", err)
 			}
 
