@@ -220,6 +220,7 @@ func TestBBoltAsset_BatchAppendBoundingBoxes(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "error if asset which id does not exist in DB is provided",
 			existAssets: []*model.Asset{
 				model.NewAssetFromFilePath("path1"),
 				model.NewAssetFromFilePath("path2"),
@@ -558,6 +559,87 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 	}
 }
 
+func TestBBoltAsset_BatchAdd(t *testing.T) {
+	fileName := "TestBBoltAsset_Add.db"
+	type args struct {
+		ws     model.WSName
+		assets []*model.Asset
+	}
+	tests := []struct {
+		name       string
+		args       args
+		existTags  []*model.Tag
+		want       []model.AssetID
+		wantAssets []*model.Asset
+		wantErr    bool
+	}{
+		{
+			name:      "add assets",
+			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			args: args{
+				ws: "workspace-for-test",
+				assets: []*model.Asset{
+					{Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
+					{Name: "path2", Path: "path2"}, // does not have ID but have Path
+				},
+			},
+			want: []model.AssetID{1, 2},
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
+				{ID: 2, Name: "path2", Path: "path2"},
+			},
+		},
+		{
+			name:      "error if arg asset have ID",
+			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			args: args{
+				ws: "workspace-for-test",
+				assets: []*model.Asset{
+					{ID: 1, Name: "path1", Path: "path1"},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name:      "error if arg asset does not have ID",
+			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			args: args{
+				ws: "workspace-for-test",
+				assets: []*model.Asset{
+					{Name: "path1"},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
+			defer u.RemoveDB()
+			u.Use(func(usecases *usecasetest.UseCases) {
+				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
+			})
+
+			usecases, closeDB, removeDB := usecasetest.SetUpUseCases(t, fileName, tt.args.ws)
+			defer closeDB()
+			defer removeDB()
+
+			idList, err := usecases.Client.Asset.BatchAdd(tt.args.ws, tt.args.assets)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddByFilePathListifDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			closeDB()
+
+			u.Use(func(usecases *usecasetest.UseCases) {
+				assets := usecases.Client.Asset.ListBy(tt.args.ws, func(a *model.Asset) bool { return true })
+				testutil.Diff(t, tt.wantAssets, assets)
+			})
+
+			testutil.Diff(t, tt.want, idList)
+		})
+	}
+}
 func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 	fileName := "TestBBoltAsset_BatchUpdateByPath.db"
 	type args struct {

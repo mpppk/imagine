@@ -96,6 +96,9 @@ func (b *BBoltAsset) BatchAppendBoundingBoxes(ws model.WSName, assets []*model.A
 
 	var dataList []boltData
 	for i, newAsset := range newAssets {
+		if newAsset == nil {
+			return nil, fmt.Errorf("failed to append bounding box because provided ID does not exist in DB. ID:%d", assets[i].ID)
+		}
 		asset := assets[i]
 		if len(asset.BoundingBoxes) == 0 {
 			continue
@@ -112,14 +115,20 @@ func (b *BBoltAsset) BatchAppendBoundingBoxes(ws model.WSName, assets []*model.A
 	return idList, nil
 }
 
+// BatchAdd add Assets.
+// provided assets must not have ID and must have path. If asset does not satisfy them, error will be returned.
 func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
 	var dataList []boltData
 	var paths []string
 	for _, asset := range assets {
+		if !asset.IsAddable() {
+			return nil, fmt.Errorf("failed to add asset because it is not addable. asset:%#v", asset)
+		}
+
 		dataList = append(dataList, asset)
 		paths = append(paths, asset.Path)
 	}
-	idList, err := b.base.addJsonListByID(createAssetBucketNames(ws), dataList)
+	idList, err := b.base.addJsonListWithID(createAssetBucketNames(ws), dataList)
 	if err != nil {
 		return nil, err
 	}

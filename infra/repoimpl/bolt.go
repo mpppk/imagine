@@ -184,7 +184,7 @@ func (b *boltRepository) addIDListWithStringKey(bucketNames []string, keys []str
 //	})
 //}
 
-func (b *boltRepository) addJsonListByID(bucketNames []string, dataList []boltData) (idList []uint64, err error) {
+func (b *boltRepository) addJsonListWithID(bucketNames []string, dataList []boltData) (idList []uint64, err error) {
 	e := b.batchBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		for _, data := range dataList {
 			id, err := bucket.NextSequence()
