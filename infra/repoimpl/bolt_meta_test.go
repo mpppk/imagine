@@ -9,7 +9,6 @@ import (
 )
 
 func TestBoltMeta_SetAndGetVersion(t *testing.T) {
-	fileName := "TestBoltMeta_SetAndGetVersion.db"
 	tests := []struct {
 		name    string
 		version string
@@ -21,8 +20,10 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, "")
+			t.Parallel()
+			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, "")
 			defer closer()
 			defer remover()
 

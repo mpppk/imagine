@@ -9,7 +9,6 @@ import (
 )
 
 func TestBBoltTag_Update(t *testing.T) {
-	fileName := "TestBBoltTag_Update.db"
 	var wsName model.WSName = "workspace-for-test"
 	oldTag := &model.TagWithIndex{
 		Tag: &model.Tag{
@@ -40,8 +39,10 @@ func TestBBoltTag_Update(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
+			t.Parallel()
+			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
 			defer closer()
 			defer remover()
 

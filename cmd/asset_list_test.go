@@ -12,7 +12,6 @@ import (
 func TestAssetList(t *testing.T) {
 	cases := []struct {
 		name        string
-		dbName      string
 		wsName      model.WSName
 		existTags   []*model.Tag
 		existAssets []*model.ImportAsset
@@ -20,7 +19,6 @@ func TestAssetList(t *testing.T) {
 		want        string
 	}{
 		{
-			dbName: "asset_list.imagine",
 			wsName: "default-workspace",
 			existAssets: []*model.ImportAsset{
 				{Asset: model.NewAssetFromFilePath("path1")},
@@ -37,14 +35,14 @@ func TestAssetList(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			u := usecasetest.NewTestUseCaseUser(t, c.dbName, c.wsName)
+			u := usecasetest.NewTestUseCaseUser(t, c.wsName)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Asset.AddOrMergeImportAssets(c.wsName, c.existAssets)
 				usecases.Tag.SetTags(c.wsName, c.existTags)
 			})
 
-			cmdWithFlag := c.command + " --db " + c.dbName
+			cmdWithFlag := c.command + " --db " + u.DBPath
 			testutil.ExecuteCommand(t, newRootCmd(t), cmdWithFlag, "")
 			//testutil.DeepEqual(t, gotOut, c.want) // FIXME: gotOut is always empty
 		})

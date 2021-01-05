@@ -32,7 +32,9 @@ func TestReplaceBoundingBoxByID(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if gotNewBoxes := ReplaceBoundingBoxByID(tt.args.boxes, tt.args.replaceBox); !reflect.DeepEqual(gotNewBoxes, tt.wantNewBoxes) {
 				t.Errorf("ReplaceBoundingBoxByID() = %v, want %v", gotNewBoxes, tt.wantNewBoxes)
 			}
@@ -77,7 +79,9 @@ func TestAssetIsUpdatableByID(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := tt.asset.IsUpdatableByID(); got != tt.want {
 				t.Errorf("want: %v, got: %v", tt.want, got)
 			}
@@ -137,7 +141,9 @@ func TestAssetMerge(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.asset.Merge(tt.args.asset)
 			testutil.Diff(t, tt.want, tt.asset)
 		})
@@ -217,7 +223,9 @@ func TestNewImportAssetFromJson(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := NewImportAssetFromJson([]byte(tt.args.json))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewImportAssetFromJson() error = %v, wantErr %v", err, tt.wantErr)

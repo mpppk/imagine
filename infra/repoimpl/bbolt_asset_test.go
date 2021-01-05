@@ -40,7 +40,9 @@ func TestBBoltAsset_add(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
 			defer closer()
 			defer remover()
@@ -59,22 +61,7 @@ func TestBBoltAsset_add(t *testing.T) {
 	}
 }
 
-func consumeAllAssetsFromChan(ch <-chan *model.Asset, errCh <-chan error) (assets []*model.Asset, err error) {
-	for {
-		select {
-		case asset, ok := <-ch:
-			if !ok {
-				return assets, nil
-			}
-			assets = append(assets, asset)
-		case err := <-errCh:
-			return nil, err
-		}
-	}
-}
-
 func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
-	fileName := "TestBBoltAsset_ListByIDListAsync.db"
 	var wsName model.WSName = "workspace-for-test"
 	type args struct {
 		idList []model.AssetID
@@ -107,6 +94,7 @@ func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "cap 1",
 			existAssets: []*model.Asset{
 				model.NewAssetFromFilePath("path1"),
 				model.NewAssetFromFilePath("path2"),
@@ -121,8 +109,10 @@ func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
+			t.Parallel()
+			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
 			defer closer()
 			defer remover()
 
@@ -177,7 +167,9 @@ func TestBBoltAsset_Update(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
 			defer closer()
 			defer remover()
@@ -203,7 +195,6 @@ func TestBBoltAsset_Update(t *testing.T) {
 }
 
 func TestBBoltAsset_ListByIDList(t *testing.T) {
-	fileName := "TestBBoltAsset_ListByIDList.db"
 	var wsName model.WSName = "workspace-for-test"
 	type args struct {
 		idList []model.AssetID
@@ -242,8 +233,10 @@ func TestBBoltAsset_ListByIDList(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
+			t.Parallel()
+			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
 			defer closer()
 			defer remover()
 
@@ -287,7 +280,9 @@ func TestBBoltAsset_GetByPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, wsName)
 			defer closer()
 			defer remover()
@@ -336,7 +331,9 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			usecases, closer, remover := usecasetest.SetUpUseCases(t, fileName, tt.args.ws)
 			defer closer()
 			defer remover()
@@ -364,7 +361,6 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 }
 
 func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
-	fileName := "TestBBoltAsset_BatchUpdateByID.db"
 	type args struct {
 		ws     model.WSName
 		assets []*model.Asset
@@ -407,17 +403,18 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
+			t.Parallel()
+			u := usecasetest.NewTestUseCaseUser(t, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
 				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
-			usecases, closeDB, removeDB := usecasetest.SetUpUseCases(t, fileName, tt.args.ws)
+			usecases, closeDB, _ := usecasetest.SetUpUseCases(t, u.DBPath, tt.args.ws)
 			defer closeDB()
-			defer removeDB()
 
 			updatedAssets, skippedAssets, err := usecases.Client.Asset.BatchUpdateByID(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
@@ -438,7 +435,6 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 }
 
 func TestBBoltAsset_BatchAdd(t *testing.T) {
-	fileName := "TestBBoltAsset_BatchAdd.db"
 	type args struct {
 		ws     model.WSName
 		assets []*model.Asset
@@ -491,16 +487,17 @@ func TestBBoltAsset_BatchAdd(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
+			t.Parallel()
+			u := usecasetest.NewTestUseCaseUser(t, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
-			usecases, closeDB, removeDB := usecasetest.SetUpUseCases(t, fileName, tt.args.ws)
+			usecases, closeDB, _ := usecasetest.SetUpUseCases(t, u.DBPath, tt.args.ws)
 			defer closeDB()
-			defer removeDB()
 
 			idList, err := usecases.Client.Asset.BatchAdd(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
@@ -520,7 +517,6 @@ func TestBBoltAsset_BatchAdd(t *testing.T) {
 }
 
 func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
-	fileName := "TestBBoltAsset_BatchUpdateByPath.db"
 	type args struct {
 		ws     model.WSName
 		assets []*model.Asset
@@ -565,17 +561,18 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			u := usecasetest.NewTestUseCaseUser(t, fileName, tt.args.ws)
+			t.Parallel()
+			u := usecasetest.NewTestUseCaseUser(t, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
 				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
-			usecases, closeDB, removeDB := usecasetest.SetUpUseCases(t, fileName, tt.args.ws)
+			usecases, closeDB, _ := usecasetest.SetUpUseCases(t, u.DBPath, tt.args.ws)
 			defer closeDB()
-			defer removeDB()
 
 			updatedAssets, skippedAssets, err := usecases.Client.Asset.BatchUpdateByPath(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
@@ -592,5 +589,19 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 			testutil.Diff(t, tt.wantUpdatedAssets, updatedAssets)
 			testutil.Diff(t, tt.wantSkippedAssets, skippedAssets)
 		})
+	}
+}
+
+func consumeAllAssetsFromChan(ch <-chan *model.Asset, errCh <-chan error) (assets []*model.Asset, err error) {
+	for {
+		select {
+		case asset, ok := <-ch:
+			if !ok {
+				return assets, nil
+			}
+			assets = append(assets, asset)
+		case err := <-errCh:
+			return nil, err
+		}
 	}
 }

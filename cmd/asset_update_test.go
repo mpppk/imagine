@@ -13,7 +13,6 @@ import (
 func TestAssetUpdate(t *testing.T) {
 	cases := []struct {
 		name        string
-		dbName      string
 		wsName      model.WSName
 		existTags   []*model.Tag
 		existAssets []*model.ImportAsset
@@ -24,7 +23,6 @@ func TestAssetUpdate(t *testing.T) {
 	}{
 		{
 			name:   "Do nothing",
-			dbName: "asset_update_do_nothing.imagine",
 			wsName: "default-workspace",
 			existAssets: []*model.ImportAsset{
 				model.NewImportAssetFromFilePath("path1"),
@@ -41,7 +39,6 @@ func TestAssetUpdate(t *testing.T) {
 		},
 		{
 			name:   "find by tag and update bounding box",
-			dbName: "asset_update_find_by_tag.imagine",
 			wsName: "default-workspace",
 			existAssets: []*model.ImportAsset{
 				model.NewImportAssetFromFilePath("path1"),
@@ -59,7 +56,6 @@ func TestAssetUpdate(t *testing.T) {
 		},
 		{
 			name:   "find by path and update bounding box",
-			dbName: "asset_update_find_by_path.imagine",
 			wsName: "default-workspace",
 			existAssets: []*model.ImportAsset{
 				{Asset: model.NewAssetFromFilePath("path1")},
@@ -79,14 +75,14 @@ func TestAssetUpdate(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			u := usecasetest.NewTestUseCaseUser(t, c.dbName, c.wsName)
+			u := usecasetest.NewTestUseCaseUser(t, c.wsName)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Asset.AddOrMergeImportAssets(c.wsName, c.existAssets)
 				usecases.Tag.SetTags(c.wsName, c.existTags)
 			})
 
-			cmdWithFlag := c.command + " --db " + c.dbName
+			cmdWithFlag := c.command + " --db " + u.DBPath
 			testutil.ExecuteCommand(t, newRootCmd(t), cmdWithFlag, c.stdInText)
 
 			u.Use(func(usecases *usecasetest.UseCases) {

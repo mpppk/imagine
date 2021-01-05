@@ -67,7 +67,9 @@ func TestAsset_AssignBoundingBox(t *testing.T) {
 	repo := repoimpl.NewMockAsset(ctrl)
 	repo.EXPECT().Init(gomock.Eq(testWSName)).Return(nil)
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			repo.EXPECT().Update(gomock.Eq(testWSName), gomock.Any()).Return(nil)
 			repo.EXPECT().Get(gomock.Eq(testWSName), gomock.Eq(tt.existAsset.ID)).Return(tt.existAsset, true, nil)
 
@@ -91,7 +93,6 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 	}
 	tests := []struct {
 		name        string
-		dbName      string
 		args        args
 		existAssets []*model.Asset
 		existTags   []*model.Tag
@@ -100,8 +101,7 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name:   "add and update assets",
-			dbName: "TestAsset_AddOrMergeImportAssets_add_and_update_assets.db",
+			name: "add and update assets",
 			args: args{
 				ws: testWSName,
 				assets: []*model.ImportAsset{
@@ -130,8 +130,7 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:   "refer a tag that doesn't exist",
-			dbName: "TestAsset_AddOrMergeImportAssets_refer_doesnt_exist_tag_db",
+			name: "refer a tag that doesn't exist",
 			args: args{
 				ws: testWSName,
 				assets: []*model.ImportAsset{
@@ -160,8 +159,7 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:   "append boxes",
-			dbName: "TestAsset_AddOrMergeImportAssets_append_boxes_db",
+			name: "append boxes",
 			args: args{
 				ws: testWSName,
 				assets: []*model.ImportAsset{
@@ -191,15 +189,17 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			u := usecasetest.NewTestUseCaseUser(t, tt.dbName, tt.args.ws)
+			t.Parallel()
+			u := usecasetest.NewTestUseCaseUser(t, tt.args.ws)
 			defer u.RemoveDB()
 			u.Use(func(tu *usecasetest.UseCases) {
 				tu.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
 				tu.Tag.SetTags(tt.args.ws, tt.existTags)
 			})
 
-			usecases, err := registry.NewBoltUseCasesWithDBPath(tt.dbName)
+			usecases, err := registry.NewBoltUseCasesWithDBPath(u.DBPath)
 			if err != nil {
 				t.Fatalf("failed to create usecases instance: %v", err)
 			}

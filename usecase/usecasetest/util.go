@@ -1,6 +1,7 @@
 package usecasetest
 
 import (
+	"github.com/mpppk/imagine/testutil"
 	"os"
 	"testing"
 
@@ -10,33 +11,40 @@ import (
 )
 
 type UseCaseUser struct {
-	t      *testing.T
-	dbPath string
-	wsName model.WSName
+	t        *testing.T
+	DBPath   string
+	wsName   model.WSName
+	RemoveDB func()
 }
 
 func (u *UseCaseUser) Use(f func(u *UseCases)) {
-	usecases, closer, _ := SetUpTestUseCases(u.t, u.dbPath, u.wsName)
+	usecases, closer, _ := SetUpTestUseCases(u.t, u.DBPath, u.wsName)
 	defer closer()
 	f(usecases)
 }
 
-func (u *UseCaseUser) RemoveDB() {
-	_, _, remover := SetUpTestUseCases(u.t, u.dbPath, u.wsName)
-	remover()
-}
+func NewTestUseCaseUser(t *testing.T, wsName model.WSName) *UseCaseUser {
+	file, closeF, removeF := testutil.NewTempDBFile(t)
+	defer closeF()
 
-func NewTestUseCaseUser(t *testing.T, dbPath string, wsName model.WSName) *UseCaseUser {
 	return &UseCaseUser{
-		t:      t,
-		dbPath: dbPath,
-		wsName: wsName,
+		t:        t,
+		DBPath:   file.Name(),
+		wsName:   wsName,
+		RemoveDB: removeF,
 	}
 }
 
 func SetUpTestUseCases(t *testing.T, dbPath string, wsName model.WSName) (u *UseCases, closer func(), remover func()) {
 	usecases, closer, remover := SetUpUseCases(t, dbPath, wsName)
 	return NewUseCases(t, usecases), closer, remover
+}
+
+func SetUpUseCasesWithTempDB(t *testing.T, wsName model.WSName) (u *usecase.UseCases, closer func(), remover func()) {
+	file, closeF, removeF := testutil.NewTempDBFile(t)
+	closeF()
+	usecases, closeF, _ := SetUpUseCases(t, file.Name(), wsName)
+	return usecases, closeF, removeF
 }
 
 // SetUpUseCases setup usecases instance and cleanup function

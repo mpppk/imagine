@@ -2,6 +2,8 @@ package testutil
 
 import (
 	"bytes"
+	"io/ioutil"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -41,4 +43,22 @@ func DeepEqual(t *testing.T, want, got interface{}) {
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("want: %#v, got: %#v", want, got)
 	}
+}
+
+func NewTempDBFile(t *testing.T) (file *os.File, closeF func(), removeF func()) {
+	file, err := ioutil.TempFile("", "imagine-test_*.imagine")
+	if err != nil {
+		t.Fatalf("failed to create temp db file: %v", err)
+	}
+	closeF = func() {
+		if err := file.Close(); err != nil {
+			t.Fatalf("failed to close temp file: %v", err)
+		}
+	}
+	removeF = func() {
+		if err := os.Remove(file.Name()); err != nil {
+			t.Fatalf("failed to remove db file from %s: %v", file.Name(), err)
+		}
+	}
+	return file, closeF, removeF
 }
