@@ -120,7 +120,7 @@ func (t *Tag) SetTags(ws model.WSName, tags []*model.Tag) {
 }
 
 type UseCases struct {
-	usecases *usecase.UseCases
+	Usecases *usecase.UseCases
 	Asset    *Asset
 	Tag      *Tag
 	Client   *Client
@@ -128,7 +128,7 @@ type UseCases struct {
 
 func NewUseCases(t *testing.T, u *usecase.UseCases) *UseCases {
 	return &UseCases{
-		usecases: u,
+		Usecases: u,
 		Asset:    newAsset(t, u.Asset),
 		Tag:      newTag(t, u.Tag),
 		Client:   newClient(t, u.Client),

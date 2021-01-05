@@ -22,20 +22,15 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, "")
-			defer remover()
-			defer closer()
-
+		usecasetest.RunParallelWithUseCases(t, tt.name, "", func(t *testing.T, ut *usecasetest.UseCases) {
 			v, err := semver.New(tt.version)
 			if err != nil {
 				t.Errorf("failed to create semver struct: %v", err)
 			}
-			if err := usecases.Client.Meta.SetDBVersion(v); (err != nil) != tt.wantErr {
+			if err := ut.Usecases.Client.Meta.SetDBVersion(v); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			gotVersion, ok, err := usecases.Client.Meta.GetDBVersion()
+			gotVersion, ok, err := ut.Usecases.Client.Meta.GetDBVersion()
 			if err != nil || !ok {
 				t.Errorf("failed to get version: %v", err)
 			}

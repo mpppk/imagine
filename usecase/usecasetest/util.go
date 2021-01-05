@@ -1,9 +1,10 @@
 package usecasetest
 
 import (
-	"github.com/mpppk/imagine/testutil"
 	"os"
 	"testing"
+
+	"github.com/mpppk/imagine/testutil"
 
 	"github.com/mpppk/imagine/domain/model"
 	"github.com/mpppk/imagine/registry"
@@ -40,19 +41,12 @@ func SetUpTestUseCases(t *testing.T, dbPath string, wsName model.WSName) (u *Use
 	return NewUseCases(t, usecases), closer, remover
 }
 
-func SetUpUseCasesWithTempDB(t *testing.T, wsName model.WSName) (u *usecase.UseCases, closer func(), remover func()) {
-	file, closeF, removeF := testutil.NewTempDBFile(t)
-	closeF()
-	usecases, closeF, _ := SetUpUseCases(t, file.Name(), wsName)
-	return usecases, closeF, removeF
-}
-
-// SetUpUseCases setup usecases instance and cleanup function
+// SetUpUseCases setup Usecases instance and cleanup function
 func SetUpUseCases(t *testing.T, dbPath string, wsName model.WSName) (u *usecase.UseCases, closer func(), remover func()) {
 	t.Helper()
 	usecases, err := registry.NewBoltUseCasesWithDBPath(dbPath)
 	if err != nil {
-		t.Fatalf("failed to create usecases instance: %v", err)
+		t.Fatalf("failed to create Usecases instance: %v", err)
 	}
 
 	if err := usecases.Client.Init(); err != nil {
@@ -67,8 +61,8 @@ func SetUpUseCases(t *testing.T, dbPath string, wsName model.WSName) (u *usecase
 
 	remover = func() {
 		t.Helper()
-		if err := usecases.Close();err != nil {
-			t.Fatalf("failed to close usecases: %v", err)
+		if err := usecases.Close(); err != nil {
+			t.Fatalf("failed to close Usecases: %v", err)
 		}
 		if err := os.Remove(dbPath); err != nil {
 			t.Errorf("failed to remove test file: %v", err)
@@ -78,9 +72,21 @@ func SetUpUseCases(t *testing.T, dbPath string, wsName model.WSName) (u *usecase
 	closer = func() {
 		t.Helper()
 		if err := usecases.Close(); err != nil {
-			t.Fatalf("failed to close usecases: %v", err)
+			t.Fatalf("failed to close Usecases: %v", err)
 		}
 	}
 
 	return usecases, closer, remover
+}
+
+func RunParallelWithUseCases(t *testing.T, name string, wsName model.WSName, f func(t *testing.T, ut *UseCases)) {
+	f2 := func(t *testing.T) {
+		t.Parallel()
+		u := NewTestUseCaseUser(t, wsName)
+		defer u.RemoveDB()
+		u.Use(func(ut *UseCases) {
+			f(t, ut)
+		})
+	}
+	t.Run(name, f2)
 }

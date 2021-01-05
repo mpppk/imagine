@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/mpppk/imagine/registry"
 	"github.com/mpppk/imagine/usecase"
 
 	"github.com/mpppk/imagine/testutil"
@@ -190,21 +189,11 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			u := usecasetest.NewTestUseCaseUser(t, tt.args.ws)
-			defer u.RemoveDB()
-			u.Use(func(tu *usecasetest.UseCases) {
-				tu.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
-				tu.Tag.SetTags(tt.args.ws, tt.existTags)
-			})
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
+			ut.Tag.SetTags(tt.args.ws, tt.existTags)
 
-			usecases, err := registry.NewBoltUseCasesWithDBPath(u.DBPath)
-			if err != nil {
-				t.Fatalf("failed to create usecases instance: %v", err)
-			}
-
-			err = usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.args.assets)
+			err := ut.Usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddOrMergeImportAssets() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -212,14 +201,8 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 				return
 			}
 
-			if err := usecases.Close(); err != nil {
-				t.Fatalf("failed to close db: %v", err)
-			}
-
-			u.Use(func(usecases *usecasetest.UseCases) {
-				assets := usecases.Client.Asset.List(tt.args.ws)
-				testutil.Diff(t, tt.wantAssets, assets)
-			})
+			assets := ut.Client.Asset.List(tt.args.ws)
+			testutil.Diff(t, tt.wantAssets, assets)
 		})
 	}
 }

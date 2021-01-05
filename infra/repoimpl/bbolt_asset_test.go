@@ -2,7 +2,6 @@ package repoimpl_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/mpppk/imagine/testutil"
@@ -38,16 +37,11 @@ func TestBBoltAsset_add(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
-			defer remover()
-			defer closer()
-
-			if _, err := usecases.Client.Asset.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
+		usecasetest.RunParallelWithUseCases(t, tt.name, wsName, func(t *testing.T, ut *usecasetest.UseCases) {
+			if _, err := ut.Usecases.Client.Asset.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			got, exist, err := usecases.Client.Asset.Get(wsName, tt.args.asset.ID)
+			got, exist, err := ut.Usecases.Client.Asset.Get(wsName, tt.args.asset.ID)
 			if err != nil || !exist {
 				t.Errorf("failed to get asset: %v: %v", newAsset.ID, err)
 			}
@@ -106,17 +100,10 @@ func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
-			defer remover()
-			defer closer()
+		usecasetest.RunParallelWithUseCases(t, tt.name, wsName, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Client.Asset.BatchAdd(wsName, tt.existAssets)
 
-			if _, err := usecases.Client.Asset.BatchAdd(wsName, tt.existAssets); err != nil {
-				t.Fatalf("Update() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			ch, errCh, err := usecases.Client.Asset.ListByIDListAsync(context.Background(), wsName, tt.args.idList, tt.args.cap)
+			ch, errCh, err := ut.Usecases.Client.Asset.ListByIDListAsync(context.Background(), wsName, tt.args.idList, tt.args.cap)
 			if (err != nil) && !tt.wantErr {
 				t.Fatalf("unexpected ListByIDListAsync error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -133,56 +120,54 @@ func TestBBoltAsset_ListByIDListAsync(t *testing.T) {
 
 func TestBBoltAsset_Update(t *testing.T) {
 	var wsName model.WSName = "workspace-for-test"
-	oldAsset := &model.Asset{
-		ID:            0,
-		Name:          "old",
-		Path:          "path/to/1",
-		BoundingBoxes: []*model.BoundingBox{repoimpl.CreateBoundingBox(1)},
-	}
-	newAsset := &model.Asset{
-		ID:            0,
-		Name:          "replaced",
-		Path:          "path/to/0",
-		BoundingBoxes: []*model.BoundingBox{repoimpl.CreateBoundingBox(0)},
-	}
 	type args struct {
 		asset *model.Asset
 	}
 	tests := []struct {
-		name      string
-		args      args
-		oldAssets []*model.Asset
-		wantErr   bool
+		name        string
+		args        args
+		existAssets []*model.Asset
+		want        *model.Asset
+		wantErr     bool
 	}{
 		{
-			oldAssets: []*model.Asset{oldAsset},
-			args:      args{asset: newAsset},
-			wantErr:   false,
+			existAssets: []*model.Asset{
+				{
+					Name:          "old",
+					Path:          "path/to/1",
+					BoundingBoxes: []*model.BoundingBox{repoimpl.CreateBoundingBox(1)},
+				},
+			},
+			args: args{asset: &model.Asset{
+				ID:            1,
+				Name:          "replaced",
+				Path:          "path/to/0",
+				BoundingBoxes: []*model.BoundingBox{repoimpl.CreateBoundingBox(0)},
+			}},
+			want: &model.Asset{
+				ID:            1,
+				Name:          "replaced",
+				Path:          "path/to/0",
+				BoundingBoxes: []*model.BoundingBox{repoimpl.CreateBoundingBox(0)},
+			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
-			defer remover()
-			defer closer()
+		usecasetest.RunParallelWithUseCases(t, tt.name, wsName, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Client.Asset.BatchAdd(wsName, tt.existAssets)
 
-			for _, asset := range tt.oldAssets {
-				if _, _, err := usecases.Client.Asset.AddByFilePathIfDoesNotExist(wsName, asset.Path); err != nil {
-					t.Fatalf("failed to addWithID assets: %v: %#v", err, asset)
-				}
-			}
-
-			if err := usecases.Client.Asset.Update(wsName, tt.args.asset); (err != nil) != tt.wantErr {
+			if err := ut.Usecases.Client.Asset.Update(wsName, tt.args.asset); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			got, _, err := usecases.Client.Asset.Get(wsName, tt.args.asset.ID)
+
+			got, _, err := ut.Usecases.Client.Asset.Get(wsName, tt.args.asset.ID)
 			if err != nil {
-				t.Errorf("failed to get asset: %v: %v", newAsset.ID, err)
+				t.Errorf("failed to get asset: %v: %v", tt.want.ID, err)
 			}
 
-			testutil.Diff(t, newAsset, got)
+			testutil.Diff(t, tt.want, got)
 		})
 	}
 }
@@ -227,17 +212,10 @@ func TestBBoltAsset_ListByIDList(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
-			defer remover()
-			defer closer()
+		usecasetest.RunParallelWithUseCases(t, tt.name, wsName, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Client.Asset.BatchAdd(wsName, tt.existAssets)
 
-			if _, err := usecases.Client.Asset.BatchAdd(wsName, tt.existAssets); err != nil {
-				t.Fatalf("BatchAdd() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			assets, err := usecases.Client.Asset.ListByIDList(wsName, tt.args.idList)
+			assets, err := ut.Usecases.Client.Asset.ListByIDList(wsName, tt.args.idList)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("failed to list assets. error: %v", err)
 			}
@@ -253,15 +231,17 @@ func TestBBoltAsset_GetByPath(t *testing.T) {
 		path string
 	}
 	tests := []struct {
-		name       string
-		args       args
-		existPaths []string
-		want       *model.Asset
-		wantErr    bool
+		name        string
+		args        args
+		existAssets []*model.Asset
+		want        *model.Asset
+		wantErr     bool
 	}{
 		{
-			args:       args{"path/to/0.png"},
-			existPaths: []string{"path/to/0.png"},
+			args: args{"path/to/0.png"},
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path/to/0.png"),
+			},
 			want: &model.Asset{
 				ID:   1,
 				Name: "0",
@@ -272,24 +252,10 @@ func TestBBoltAsset_GetByPath(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
-			defer remover()
-			defer closer()
+		usecasetest.RunParallelWithUseCases(t, tt.name, wsName, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Client.Asset.BatchAdd(wsName, tt.existAssets)
 
-			for _, path := range tt.existPaths {
-				if _, ok, err := usecases.Client.Asset.AddByFilePathIfDoesNotExist(wsName, path); (err != nil) != tt.wantErr {
-					t.Errorf("GetByPath() error whiile assets adding. error = %v, wantErr %v", err, tt.wantErr)
-				} else if !ok {
-					t.Errorf("failed to add asset in AddByFilePathIfDoesNotExist test exist: %v", ok)
-				}
-			}
-			_, err := usecases.Client.Asset.ListBy(wsName, func(a *model.Asset) bool { return true })
-			if err != nil {
-				t.Errorf("failed to list assets. error: %v", err)
-			}
-			got, exist, err := usecases.Client.Asset.GetByPath(wsName, tt.args.path)
+			got, exist, err := ut.Usecases.Client.Asset.GetByPath(wsName, tt.args.path)
 			if err != nil || !exist {
 				t.Errorf("failed to get asset by GetByPath. exist: %v error: %v", exist, err)
 			}
@@ -305,10 +271,11 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 		filePathList []string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    []model.AssetID
-		wantErr bool
+		name       string
+		args       args
+		want       []model.AssetID
+		wantAssets []*model.Asset
+		wantErr    bool
 	}{
 		{
 			args: args{
@@ -316,35 +283,24 @@ func TestBBoltAsset_AddByFilePathListIfDoesNotExist(t *testing.T) {
 				filePathList: []string{"0.png", "1.png"},
 			},
 			want: []model.AssetID{1, 2},
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "0", Path: "0.png"},
+				{ID: 2, Name: "1", Path: "1.png"},
+			},
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, tt.args.ws)
-			defer remover()
-			defer closer()
-
-			idList, err := usecases.Client.Asset.AddByFilePathListIfDoesNotExist(tt.args.ws, tt.args.filePathList)
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			idList, err := ut.Usecases.Client.Asset.AddByFilePathListIfDoesNotExist(tt.args.ws, tt.args.filePathList)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddByFilePathListifDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			for _, id := range idList {
-				asset, exist, err := usecases.Client.Asset.Get(tt.args.ws, id)
-				if err != nil || !exist {
-					t.Errorf("failed to get asset which added by AddByFilePathListifDoesNotExist() exist = %v error = %v", exist, err)
-				}
-				asset2, exist, err := usecases.Client.Asset.GetByPath(tt.args.ws, asset.Path)
-				if err != nil || !exist {
-					t.Errorf("failed to get asset which added by AddByFilePathListifDoesNotExist() exist = %v error = %v", exist, err)
-				}
 
-				testutil.Diff(t, asset, asset2)
-				if !reflect.DeepEqual(asset, asset2) {
-					t.Errorf("inconsistecy detected on AddByFilePathListifDoesNotExisti() asset1: %#v, asset2: %#v", asset, asset2)
-				}
-			}
+			testutil.Diff(t, tt.want, idList)
+
+			gotAssets := ut.Client.Asset.List(tt.args.ws)
+			testutil.Diff(t, tt.wantAssets, gotAssets)
 		})
 	}
 }
@@ -393,30 +349,17 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			u := usecasetest.NewTestUseCaseUser(t, tt.args.ws)
-			defer u.RemoveDB()
-			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
-				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
-			})
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
+			ut.Tag.SetTags(tt.args.ws, tt.existTags)
 
-			usecases, closeDB, _ := usecasetest.SetUpUseCases(t, u.DBPath, tt.args.ws)
-			defer closeDB()
-
-			updatedAssets, skippedAssets, err := usecases.Client.Asset.BatchUpdateByID(tt.args.ws, tt.args.assets)
+			updatedAssets, skippedAssets, err := ut.Usecases.Client.Asset.BatchUpdateByID(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddByFilePathListifDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			closeDB()
-
-			u.Use(func(usecases *usecasetest.UseCases) {
-				assets := usecases.Client.Asset.ListBy(tt.args.ws, func(a *model.Asset) bool { return true })
-				testutil.Diff(t, tt.wantAssets, assets)
-			})
-
+			assets := ut.Client.Asset.List(tt.args.ws)
+			testutil.Diff(t, tt.wantAssets, assets)
 			testutil.Diff(t, tt.wantUpdatedAssets, updatedAssets)
 			testutil.Diff(t, tt.wantSkippedAssets, skippedAssets)
 		})
@@ -477,30 +420,17 @@ func TestBBoltAsset_BatchAdd(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			u := usecasetest.NewTestUseCaseUser(t, tt.args.ws)
-			defer u.RemoveDB()
-			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
-			})
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Tag.SetTags(tt.args.ws, tt.existTags)
 
-			usecases, closeDB, _ := usecasetest.SetUpUseCases(t, u.DBPath, tt.args.ws)
-			defer closeDB()
-
-			idList, err := usecases.Client.Asset.BatchAdd(tt.args.ws, tt.args.assets)
+			idList, err := ut.Usecases.Client.Asset.BatchAdd(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddByFilePathListifDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
 			}
-
-			closeDB()
-
-			u.Use(func(usecases *usecasetest.UseCases) {
-				assets := usecases.Client.Asset.ListBy(tt.args.ws, func(a *model.Asset) bool { return true })
-				testutil.Diff(t, tt.wantAssets, assets)
-			})
-
 			testutil.Diff(t, tt.want, idList)
+
+			assets := ut.Client.Asset.List(tt.args.ws)
+			testutil.Diff(t, tt.wantAssets, assets)
 		})
 	}
 }
@@ -551,30 +481,17 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			u := usecasetest.NewTestUseCaseUser(t, tt.args.ws)
-			defer u.RemoveDB()
-			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
-				usecases.Tag.SetTags(tt.args.ws, tt.existTags)
-			})
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
+			ut.Tag.SetTags(tt.args.ws, tt.existTags)
 
-			usecases, closeDB, _ := usecasetest.SetUpUseCases(t, u.DBPath, tt.args.ws)
-			defer closeDB()
-
-			updatedAssets, skippedAssets, err := usecases.Client.Asset.BatchUpdateByPath(tt.args.ws, tt.args.assets)
+			updatedAssets, skippedAssets, err := ut.Usecases.Client.Asset.BatchUpdateByPath(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddByFilePathListifDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			closeDB()
-
-			u.Use(func(usecases *usecasetest.UseCases) {
-				assets := usecases.Client.Asset.ListBy(tt.args.ws, func(a *model.Asset) bool { return true })
-				testutil.Diff(t, tt.wantAssets, assets)
-			})
-
+			assets := ut.Client.Asset.List(tt.args.ws)
+			testutil.Diff(t, tt.wantAssets, assets)
 			testutil.Diff(t, tt.wantUpdatedAssets, updatedAssets)
 			testutil.Diff(t, tt.wantSkippedAssets, skippedAssets)
 		})

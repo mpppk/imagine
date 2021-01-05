@@ -41,16 +41,12 @@ func TestBBoltTag_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			usecases, closer, remover := usecasetest.SetUpUseCasesWithTempDB(t, wsName)
-			defer remover()
-			defer closer()
-
-			if err := usecases.Client.Tag.Update(wsName, tt.args.tag); (err != nil) != tt.wantErr {
+		usecasetest.RunParallelWithUseCases(t, tt.name, wsName, func(t *testing.T, ut *usecasetest.UseCases) {
+			if err := ut.Usecases.Client.Tag.Update(wsName, tt.args.tag); (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			got, _, err := usecases.Client.Tag.Get(wsName, tt.args.tag.ID)
+
+			got, _, err := ut.Usecases.Client.Tag.Get(wsName, tt.args.tag.ID)
 			if err != nil {
 				t.Errorf("failed to get tag: %v: %v", newTag.ID, err)
 			}
