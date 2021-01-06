@@ -127,6 +127,7 @@ export const TagListItem: React.FC<Props> = (props) => {
     >
       {(provided, snapshot) => (
         <Paper
+          data-cy="tag-list-item"
           onClick={handlers.click}
           elevation={props.selected ? 4 : 1}
           ref={provided.innerRef}

@@ -4,6 +4,7 @@ import createSagaMiddleware from 'redux-saga';
 import { makeLorcaMiddleware, setupServerActionHandler } from './lib';
 import { initialState, reducer, State } from './reducers/reducer';
 import rootSaga from './sagas/saga';
+import { makeMockLorcaMiddleware } from './mock_backend_middleware';
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -16,11 +17,14 @@ const bindMiddleware = (middlewareList: Middleware[]) => {
 };
 
 const makeStore: MakeStore<State> = (_context: Context) => {
-  const store = createStore(
-    reducer,
-    initialState,
-    bindMiddleware([sagaMiddleware, makeLorcaMiddleware()])
-  );
+  const middlewares: Middleware[] = [sagaMiddleware];
+  if (useMockBackEnd()) {
+    middlewares.push(makeMockLorcaMiddleware());
+  } else {
+    middlewares.push(makeLorcaMiddleware());
+  }
+
+  const store = createStore(reducer, initialState, bindMiddleware(middlewares));
 
   (store as any).runSagaTask = () => {
     (store as any).sagaTask = sagaMiddleware.run(rootSaga); // FIXME Add type
@@ -33,6 +37,10 @@ const makeStore: MakeStore<State> = (_context: Context) => {
 
 const isEnableDebugMode = (): boolean => {
   return (process.env.enableReduxWrapperDebugMode as any) as boolean;
+};
+
+const useMockBackEnd = (): boolean => {
+  return (process.env.NEXT_PUBLIC_USE_MOCK_BACKEND as any) as boolean;
 };
 
 export const wrapper = createWrapper<State>(makeStore, {

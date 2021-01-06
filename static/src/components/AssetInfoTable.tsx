@@ -30,6 +30,7 @@ export const AssetInfoTable: React.FC<Props> = (props) => {
         className={classes.table}
         size="small"
         aria-label="asset information table"
+        data-cy="asset-information-table"
       >
         <TableHead>
           <TableRow>
@@ -41,19 +42,21 @@ export const AssetInfoTable: React.FC<Props> = (props) => {
             <TableCell component="th" scope="row">
               ID
             </TableCell>
-            <TableCell>{props.asset.id}</TableCell>
+            <TableCell data-cy={'asset-id'}>{props.asset.id}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell component="th" scope="row">
               Path
             </TableCell>
-            <TableCell>{props.asset.path}</TableCell>
+            <TableCell data-cy={'asset-path'}>{props.asset.path}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell component="th" scope="row">
               Tags
             </TableCell>
-            <TableCell>{props.tagNames.join(', ')}</TableCell>
+            <TableCell data-cy={'asset-tags'}>
+              {props.tagNames.join(', ')}
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>

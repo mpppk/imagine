@@ -120,7 +120,7 @@ export const TagList: React.FC<Props> = (props) => {
   const handlers = useHandlers(props, localState);
 
   return (
-    <div>
+    <div data-cy="tag-list">
       <DragDropContext onDragEnd={handlers.dragEnd}>
         <Droppable droppableId="droppable" isDropDisabled={!!props.editTagId}>
           {(provided, snapshot) => (
