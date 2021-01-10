@@ -30,6 +30,7 @@ export const TagInfoTable: React.FC<Props> = (props) => {
         className={classes.table}
         size="small"
         aria-label="tag information table"
+        data-cy="tag-information-table"
       >
         <TableHead>
           <TableRow>
@@ -41,13 +42,13 @@ export const TagInfoTable: React.FC<Props> = (props) => {
             <TableCell component="th" scope="row">
               ID
             </TableCell>
-            <TableCell>{props.tagID}</TableCell>
+            <TableCell data-cy="tag-id">{props.tagID}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell component="th" scope="row">
               Name
             </TableCell>
-            <TableCell>{props.tagName}</TableCell>
+            <TableCell data-cy="tag-name">{props.tagName}</TableCell>
           </TableRow>
         </TableBody>
       </Table>

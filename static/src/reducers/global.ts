@@ -21,6 +21,7 @@ export const globalInitialState = {
   assets: [] as Asset[],
   selectedAsset: null as Asset | null,
   tags: [] as Tag[],
+  editTagID: null as number | null,
   currentWorkSpace: null as WorkSpace | null,
   initialBoundingBox: null as BoundingBox | null,
   hasMoreAssets: true,
@@ -91,9 +92,6 @@ export const global = reducerWithInitialState(globalInitialState)
   .case(indexActionCreators.selectTag, (state, tag) => {
     return { ...state, selectedTagId: tag.id };
   })
-  .case(indexActionCreators.clickAddTagButton, (state, tag) => {
-    return { ...state, tags: [tag, ...state.tags] };
-  })
   .case(indexActionCreators.clickFilterApplyButton, (state, payload) => {
     if (!state.filterEnabled && !payload.enabled) {
       return { ...state };
@@ -104,6 +102,9 @@ export const global = reducerWithInitialState(globalInitialState)
       filterEnabled: payload.enabled,
       hasMoreAssets: true,
     };
+  })
+  .case(indexActionCreators.clickEditTagButton, (state, tag) => {
+    return { ...state, editTagID: tag.id };
   })
   .case(tagActionCreators.scanResult, (state, payload) => {
     return { ...state, tags: payload.tags };
@@ -120,7 +121,7 @@ export const global = reducerWithInitialState(globalInitialState)
     };
   })
   .case(tagActionCreators.update, (state, payload) => {
-    return { ...state, tags: payload.tags };
+    return { ...state, tags: payload.tags, editTagID: null };
   })
   .case(indexActionCreators.assetSelect, (state, asset) => {
     return { ...state, selectedAsset: { ...asset } };

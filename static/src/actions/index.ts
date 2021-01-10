@@ -21,14 +21,14 @@ export interface ClickChangeBaseButtonPathPayload extends WSPayload {
 
 export const indexActionCreators = {
   selectTag: indexActionCreatorFactory<Tag>('TAG/SELECT'),
-  clickChangeBasePathButton: indexActionCreatorFactory<
-    ClickChangeBaseButtonPathPayload
-  >('CHANGE_BASE_PATH_BUTTON/CLICK'),
-  clickAddTagButton: indexActionCreatorFactory<Tag>('ADD_TAG_BUTTON/CLICK'),
+  clickChangeBasePathButton: indexActionCreatorFactory<ClickChangeBaseButtonPathPayload>(
+    'CHANGE_BASE_PATH_BUTTON/CLICK'
+  ),
+  clickAddTagButton: indexActionCreatorFactory<void>('ADD_TAG_BUTTON/CLICK'),
   clickEditTagButton: indexActionCreatorFactory<Tag>('EDIT_TAG_BUTTON/CLICK'),
-  clickFilterApplyButton: indexActionCreatorFactory<
-    ClickFilterApplyButtonPayload
-  >('FILTER_APPLY_BUTTON/CLICK'),
+  clickFilterApplyButton: indexActionCreatorFactory<ClickFilterApplyButtonPayload>(
+    'FILTER_APPLY_BUTTON/CLICK'
+  ),
   clickWorkspaceName: indexActionCreatorFactory<WorkSpace>(
     'WORKSPACE_NAME/CLICK'
   ),

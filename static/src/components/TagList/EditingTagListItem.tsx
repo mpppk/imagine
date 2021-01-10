@@ -97,6 +97,7 @@ export const EditingTagListItem: React.FC<Props> = (props) => {
         onKeyDown={handlers.keyDown}
       >
         <Controller
+          data-cy="tag-name-form"
           as={TextField}
           name="tagName"
           rules={{ required: true }}
@@ -110,6 +111,7 @@ export const EditingTagListItem: React.FC<Props> = (props) => {
           onChange={handlers.changeTagName}
         />
         <IconButton
+          data-cy="save-tag-name-button"
           type="submit"
           aria-label="update-tag"
           className={classes.checkCircleButton}

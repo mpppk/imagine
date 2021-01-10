@@ -58,10 +58,12 @@ const useHandlers = (props: Props) => {
       click: () => {
         props.onClick(props.tag);
       },
-      clickDeleteButton: () => {
+      clickDeleteButton: (e: React.MouseEvent) => {
+        e.stopPropagation();
         props.onClickDeleteButton(props.tag);
       },
-      clickEditButton: () => {
+      clickEditButton: (e: React.MouseEvent) => {
+        e.stopPropagation();
         props.onClickEditButton(props.tag);
       },
     };
@@ -127,6 +129,7 @@ export const TagListItem: React.FC<Props> = (props) => {
     >
       {(provided, snapshot) => (
         <Paper
+          data-cy="tag-list-item"
           onClick={handlers.click}
           elevation={props.selected ? 4 : 1}
           ref={provided.innerRef}
@@ -137,6 +140,7 @@ export const TagListItem: React.FC<Props> = (props) => {
         >
           {tagPrefix + props.tag.name}
           <IconButton
+            data-cy="delete-tag-button"
             disabled={props.disabled}
             aria-label="delete"
             className={classes.itemButton}
@@ -145,6 +149,7 @@ export const TagListItem: React.FC<Props> = (props) => {
             <DeleteIcon />
           </IconButton>
           <IconButton
+            data-cy="edit-tag-button"
             disabled={props.disabled}
             aria-label="edit"
             className={classes.itemButton}

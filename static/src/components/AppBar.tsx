@@ -19,8 +19,7 @@ import { FilterDialog } from './FilterDialog';
 import { indexActionCreators } from '../actions';
 import { useActions } from '../hooks';
 import { WorkSpaceSettingDialog } from './WorkSpaceSettingDialog';
-import { Tooltip } from '@material-ui/core';
-import SettingsIcon from '@material-ui/icons/Settings';
+import { WorkSpaceSettingsButton } from './WorkSpaceSettingsButton';
 
 const useStyles = makeStyles((theme: Theme) => ({
   appBar: {
@@ -171,6 +170,7 @@ export function MyAppBar() {
         />
         <Toolbar>
           <IconButton
+            data-cy="hamburger-menu-button"
             edge="start"
             className={classes.menuButton}
             color="inherit"
@@ -190,23 +190,13 @@ export function MyAppBar() {
               onClick={handlers.clickFilterButton}
               dot={viewState.isFiltered}
             />
-            <Tooltip
-              title="Edit WorkSpace settings"
-              aria-label="edit-workspace-settings"
-              className={classes.workspaceSettingButton}
-            >
-              <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="workspace-setting"
-                onClick={handlers.clickWorkSpaceSettingButton}
-              >
-                <SettingsIcon />
-              </IconButton>
-            </Tooltip>
+            <WorkSpaceSettingsButton
+              onClick={handlers.clickWorkSpaceSettingButton}
+            />
           </Typography>
           {viewState.scanMsg}
           <Button
+            data-cy="open-switch-workspace-dialog-button"
             color="inherit"
             disabled={viewState.isLoadingWorkSpaces}
             onClick={handlers.clickOpenSwitchWorkSpaceDialogButton}

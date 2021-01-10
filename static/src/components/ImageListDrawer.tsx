@@ -43,6 +43,7 @@ export const ImageListDrawer: React.FunctionComponent<ImageListDrawerProps> = (
       anchor="left"
       className={classes.drawer}
       classes={{ paper: classes.drawerPaper }}
+      data-cy="image-grid-drawer"
     >
       <Toolbar />
       <div className={classes.drawerContainer}>

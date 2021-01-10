@@ -1,6 +1,6 @@
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
-import React, { useState } from 'react';
+import React from 'react';
 import { resetServerContext } from 'react-beautiful-dnd';
 import { useSelector } from 'react-redux';
 import { indexActionCreators } from '../actions';
@@ -39,11 +39,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-const useHandlers = (
-  localState: LocalState,
-  setLocalState: (s: LocalState) => void,
-  globalState: GlobalState
-) => {
+const useHandlers = (globalState: GlobalState) => {
   const indexActionDispatcher = useActions(indexActionCreators);
   const tagActionDispatcher = useActions(tagActionCreators);
   const boxActionDispatcher = useActions(boundingBoxActionCreators);
@@ -54,11 +50,6 @@ const useHandlers = (
     clickTag: (tag: Tag) => {
       indexActionDispatcher.selectTag(tag);
     },
-    clickAddTagButton: () => {
-      const tag: Tag = { id: globalState.tags.length + 1, name: '' };
-      indexActionDispatcher.clickAddTagButton(tag);
-      setLocalState({ ...localState, editTagId: tag.id });
-    },
     renameTag: (tag: Tag) => {
       const workSpaceName = globalState.currentWorkSpace?.name!;
       if (workSpaceName === undefined) {
@@ -66,10 +57,9 @@ const useHandlers = (
         console.warn('workspace is null but tag is renamed', tag);
       }
       tagActionDispatcher.rename({ workSpaceName, tag });
-      setLocalState({ ...localState, editTagId: null });
     },
     clickEditTagButton: (tag: Tag) => {
-      setLocalState({ ...localState, editTagId: tag.id });
+      indexActionDispatcher.clickEditTagButton(tag);
     },
     clickImage: (__: string, index: number) => {
       indexActionDispatcher.assetSelect(globalState.assets[index]);
@@ -189,6 +179,7 @@ const selector = (state: State) => {
       tag: state.global.tags.find((t) => t.id === state.global.selectedTagId),
     },
     assignedTagIds: uniq(assignedTagIds),
+    editTagID: state.global.editTagID,
     selectedAsset: state.global.selectedAsset,
     selectedAssetUrl:
       state.global.selectedAsset === null
@@ -207,21 +198,10 @@ const selector = (state: State) => {
 
 type GlobalState = ReturnType<typeof selector>;
 
-interface LocalState {
-  editTagId: number | null;
-}
-
-const generateInitialLocalState = (): LocalState => {
-  return {
-    editTagId: null,
-  };
-};
-
 function Index() {
   const classes = useStyles();
-  const [localState, setLocalState] = useState(generateInitialLocalState());
   const globalState = useSelector(selector);
-  const handlers = useHandlers(localState, setLocalState, globalState);
+  const handlers = useHandlers(globalState);
   const virtualizedAssetProps = useVirtualizedAsset();
 
   return (
@@ -266,7 +246,7 @@ function Index() {
       </main>
       <TagListDrawer
         tags={globalState.tags}
-        editTagId={localState.editTagId ?? undefined}
+        editTagId={globalState.editTagID ?? undefined}
         selectedTagId={globalState.selectedTagId}
         assignedTagIds={globalState.assignedTagIds}
         onClickItem={handlers.clickTag}

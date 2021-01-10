@@ -32,7 +32,6 @@ interface Props {
   selectedTagId?: number;
   assignedTagIds: number[];
   onClick: (tag: Tag) => void;
-  onClickAddButton: (tags: Tag[]) => void;
   onClickEditButton: (tag: Tag) => void;
   onClickDeleteButton?: (tag: Tag) => void;
   onUpdate?: (tags: Tag[]) => void;
@@ -41,9 +40,12 @@ interface Props {
 
 const useLocalState = () => {
   const [tagNameDuplicatedError, setTagNameDuplicatedError] = useState(false);
+  const [showNewTagForm, setShowNewTagForm] = useState(false);
   return {
     // tslint:disable-next-line:object-literal-sort-keys
+    showNewTagForm,
     tagNameDuplicatedError,
+    setShowNewTagForm,
     setTagNameDuplicatedError,
   };
 };
@@ -54,7 +56,7 @@ const useHandlers = (props: Props, localState: LocalState) => {
   return useMemo(() => {
     return {
       clickAddButton: () => {
-        props.onClickAddButton(props.tags);
+        localState.setShowNewTagForm(true);
       },
 
       clickItem: (tag: Tag) => {
@@ -93,6 +95,12 @@ const useHandlers = (props: Props, localState: LocalState) => {
         if (isDupName) {
           return;
         }
+        if (localState.showNewTagForm) {
+          localState.setShowNewTagForm(false);
+          props.onUpdate?.([tag, ...props.tags]);
+          props.onRename?.(tag);
+          return;
+        }
         const index = props.tags.findIndex((t) => t.id === tag.id);
         const newTags = immutableSplice(props.tags, index, 1, tag);
         props.onUpdate?.(newTags);
@@ -119,8 +127,10 @@ export const TagList: React.FC<Props> = (props) => {
   const viewState = useViewState(localState);
   const handlers = useHandlers(props, localState);
 
+  const baseIndex = localState.showNewTagForm ? 1 : 0;
+
   return (
-    <div>
+    <div data-cy="tag-list">
       <DragDropContext onDragEnd={handlers.dragEnd}>
         <Droppable droppableId="droppable" isDropDisabled={!!props.editTagId}>
           {(provided, snapshot) => (
@@ -133,6 +143,7 @@ export const TagList: React.FC<Props> = (props) => {
               }
             >
               <Button
+                data-cy="add-new-tag-button"
                 variant="outlined"
                 color="primary"
                 disabled={!!props.editTagId}
@@ -141,13 +152,22 @@ export const TagList: React.FC<Props> = (props) => {
               >
                 <AddIcon />
               </Button>
+              {localState.showNewTagForm ? (
+                <EditingTagListItem
+                  key={'new-tag'}
+                  tag={{ id: 0, name: '' }}
+                  errorMessage={viewState.editingTagErrorMessage}
+                  index={0}
+                  onFinishEdit={handlers.finishItemEdit}
+                />
+              ) : null}
               {props.tags.map((tag, index) =>
                 props.editTagId === tag.id ? (
                   <EditingTagListItem
                     key={tag.id}
                     tag={tag}
                     errorMessage={viewState.editingTagErrorMessage}
-                    index={index}
+                    index={baseIndex + index}
                     onFinishEdit={handlers.finishItemEdit}
                   />
                 ) : (

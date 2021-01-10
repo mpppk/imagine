@@ -42,6 +42,7 @@ export const TagListDrawer: React.FunctionComponent<TagListDrawerProps> = (
   const classes = useStyles();
   return (
     <Drawer
+      data-cy="tag-list-drawer"
       open={true}
       variant="persistent"
       anchor="right"
@@ -58,7 +59,6 @@ export const TagListDrawer: React.FunctionComponent<TagListDrawerProps> = (
           selectedTagId={props.selectedTagId}
           assignedTagIds={props.assignedTagIds}
           onClick={props.onClickItem}
-          onClickAddButton={props.onClickAddButton}
           onClickEditButton={props.onClickEditButton}
           onRename={props.onRename}
           onUpdate={props.onUpdate}

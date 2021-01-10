@@ -14,7 +14,8 @@
     "tslint": "tslint -c tslint.json 'src/**/*.ts' 'src/**/*.tsx' 'test/**/*.ts'",
     "lint": "yarn type-check && yarn tslint:prettier-check && yarn tslint",
     "export": "yarn build && next export",
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "mock-backend-server": "NEXT_PUBLIC_USE_MOCK_BACKEND=1 next"
   },
   "dependencies": {
     "@material-ui/core": "4.11.0",

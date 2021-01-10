@@ -79,7 +79,7 @@ export const ImageGridList: React.FC<Props> = (props) => {
   const classes = useStyles();
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} data-cy="image-grid-list">
       <GridList
         cellHeight={props.cellHeight}
         className={classes.gridList}
