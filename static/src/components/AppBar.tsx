@@ -170,6 +170,7 @@ export function MyAppBar() {
         />
         <Toolbar>
           <IconButton
+            data-cy="hamburger-menu-button"
             edge="start"
             className={classes.menuButton}
             color="inherit"

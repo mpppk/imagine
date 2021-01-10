@@ -17,7 +17,7 @@ const useStyles = makeStyles(() => ({
 const SideList: React.FunctionComponent = () => {
   const classes = useStyles();
   return (
-    <div className={classes.list}>
+    <div data-cy="sidelist-home" className={classes.list}>
       <List>
         <Link href={'/'}>
           <ListItem button={true} key={'Home'}>
