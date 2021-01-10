@@ -43,6 +43,9 @@ describe('asset and tag list', () => {
     cy.getBySel('tag-list-item').eq(1).click();
     cy.getBySel('tag-list-item').eq(1).click();
 
+    // assign and unassign tag by number key
+    cy.getBySel('tag-list-drawer').type(1).type(1);
+
     // rename tag
     cy.getBySel('edit-tag-button').eq(1).click();
     cy.getBySel('tag-name-form').get('input').clear().type('tag2!');

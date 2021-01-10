@@ -42,6 +42,7 @@ export const TagListDrawer: React.FunctionComponent<TagListDrawerProps> = (
   const classes = useStyles();
   return (
     <Drawer
+      data-cy="tag-list-drawer"
       open={true}
       variant="persistent"
       anchor="right"
