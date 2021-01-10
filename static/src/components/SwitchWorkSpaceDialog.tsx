@@ -61,7 +61,9 @@ export const SwitchWorkSpaceDialog: React.FC<SwitchWorkSpaceDialogProps> = (
       onClose={props.onClose}
       aria-labelledby="form-dialog-title"
     >
-      <DialogTitle>Select workspace</DialogTitle>
+      <DialogTitle data-cy="switch-workspace-dialog-title">
+        Select workspace
+      </DialogTitle>
       <DialogContent>
         <FormControl className={classes.formControl}>
           <InputLabel>work space</InputLabel>
@@ -78,10 +80,18 @@ export const SwitchWorkSpaceDialog: React.FC<SwitchWorkSpaceDialogProps> = (
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
+        <Button
+          data-cy="cancel-switch-workspace-button"
+          onClick={props.onClose}
+          color="primary"
+        >
           Cancel
         </Button>
-        <Button onClick={handleClickSwitchButton} color="primary">
+        <Button
+          data-cy="switch-workspace-button"
+          onClick={handleClickSwitchButton}
+          color="primary"
+        >
           Switch
         </Button>
       </DialogActions>

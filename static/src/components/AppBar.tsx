@@ -195,6 +195,7 @@ export function MyAppBar() {
           </Typography>
           {viewState.scanMsg}
           <Button
+            data-cy="open-switch-workspace-dialog-button"
             color="inherit"
             disabled={viewState.isLoadingWorkSpaces}
             onClick={handlers.clickOpenSwitchWorkSpaceDialogButton}
