@@ -1,5 +1,3 @@
-const c = (l) => `[data-cy=${l}]`;
-
 describe('asset and tag list', () => {
   it('show selected asset', () => {
     cy.visit('http://localhost:3000');
@@ -32,11 +30,34 @@ describe('asset and tag list', () => {
       cy.getBySel('asset-tags').should('have.text', 'tag3');
     });
 
+    // FIXME: check css
     cy.getBySel('tag-list-item').eq(2).click();
 
     cy.getBySel('tag-information-table').within(() => {
       cy.getBySel('tag-id').should('have.text', 3);
       cy.getBySel('tag-name').should('have.text', 'tag3');
     });
+
+    // assign and unassign tag
+    // FIXME: check css
+    cy.getBySel('tag-list-item').eq(1).click();
+    cy.getBySel('tag-list-item').eq(1).click();
+
+    // rename tag
+    cy.getBySel('edit-tag-button').eq(1).click();
+    cy.getBySel('tag-name-form').get('input').clear().type('tag2!');
+    cy.getBySel('save-tag-name-button').click();
+    cy.getBySel('tag-list-item').eq(1).contains('tag2!');
+
+    // delete tag
+    cy.getBySel('delete-tag-button').eq(1).click();
+    cy.getBySel('tag-list-item').should('have.length', 2);
+    cy.getBySel('tag-list-item').eq(1).should('not.have.text', 'tag2!');
+
+    // add new tag
+    cy.getBySel('add-new-tag-button').click();
+    cy.getBySel('tag-name-form').get('input').type('tag4');
+    cy.getBySel('save-tag-name-button').click();
+    cy.getBySel('tag-list-item').first().should('have.text', '1: tag4');
   });
 });

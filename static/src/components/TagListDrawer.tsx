@@ -58,7 +58,6 @@ export const TagListDrawer: React.FunctionComponent<TagListDrawerProps> = (
           selectedTagId={props.selectedTagId}
           assignedTagIds={props.assignedTagIds}
           onClick={props.onClickItem}
-          onClickAddButton={props.onClickAddButton}
           onClickEditButton={props.onClickEditButton}
           onRename={props.onRename}
           onUpdate={props.onUpdate}

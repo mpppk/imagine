@@ -4,9 +4,12 @@ export interface WorkSpace {
   basePath: string;
 }
 
-export interface Tag {
-  id: number;
+export interface LocalTag {
   name: string;
+}
+
+export interface Tag extends LocalTag {
+  id: number;
 }
 
 export interface BoundingBox {

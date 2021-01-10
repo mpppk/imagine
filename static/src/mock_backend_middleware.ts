@@ -3,11 +3,18 @@ import { workspaceActionCreators } from './actions/workspace';
 import { Action } from 'typescript-fsa';
 import { assetActionCreators } from './actions/asset';
 import { tagActionCreators } from './actions/tag';
+import {
+  boundingBoxActionCreators,
+  BoundingBoxAssignRequestPayload,
+  BoundingBoxUnAssignRequestPayload,
+} from './actions/box';
+import { Asset } from './models/models';
 
 const handle = (
   store: MiddlewareAPI,
   action: Action<any>
 ): Action<any> | void => {
+  const boundingBoxHandler = new BoundingBoxActionHandler(store);
   switch (action.type) {
     case workspaceActionCreators.scanRequest.type:
       const newAction = workspaceActionCreators.scanResult([
@@ -61,8 +68,43 @@ const handle = (
         workSpaceName: 'default-workspace',
       });
       store.dispatch(a);
+      break;
+    case boundingBoxActionCreators.assignRequest.type:
+      boundingBoxHandler.assignRequest(action);
+      break;
+    case boundingBoxActionCreators.unAssignRequest.type:
+      boundingBoxHandler.unassignRequest(action);
+      break;
   }
 };
+
+class BoundingBoxActionHandler {
+  constructor(private store: MiddlewareAPI) {}
+
+  assignRequest(action: Action<BoundingBoxAssignRequestPayload>) {
+    const boundingBoxes = action.payload.asset.boundingBoxes ?? [];
+    boundingBoxes.push({ ...action.payload.box, id: boundingBoxes.length + 1 });
+    const asset: Asset = { ...action.payload.asset, boundingBoxes };
+    const a = boundingBoxActionCreators.assign({
+      asset,
+      box: action.payload.box,
+      workSpaceName: 'default-workspace',
+    });
+    this.store.dispatch(a);
+  }
+
+  unassignRequest(action: Action<BoundingBoxUnAssignRequestPayload>) {
+    let boundingBoxes = action.payload.asset.boundingBoxes ?? [];
+    boundingBoxes = boundingBoxes.filter((b) => b.id !== action.payload.boxID);
+    const asset: Asset = { ...action.payload.asset, boundingBoxes };
+    const a = boundingBoxActionCreators.unAssign({
+      asset,
+      boxID: action.payload.boxID,
+      workSpaceName: 'default-workspace',
+    });
+    this.store.dispatch(a);
+  }
+}
 
 export const makeMockLorcaMiddleware = (): Middleware => (store) => (next) => (
   action
