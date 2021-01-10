@@ -36,6 +36,7 @@ export const FilterButton: React.FC<Props> = (props) => {
       aria-label="filter-images"
     >
       <IconButton
+        data-cy="open-filter-assets-dialog-button"
         edge="start"
         color="inherit"
         aria-label="filter"

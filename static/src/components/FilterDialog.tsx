@@ -54,7 +54,7 @@ const TagNameForm: React.FC<TagNameFormProps> = (props) => {
   };
   return (
     <TextField
-      id="tag"
+      data-cy="assets-query-tag-name-input"
       label="tag"
       value={props.value}
       onChange={handleChangeTagName}
@@ -74,6 +74,7 @@ const StartWithForm: React.FC<StartWithFormProps> = (props) => {
   };
   return (
     <TextField
+      data-cy="assets-query-tag-start-with-input"
       label="prefix"
       value={props.prefix}
       onChange={handleChangePrefix}
@@ -141,7 +142,12 @@ export const QueryInput: React.FC<QueryInputProps> = (props) => {
       <Grid item={true} xs={5} className={classes.queryInputGrid}>
         <FormControl className={classes.formControl}>
           <InputLabel>op</InputLabel>
-          <Select label={'op'} value={props.op} onChange={handleChangeSelect}>
+          <Select
+            data-cy="assets-query-select"
+            label={'op'}
+            value={props.op}
+            onChange={handleChangeSelect}
+          >
             <MenuItem value={'equals'}>Equals</MenuItem>
             <MenuItem value={'not-equals'}>Not Equals</MenuItem>
             <MenuItem value={'start-with'}>Start With</MenuItem>
@@ -159,7 +165,11 @@ export const QueryInput: React.FC<QueryInputProps> = (props) => {
       </Grid>
       <Grid item={true} xs={2}>
         <Tooltip title="delete query" aria-label="delete-query">
-          <IconButton aria-label="delete-query" onClick={props.onDelete}>
+          <IconButton
+            data-cy="delete-asset-query"
+            aria-label="delete-query"
+            onClick={props.onDelete}
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -209,6 +219,7 @@ export const QueryForm: React.FC<QueryFormProps> = (props) => {
         <Grid container={true} spacing={1}>
           <Grid item={true} xs={12}>
             <Button
+              data-cy="add-new-assets-query-button"
               variant="outlined"
               color="primary"
               onClick={handleClickAddButton}
@@ -287,9 +298,10 @@ export const FilterDialog: React.FC<FilterDialogProps> = (props) => {
       onClose={props.onClose}
       aria-labelledby="form-dialog-title"
     >
-      <DialogTitle>
+      <DialogTitle data-cy="filter-assets-dialog-title">
         Filter settings
         <Switch
+          data-cy="filter-assets-toggle-button"
           checked={enable}
           onChange={handleChangeEnableSwitch}
           color="primary"
@@ -303,8 +315,17 @@ export const FilterDialog: React.FC<FilterDialogProps> = (props) => {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClickCancelButton}>Cancel</Button>
-        <Button onClick={handleClickApplyButton} color="primary">
+        <Button
+          data-cy="cancel-filter-assets-dialog"
+          onClick={handleClickCancelButton}
+        >
+          Cancel
+        </Button>
+        <Button
+          data-cy="filter-assets-dialog-apply-button"
+          onClick={handleClickApplyButton}
+          color="primary"
+        >
           Apply
         </Button>
       </DialogActions>
