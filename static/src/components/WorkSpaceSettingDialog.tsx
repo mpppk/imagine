@@ -49,13 +49,21 @@ export const WorkSpaceSettingDialog: React.FC<WorkSpaceSettingDialogProps> = (
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
-      <DialogTitle>workspace settings</DialogTitle>
+      <DialogTitle data-cy="workspace-settings-dialog-title">
+        workspace settings
+      </DialogTitle>
       <DialogContent>
         <div className={classes.basePathContainer}>
           <Typography variant={'subtitle2'}>Base Directory</Typography>
-          <Typography variant={'body2'}>{props.workspace.basePath}</Typography>
+          <Typography
+            data-cy="workspace-settings-dialog-base-path"
+            variant={'body2'}
+          >
+            {props.workspace.basePath}
+          </Typography>
         </div>
         <Button
+          data-cy="workspace-settings-dialog-change-base-path-button"
           variant="outlined"
           color="primary"
           disabled={props.disableChangeBasePathButton}
@@ -78,7 +86,12 @@ export const WorkSpaceSettingDialog: React.FC<WorkSpaceSettingDialogProps> = (
         </div>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose}>Close</Button>
+        <Button
+          data-cy="workspace-settings-dialog-close-button"
+          onClick={props.onClose}
+        >
+          Close
+        </Button>
       </DialogActions>
     </Dialog>
   );

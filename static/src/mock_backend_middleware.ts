@@ -9,13 +9,22 @@ import {
   BoundingBoxUnAssignRequestPayload,
 } from './actions/box';
 import { Asset } from './models/models';
+import { fsActionCreators } from './actions/fs';
+import {
+  ClickChangeBaseButtonPathPayload,
+  indexActionCreators,
+} from './actions';
 
 const handle = (
   store: MiddlewareAPI,
   action: Action<any>
 ): Action<any> | void => {
   const boundingBoxHandler = new BoundingBoxActionHandler(store);
+  const indexActionHandler = new IndexActionHandler(store);
   switch (action.type) {
+    case indexActionCreators.clickChangeBasePathButton.type:
+      indexActionHandler.clickChangeBasePathButton(action);
+      break;
     case workspaceActionCreators.scanRequest.type:
       const newAction = workspaceActionCreators.scanResult([
         { id: 1, name: 'default-workspace', basePath: '.' },
@@ -78,6 +87,19 @@ const handle = (
   }
 };
 
+class IndexActionHandler {
+  constructor(private store: MiddlewareAPI) {}
+
+  clickChangeBasePathButton(_action: Action<ClickChangeBaseButtonPathPayload>) {
+    const a = fsActionCreators.baseDirSelect({
+      basePath: 'new-base-path',
+      workSpaceName: 'default-workspace',
+    });
+    this.store.dispatch(a);
+  }
+}
+
+// tslint:disable-next-line:max-classes-per-file
 class BoundingBoxActionHandler {
   constructor(private store: MiddlewareAPI) {}
 
