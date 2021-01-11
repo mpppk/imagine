@@ -14,3 +14,4 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+          DEBUG: 'cypress:*'
