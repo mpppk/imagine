@@ -16,7 +16,8 @@
     "export": "yarn build && next export",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "mock-backend-server": "NEXT_PUBLIC_USE_MOCK_BACKEND=1 next"
+    "mock:dev": "NEXT_PUBLIC_USE_MOCK_BACKEND=1 next",
+    "mock:build": "NEXT_PUBLIC_USE_MOCK_BACKEND=1 next build"
   },
   "dependencies": {
     "@material-ui/core": "4.11.0",

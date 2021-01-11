@@ -8,10 +8,10 @@ jobs:
       - uses: cypress-io/github-action@v2
         with:
           working-directory: ./static
-          build: yarn run build
+          build: yarn run mock:build
           start: yarn start
           wait-on: 'http://localhost:3000'
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
-          DEBUG: 'cypress:*'
+#          DEBUG: 'cypress:*'
