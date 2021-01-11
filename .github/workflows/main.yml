@@ -63,6 +63,7 @@ jobs:
         working-directory: ./static
       env:
         CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
     - name: Setup
       run: make setup
