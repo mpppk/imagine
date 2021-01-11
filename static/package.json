@@ -15,6 +15,7 @@
     "lint": "yarn type-check && yarn tslint:prettier-check && yarn tslint",
     "export": "yarn build && next export",
     "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
     "mock-backend-server": "NEXT_PUBLIC_USE_MOCK_BACKEND=1 next"
   },
   "dependencies": {
@@ -54,7 +55,7 @@
     "@types/react-window": "1.8.2",
     "@types/react-window-infinite-loader": "1.0.3",
     "@types/resize-observer-browser": "0.1.5",
-    "cypress": "5.6.0",
+    "cypress": "6.2.1",
     "husky": "4.3.7",
     "jest": "26.6.3",
     "prettier": "2.2.1",

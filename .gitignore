@@ -2,6 +2,7 @@
 vendor/
 static/.next
 static/node_modules
+static/cypress/videos
 imagine
 *.db
 infra/repoimpl/mock_*
