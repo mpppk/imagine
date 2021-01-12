@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mpppk/imagine/usecase"
+
 	"github.com/mpppk/imagine/infra"
 
 	"github.com/mpppk/imagine/registry"
@@ -66,6 +68,7 @@ func NewRootCmd() (*cobra.Command, error) {
 			if err != nil {
 				return err
 			}
+			usecase.DefaultBasePath = conf.BasePath
 
 			logger := util.GetLogger()
 
@@ -124,6 +127,13 @@ func NewRootCmd() (*cobra.Command, error) {
 					Name:         "db",
 					Usage:        "db file path",
 					IsRequired:   true,
+					IsPersistent: true,
+				},
+			},
+			&option.StringFlag{
+				BaseFlag: &option.BaseFlag{
+					Name:         "basepath",
+					Usage:        "base path directory",
 					IsPersistent: true,
 				},
 			},

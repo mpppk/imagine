@@ -11,8 +11,9 @@ type RootCmdConfig struct {
 	Verbose   bool
 	DB        string
 	Dev       bool
-	UiPort    uint `mapstructure:"ui-port"`
-	AssetPort uint `mapstructure:"asset-port"`
+	BasePath  string `mapstructure:"basepath"`
+	UiPort    uint   `mapstructure:"ui-port"`
+	AssetPort uint   `mapstructure:"asset-port"`
 }
 
 // NewRootCmdConfigFromViper generate config for sum command from viper
