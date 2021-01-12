@@ -57,8 +57,12 @@ export const global = reducerWithInitialState(globalInitialState)
     );
     return { ...state, assets: [], currentWorkSpace, workspaces };
   })
-  .case(workspaceActionCreators.scanResult, (state, workspaces) => {
-    return { ...state, workspaces, isLoadingWorkSpaces: false };
+  .case(workspaceActionCreators.scanResult, (state, payload) => {
+    return {
+      ...state,
+      workspaces: payload.workspaces,
+      isLoadingWorkSpaces: false,
+    };
   })
   .case(assetActionCreators.scanRequest, (state) => {
     return { ...state, isScanningAssets: true, hasMoreAssets: true };

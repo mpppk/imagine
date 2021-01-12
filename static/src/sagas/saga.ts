@@ -10,7 +10,10 @@ import {
 } from '@redux-saga/core/effects';
 import { ActionCreator } from 'typescript-fsa';
 import { eventChannel, SagaIterator } from 'redux-saga';
-import { workspaceActionCreators } from '../actions/workspace';
+import {
+  workspaceActionCreators,
+  WorkSpaceScanResultPayload,
+} from '../actions/workspace';
 import { Asset, newEmptyBoundingBox, Tag, WorkSpace } from '../models/models';
 import { ClickFilterApplyButtonPayload, indexActionCreators } from '../actions';
 import {
@@ -36,8 +39,19 @@ const selectWorkSpaceWorker = function* (workspace: WorkSpace) {
   return yield put(action);
 };
 
-const scanWorkSpacesWorker = function* (workspaces: WorkSpace[]) {
-  return yield put(workspaceActionCreators.select(workspaces[0]));
+const scanWorkSpacesWorker = function* (payload: WorkSpaceScanResultPayload) {
+  // FIXME
+  const workspace = payload.workspaces[0];
+  if (![undefined, null, ''].includes(payload.basePath)) {
+    saveBasePath(workspace.name, payload.basePath);
+  }
+
+  return yield put(
+    workspaceActionCreators.select({
+      ...workspace,
+      basePath: payload.basePath ?? workspace.basePath,
+    })
+  );
 };
 
 const baseDirSelectWorker = function* (payload: BaseDirSelectPayload) {

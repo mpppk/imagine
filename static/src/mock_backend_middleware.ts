@@ -21,15 +21,13 @@ const handle = (
 ): Action<any> | void => {
   const boundingBoxHandler = new BoundingBoxActionHandler(store);
   const indexActionHandler = new IndexActionHandler(store);
+  const workSpaceActionHandler = new WorkSpaceActionHandler(store);
   switch (action.type) {
     case indexActionCreators.clickChangeBasePathButton.type:
       indexActionHandler.clickChangeBasePathButton(action);
       break;
     case workspaceActionCreators.scanRequest.type:
-      const newAction = workspaceActionCreators.scanResult([
-        { id: 1, name: 'default-workspace', basePath: '.' },
-      ]);
-      store.dispatch(newAction);
+      workSpaceActionHandler.scanRequest();
       break;
     case assetActionCreators.scanRequest.type:
       const a1 = assetActionCreators.scanRunning({
@@ -96,6 +94,19 @@ class IndexActionHandler {
       workSpaceName: 'default-workspace',
     });
     this.store.dispatch(a);
+  }
+}
+
+// tslint:disable-next-line:max-classes-per-file
+class WorkSpaceActionHandler {
+  constructor(private store: MiddlewareAPI) {}
+
+  scanRequest() {
+    const newAction = workspaceActionCreators.scanResult({
+      basePath: 'default/base/path',
+      workspaces: [{ id: 1, name: 'default-workspace', basePath: '.' }],
+    });
+    this.store.dispatch(newAction);
   }
 }
 

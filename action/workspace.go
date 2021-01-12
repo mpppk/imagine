@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/mpppk/imagine/usecase"
+
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/mpppk/imagine/domain/repository"
@@ -28,6 +30,11 @@ type wsPayload struct {
 	WorkSpaceName model.WSName `json:"workSpaceName"`
 }
 
+type WorkSpaceScanResultPayload struct {
+	BasePath   string             `json:"basePath"`
+	WorkSpaces []*model.WorkSpace `json:"workspaces"`
+}
+
 type WorkSpaceUpdatePayload struct {
 	WorkSpace model.WorkSpace
 }
@@ -40,8 +47,11 @@ func newWSPayload(name model.WSName) *wsPayload {
 
 func (w *workspaceActionCreator) ScanResult(workSpaces []*model.WorkSpace) *fsa.Action {
 	return &fsa.Action{
-		Type:    WorkSpaceScanResultType,
-		Payload: workSpaces,
+		Type: WorkSpaceScanResultType,
+		Payload: &WorkSpaceScanResultPayload{
+			BasePath:   usecase.DefaultBasePath,
+			WorkSpaces: workSpaces,
+		},
 	}
 }
 
