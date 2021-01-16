@@ -28,29 +28,40 @@ type assetScanRequestPayload struct {
 type assetScanRunningPayload struct {
 	*wsPayload
 	Assets []*model.Asset `json:"assets"`
+	Count  int            `json:"count"`
+}
+
+type assetScanResultPayload struct {
+	*wsPayload
+	Count int `json:"count"`
 }
 
 type assetActionCreator struct{}
 
-func (a *assetActionCreator) scanRunning(wsName model.WSName, assets []*model.Asset) *fsa.Action {
+func (a *assetActionCreator) scanRunning(wsName model.WSName, assets []*model.Asset, count int) *fsa.Action {
 	return &fsa.Action{
 		Type: AssetScanRunningType,
 		Payload: &assetScanRunningPayload{
 			wsPayload: newWSPayload(wsName),
 			Assets:    assets,
+			Count:     count,
 		},
 	}
 }
 
-func (a *assetActionCreator) scanFinish(wsName model.WSName) *fsa.Action {
+func (a *assetActionCreator) scanFinish(wsName model.WSName, count int) *fsa.Action {
 	return &fsa.Action{
-		Type:    AssetScanFinishType,
-		Payload: newWSPayload(wsName),
+		Type: AssetScanFinishType,
+		Payload: &assetScanResultPayload{
+			wsPayload: newWSPayload(wsName),
+			Count:     count,
+		},
 	}
 }
 
 type assetScanHandler struct {
 	c                  <-chan *model.Asset
+	cnt                int
 	queryCancel        context.CancelFunc
 	assetUseCase       *usecase.Asset
 	assetActionCreator *assetActionCreator
@@ -80,14 +91,16 @@ func (d *assetScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	for asset := range d.c {
 		ret = append(ret, asset)
 		if len(ret) >= payload.RequestNum {
-			return dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret))
+			d.cnt += len(ret)
+			return dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret, d.cnt))
 		}
 	}
 
 	if len(ret) > 0 {
-		return dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret))
+		d.cnt += len(ret)
+		return dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret, d.cnt))
 	} else {
-		return dispatch(d.assetActionCreator.scanFinish(payload.WorkSpaceName))
+		return dispatch(d.assetActionCreator.scanFinish(payload.WorkSpaceName, d.cnt))
 	}
 }
 
