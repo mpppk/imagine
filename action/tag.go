@@ -70,6 +70,10 @@ func (d *tagScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
+	if !payload.Name.IsValid() {
+		return fmt.Errorf("invalid workspace name: %q", payload.Name)
+	}
+
 	tags, err := d.tagUseCase.List(payload.Name)
 	if err != nil {
 		return fmt.Errorf("failed to list tags: %w", err)

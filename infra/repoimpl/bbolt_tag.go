@@ -139,7 +139,7 @@ func (b *BBoltTag) ListBy(ws model.WSName, f func(tag *model.TagWithIndex) bool)
 		return nil
 	}
 	if err := b.ForEach(ws, eachF); err != nil {
-		return nil, fmt.Errorf("failed to list assets: %w", err)
+		return nil, fmt.Errorf("failed to list tags: %w", err)
 	}
 	return
 }
