@@ -31,6 +31,7 @@ const handle = (
       break;
     case assetActionCreators.scanRequest.type:
       const a1 = assetActionCreators.scanRunning({
+        count: 3,
         assets: [
           {
             id: 1,
@@ -62,6 +63,7 @@ const handle = (
       store.dispatch(a1);
       const a2 = assetActionCreators.scanFinish({
         workSpaceName: 'default-workspace',
+        count: 3,
       });
       store.dispatch(a2);
       break;
