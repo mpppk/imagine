@@ -10,14 +10,21 @@ export interface AssetScanRequestPayload extends WSPayload {
   reset: boolean;
 }
 
-interface ScanRunningPayload extends WSPayload {
+export interface AssetScanRunningPayload extends WSPayload {
   assets: Asset[];
+  count: number;
+}
+
+export interface AssetScanResultPayload extends WSPayload {
+  count: number;
 }
 
 export const assetActionCreators = {
   scanRequest: assetActionCreatorFactory<AssetScanRequestPayload>(
     'SCAN/REQUEST'
   ),
-  scanRunning: assetActionCreatorFactory<ScanRunningPayload>('SCAN/RUNNING'),
-  scanFinish: assetActionCreatorFactory<WSPayload>('SCAN/FINISH'),
+  scanRunning: assetActionCreatorFactory<AssetScanRunningPayload>(
+    'SCAN/RUNNING'
+  ),
+  scanFinish: assetActionCreatorFactory<AssetScanResultPayload>('SCAN/FINISH'),
 };

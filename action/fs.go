@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -48,7 +49,7 @@ type FsScanStartPayload struct {
 
 type FsScanFailPayload struct {
 	*wsPayload
-	err error
+	Error string `json:"error"`
 }
 
 type BasePathPayload struct {
@@ -97,12 +98,12 @@ func (f *fsActionCreator) scanRunning(wsName model.WSName, paths []string) *fsa.
 	}
 }
 
-func (f *fsActionCreator) scanFail(wsName model.WSName, err error) *fsa.Action {
+func (f *fsActionCreator) scanFail(wsName model.WSName, msg string) *fsa.Action {
 	return &fsa.Action{
 		Type: FSScanFailType,
 		Payload: &FsScanFailPayload{
 			wsPayload: newWSPayload(wsName),
-			err:       err,
+			Error:     msg,
 		},
 	}
 }
@@ -120,16 +121,30 @@ func (f *fsActionCreator) baseDirSelect(wsName model.WSName, basePath string) *f
 type fsScanHandler struct {
 	assetUseCase *usecase.Asset
 	action       *fsActionCreator
+	scanning     bool
 }
 
+func (f *fsScanHandler) fail(dispatch fsa.Dispatch, wsName model.WSName, msg string) error {
+	f.scanning = false
+	return dispatch(f.action.scanFail(wsName, msg))
+}
 func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	var payload FsScanRequestPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
+	if f.scanning {
+		return f.fail(dispatch, payload.WorkSpaceName, "fs scanning is already started. requested base path: %q")
+	}
+
 	if err := f.assetUseCase.Init(payload.WorkSpaceName); err != nil {
 		return fmt.Errorf("failed to initialize asset usecase :%w", err)
+	}
+
+	f.scanning = true
+	if _, err := os.Stat(payload.BasePath); err != nil {
+		return f.fail(dispatch, payload.WorkSpaceName, fmt.Sprintf("invalid base path: %q", payload.BasePath))
 	}
 
 	if err := dispatch(f.action.scanStart(payload.WorkSpaceName, payload.BasePath)); err != nil {
@@ -137,13 +152,16 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	}
 
 	dispatchScanFailActionAndLogOrPanic := func(err error) {
-		if e := dispatch(f.action.scanFail(payload.WorkSpaceName, err)); e != nil {
+		if e := f.fail(dispatch, payload.WorkSpaceName, err.Error()); e != nil {
 			panic(e)
 		}
 		log.Printf("warning: %s", err)
 	}
 
 	go func() {
+		defer func() {
+			f.scanning = false
+		}()
 		var paths []string
 		cnt := 0
 		for p := range util.LoadImagesFromDir(payload.BasePath, 500) {
@@ -201,7 +219,7 @@ func (f *fsServeHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := f.server.Shutdown(ctx); err != nil {
-			log.Printf("error: failed to shutdown file server: %s", err)
+			log.Printf("Error: failed to shutdown file server: %s", err)
 		}
 	}
 

@@ -26,7 +26,7 @@ import { State } from '../reducers/reducer';
 import { findAssetIndexById, findBoxIndexById, isDefaultBox } from '../util';
 import { browserActionCreators } from '../actions/browser';
 import debounce from 'lodash/debounce';
-import { assetActionCreators } from '../actions/asset';
+import { assetActionCreators, AssetScanResultPayload } from '../actions/asset';
 import { loadBasePath, saveBasePath } from '../components/util/store';
 import { BaseDirSelectPayload, fsActionCreators } from '../actions/fs';
 
@@ -149,6 +149,21 @@ const fsScanRunningWorker = function* () {
       reset: true,
     })
   );
+};
+
+const assetScanResultWorker = function* (payload: AssetScanResultPayload) {
+  const hasQueries = yield select((s: State) => s.global.queries.length > 0);
+  const basePath = yield select(
+    (s: State) => s.global.currentWorkSpace?.basePath
+  );
+  if (payload.count === 0 && !hasQueries && basePath !== undefined) {
+    yield put(
+      fsActionCreators.scanRequest({
+        workSpaceName: payload.workSpaceName,
+        basePath,
+      })
+    );
+  }
 };
 
 const selectTagWorker = function* (tag: Tag): any {
@@ -320,6 +335,7 @@ export default function* rootSaga() {
     takeEveryAction(workspaceActionCreators.select, selectWorkSpaceWorker)(),
     takeEveryAction(fsActionCreators.baseDirSelect, baseDirSelectWorker)(),
     takeEveryAction(fsActionCreators.scanRunning, fsScanRunningWorker)(),
+    takeEveryAction(assetActionCreators.scanFinish, assetScanResultWorker)(),
     takeEveryAction(
       indexActionCreators.downAlphabetKey,
       downAlphabetKeyWorker
