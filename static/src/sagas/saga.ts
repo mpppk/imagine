@@ -42,14 +42,15 @@ const selectWorkSpaceWorker = function* (workspace: WorkSpace) {
 const scanWorkSpacesWorker = function* (payload: WorkSpaceScanResultPayload) {
   // FIXME
   const workspace = payload.workspaces[0];
-  if (![undefined, null, ''].includes(payload.basePath)) {
+  const hasBasePath = ![undefined, null, ''].includes(payload.basePath);
+  if (hasBasePath) {
     saveBasePath(workspace.name, payload.basePath);
   }
 
   return yield put(
     workspaceActionCreators.select({
       ...workspace,
-      basePath: payload.basePath ?? workspace.basePath,
+      basePath: hasBasePath ? payload.basePath : workspace.basePath,
     })
   );
 };
