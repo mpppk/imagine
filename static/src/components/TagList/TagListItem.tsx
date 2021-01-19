@@ -9,28 +9,32 @@ import { Draggable } from 'react-beautiful-dnd';
 import { Tag } from '../../models/models';
 
 const useStyles = makeStyles((theme: Theme) => {
+  const baseItemStyles = {
+    marginRight: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    marginTop: theme.spacing(1),
+    padding: theme.spacing(1),
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    alignContent: 'center',
+  };
+
   return {
-    disabledItem: {
-      margin: `0 0 ${theme.spacing(1)}px 0`,
-      padding: theme.spacing(2),
-      position: 'relative',
-      userSelect: 'none',
+    tagName: {
+      overflowWrap: 'break-word',
+      maxWidth: 140,
     },
     draggingItem: {
+      ...baseItemStyles,
       background: theme.palette.action.selected,
-      margin: `0 0 ${theme.spacing(1)}px 0`,
-      padding: theme.spacing(2),
-      userSelect: 'none',
     },
-    item: {
-      margin: `0 0 ${theme.spacing(1)}px 0`,
-      padding: theme.spacing(2),
-      position: 'relative',
-      userSelect: 'none',
+    item: { ...baseItemStyles },
+    buttonContainer: {
+      display: 'inline-flex',
     },
     itemButton: {
-      bottom: theme.spacing(2),
-      float: 'right',
+      padding: theme.spacing(0.5),
     },
     assignedItem: {
       borderLeft: `thick solid ${theme.palette.primary.light}`,
@@ -73,7 +77,6 @@ const useHandlers = (props: Props) => {
 const useViewState = (props: Props) => {
   const classes = useStyles();
   return useMemo(() => {
-    const paperClassName = props.disabled ? classes.disabledItem : classes.item;
     return {
       paper: {
         genClassNames: (
@@ -81,7 +84,7 @@ const useViewState = (props: Props) => {
           assigned: boolean,
           selected: boolean
         ) => {
-          const ret = [isDragging ? classes.draggingItem : paperClassName];
+          const ret = [isDragging ? classes.draggingItem : classes.item];
           if (assigned) {
             ret.push(classes.assignedItem);
           }
@@ -138,25 +141,27 @@ export const TagListItem: React.FC<Props> = (props) => {
           className={genPaperClassName(snapshot.isDragging)}
           style={{ ...provided.draggableProps.style }}
         >
-          {tagPrefix + props.tag.name}
-          <IconButton
-            data-cy="delete-tag-button"
-            disabled={props.disabled}
-            aria-label="delete"
-            className={classes.itemButton}
-            onClick={handlers.clickDeleteButton}
-          >
-            <DeleteIcon />
-          </IconButton>
-          <IconButton
-            data-cy="edit-tag-button"
-            disabled={props.disabled}
-            aria-label="edit"
-            className={classes.itemButton}
-            onClick={handlers.clickEditButton}
-          >
-            <EditIcon />
-          </IconButton>
+          <div className={classes.tagName}>{tagPrefix + props.tag.name}</div>
+          <div className={classes.buttonContainer}>
+            <IconButton
+              data-cy="delete-tag-button"
+              disabled={props.disabled}
+              aria-label="delete"
+              className={classes.itemButton}
+              onClick={handlers.clickDeleteButton}
+            >
+              <DeleteIcon />
+            </IconButton>
+            <IconButton
+              data-cy="edit-tag-button"
+              disabled={props.disabled}
+              aria-label="edit"
+              className={classes.itemButton}
+              onClick={handlers.clickEditButton}
+            >
+              <EditIcon />
+            </IconButton>
+          </div>
         </Paper>
       )}
     </Draggable>

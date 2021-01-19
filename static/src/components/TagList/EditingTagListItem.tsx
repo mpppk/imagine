@@ -10,14 +10,26 @@ import { FieldErrors } from 'react-hook-form/dist/types/form';
 import { Tag } from '../../models/models';
 
 const useStyles = makeStyles((theme: Theme) => {
+  // FIXME: duplicated code
+  const baseItemStyles = {
+    marginRight: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    marginTop: theme.spacing(1),
+    padding: theme.spacing(1),
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    alignContent: 'center',
+  };
   return {
     checkCircleButton: {
       bottom: theme.spacing(1),
-      float: 'right',
+      // float: 'right',
     },
     item: {
-      margin: `0 0 ${theme.spacing(1)}px 0`,
-      padding: theme.spacing(2),
+      ...baseItemStyles,
+      // margin: `0 0 ${theme.spacing(1)}px 0`,
+      // padding: theme.spacing(2),
       position: 'relative',
       userSelect: 'none',
     },
