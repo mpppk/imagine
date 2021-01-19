@@ -93,7 +93,7 @@ func (a *Asset) ReadImportAssetsWithProgressBar(ws model.WSName, reader io.Reade
 	for scanner.Scan() {
 		var asset model.ImportAsset
 		if err := json.Unmarshal(scanner.Bytes(), &asset); err != nil {
-			return fmt.Errorf("failed to unmarshal json to asset")
+			return fmt.Errorf("failed to unmarshal json to asset: %w", err)
 		}
 		importAssets = append(importAssets, &asset)
 		cnt++
