@@ -205,6 +205,7 @@ func Execute() {
 	if err != nil {
 		panic(err)
 	}
+	rootCmd.SetOut(os.Stdout)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Print(util.PrettyPrintError(err))
 		os.Exit(1)
