@@ -15,26 +15,20 @@ const useStyles = makeStyles((theme: Theme) => {
     marginRight: theme.spacing(1),
     marginBottom: theme.spacing(1),
     marginTop: theme.spacing(1),
-    padding: theme.spacing(1),
+    paddingLeft: theme.spacing(1),
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     alignContent: 'center',
   };
   return {
-    checkCircleButton: {
-      bottom: theme.spacing(1),
-      // float: 'right',
-    },
     item: {
       ...baseItemStyles,
-      // margin: `0 0 ${theme.spacing(1)}px 0`,
-      // padding: theme.spacing(2),
       position: 'relative',
       userSelect: 'none',
     },
     tagNameTextField: {
-      width: 100,
+      width: 140,
     },
   };
 });
@@ -64,12 +58,8 @@ const useHandlers = (props: Props, localState: LocalState) => {
 type LocalState = ReturnType<typeof useLocalState>;
 
 const useViewState = (props: Props, state: LocalState, errors: FieldErrors) => {
-  const classes = useStyles();
   return useMemo(() => {
     return {
-      paper: {
-        className: classes.item,
-      },
       textField: {
         defaultValue: state.currentTagName,
         error: !!errors.value || !!props.errorMessage,
@@ -103,33 +93,34 @@ export const EditingTagListItem: React.FC<Props> = (props) => {
   const { handlers, viewState } = useViewStateAndHandlers(props, errors);
 
   return (
-    <Paper className={viewState.paper.className}>
+    <Paper>
       <form
         onSubmit={handleSubmit(handlers.submitTagName)}
         onKeyDown={handlers.keyDown}
       >
-        <Controller
-          data-cy="tag-name-form"
-          as={TextField}
-          name="tagName"
-          rules={{ required: true }}
-          control={control}
-          className={classes.tagNameTextField}
-          value={viewState.textField.value}
-          defaultValue={viewState.textField.defaultValue}
-          autoFocus={true}
-          error={viewState.textField.error}
-          helperText={viewState.textField.helperText}
-          onChange={handlers.changeTagName}
-        />
-        <IconButton
-          data-cy="save-tag-name-button"
-          type="submit"
-          aria-label="update-tag"
-          className={classes.checkCircleButton}
-        >
-          <CheckCircleIcon />
-        </IconButton>
+        <div className={classes.item}>
+          <Controller
+            data-cy="tag-name-form"
+            as={TextField}
+            name="tagName"
+            rules={{ required: true }}
+            control={control}
+            className={classes.tagNameTextField}
+            value={viewState.textField.value}
+            defaultValue={viewState.textField.defaultValue}
+            autoFocus={true}
+            error={viewState.textField.error}
+            helperText={viewState.textField.helperText}
+            onChange={handlers.changeTagName}
+          />
+          <IconButton
+            data-cy="save-tag-name-button"
+            type="submit"
+            aria-label="update-tag"
+          >
+            <CheckCircleIcon />
+          </IconButton>
+        </div>
       </form>
     </Paper>
   );
