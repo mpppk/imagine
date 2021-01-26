@@ -11,7 +11,7 @@ require (
 	github.com/gen2brain/dlgs v0.0.0-20201118155338-03fe7f81ad25
 	github.com/golang/mock v1.4.4
 	github.com/google/go-cmp v0.5.4
-	github.com/google/wire v0.4.0
+	github.com/google/wire v0.5.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
