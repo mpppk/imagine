@@ -19,6 +19,10 @@ lint: generate
 	goreleaser check
 	golangci-lint run
 
+.PHONY: super-lint
+super-lint: generate
+	docker run -e RUN_LOCAL=true -v $(PWD):/tmp/lint github/super-linter
+
 .PHONY: test
 test: lint
 	go test ./...

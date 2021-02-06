@@ -17,16 +17,13 @@ export class TouchDraggable<E extends SVGElement> implements Draggable {
 
   private initialTouch?: { x: Pixel; y: Pixel };
 
+  private _hasTarget = (e: TouchEvent) => e.currentTarget && e.target;
+
   private readonly _onTouchStart = (e: TouchEvent) => {
     e.stopPropagation();
 
-    // 通常ありえない
-    if (!e.currentTarget || !e.target) {
-      return;
-    }
-
     // ピンチズーム とかで誤動作させない
-    if (e.changedTouches.length !== 1) {
+    if (this._hasTarget(e) || e.changedTouches.length !== 1) {
       return;
     }
 
@@ -41,13 +38,8 @@ export class TouchDraggable<E extends SVGElement> implements Draggable {
   private readonly _onTouchMove = (e: TouchEvent) => {
     e.stopPropagation();
 
-    // 通常ありえない
-    if (!e.currentTarget || !e.target) {
-      return;
-    }
-
     // ピンチズーム とかで誤動作させない
-    if (e.changedTouches.length !== 1) {
+    if (this._hasTarget(e) || e.changedTouches.length !== 1) {
       return;
     }
 
@@ -63,13 +55,9 @@ export class TouchDraggable<E extends SVGElement> implements Draggable {
 
   private readonly _onTouchEnd = (e: TouchEvent) => {
     e.stopPropagation();
-    // 通常ありえない
-    if (!e.currentTarget || !e.target) {
-      return;
-    }
 
     // ピンチズーム とかで誤動作させない
-    if (e.changedTouches.length !== 1) {
+    if (this._hasTarget(e) || e.changedTouches.length !== 1) {
       return;
     }
 

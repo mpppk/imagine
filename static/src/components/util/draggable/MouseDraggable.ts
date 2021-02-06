@@ -17,11 +17,13 @@ export class MouseDraggable<E extends SVGElement> implements Draggable {
 
   private initialDrag?: { x: Pixel; y: Pixel };
 
+  private _hasTarget = (e: MouseEvent) => e.currentTarget && e.target;
+
   private readonly _onDragStart = (e: MouseEvent) => {
     e.stopPropagation();
 
     // 通常ありえない
-    if (!e.currentTarget || !e.target) {
+    if (!this._hasTarget(e)) {
       return;
     }
 
@@ -33,11 +35,7 @@ export class MouseDraggable<E extends SVGElement> implements Draggable {
     e.stopPropagation();
 
     // 通常ありえない
-    if (!e.currentTarget || !e.target) {
-      return;
-    }
-
-    if (this.initialDrag === undefined) {
+    if (!this._hasTarget(e) || this.initialDrag === undefined) {
       return;
     }
 
@@ -47,14 +45,12 @@ export class MouseDraggable<E extends SVGElement> implements Draggable {
 
   private readonly _onDragEnd = (e: MouseEvent) => {
     e.stopPropagation();
+
     // 通常ありえない
-    if (!e.currentTarget || !e.target) {
+    if (!this._hasTarget(e) || this.initialDrag === undefined) {
       return;
     }
 
-    if (this.initialDrag === undefined) {
-      return;
-    }
     const { x, y } = this.initialDrag;
     this.handlers.onDragEnd?.(e.clientX - x, e.clientY - y, e);
     this.initialDrag = undefined;
