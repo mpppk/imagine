@@ -96,7 +96,7 @@ func NewRootCmd() (*cobra.Command, error) {
 
 			config := &fsa.LorcaConfig{
 				AppName:          "imagine",
-				Url:              fmt.Sprintf("localhost:%d", conf.UiPort),
+				Url:              fmt.Sprintf("http://localhost:%d", conf.UiPort),
 				Width:            1080,
 				Height:           720,
 				EnableExtensions: conf.Dev,
