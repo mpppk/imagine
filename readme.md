@@ -1,12 +1,14 @@
-# imagine-app
+<div align="center">
+<img src="https://raw.githubusercontent.com/wiki/mpppk/imagine/images/logo.png" alt="imagine-app" title="imagine-app">
+</div>
 
 ![main](https://github.com/mpppk/imagine/workflows/main/badge.svg) ![Cypress](https://github.com/mpppk/imagine/workflows/Cypress/badge.svg) ![release](https://github.com/mpppk/imagine/workflows/release/badge.svg)
+
+imagine-app is image labeling & management tool.
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/wiki/mpppk/imagine/images/imagine-app3.gif" alt="imagine-app" title="imagine-app">
 </div>
-
-imagine-app is image labeling & management tool.
 
 ## Features
 
