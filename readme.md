@@ -20,7 +20,7 @@ imagine-app is image labeling & management tool.
 Available for major use cases, but there are unimplemented features and potential bugs.
 It is highly recommended to backing up your DB before any operation on imagine-app.
 
-#### TODO
+### TODO
 
 - Bounding box management
 - Multiple workspaces
@@ -33,4 +33,4 @@ Download from [GitHub Releases](https://github.com/mpppk/imagine/releases).
 
 See [fashion mnist example](https://github.com/mpppk/imagine-samples/tree/master/fashion_mnist).
 
-Also, [Japanese Guide is available on zenn.dev]()(準備中).
+Also, [Japanese Guide is available on zenn.dev](https://zenn.dev)(準備中).
