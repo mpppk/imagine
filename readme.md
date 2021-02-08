@@ -20,7 +20,7 @@ imagine-app is image labeling & management tool.
 ## Current Status: Alpha
 
 Available for major use cases, but there are unimplemented features and potential bugs.
-It is highly recommended to backing up your DB before any operation on imagine-app.
+It is highly recommended to back up your DB before any operation on imagine-app.
 
 ### TODO
 
