@@ -3,10 +3,10 @@ package usecasetest
 import (
 	"testing"
 
-	"github.com/mpppk/imagine/domain/repository"
-	"github.com/mpppk/imagine/usecase"
+	"github.com/mpppk/imagine/usecase/interactor"
 
 	"github.com/mpppk/imagine/domain/model"
+	"github.com/mpppk/imagine/domain/repository"
 )
 
 type AssetRepository struct {
@@ -82,10 +82,10 @@ func newClient(t *testing.T, c *repository.Client) *Client {
 
 type Asset struct {
 	t     *testing.T
-	asset *usecase.Asset
+	asset *interactor.Asset
 }
 
-func newAsset(t *testing.T, asset *usecase.Asset) *Asset {
+func newAsset(t *testing.T, asset *interactor.Asset) *Asset {
 	return &Asset{
 		t:     t,
 		asset: asset,
@@ -102,10 +102,10 @@ func (a *Asset) AddOrMergeImportAssets(ws model.WSName, assets []*model.ImportAs
 
 type Tag struct {
 	t   *testing.T
-	tag *usecase.Tag
+	tag *interactor.Tag
 }
 
-func newTag(t *testing.T, tag *usecase.Tag) *Tag {
+func newTag(t *testing.T, tag *interactor.Tag) *Tag {
 	return &Tag{
 		t:   t,
 		tag: tag,
@@ -120,13 +120,13 @@ func (t *Tag) SetTags(ws model.WSName, tags []*model.Tag) {
 }
 
 type UseCases struct {
-	Usecases *usecase.UseCases
+	Usecases *interactor.UseCases
 	Asset    *Asset
 	Tag      *Tag
 	Client   *Client
 }
 
-func NewUseCases(t *testing.T, u *usecase.UseCases) *UseCases {
+func NewUseCases(t *testing.T, u *interactor.UseCases) *UseCases {
 	return &UseCases{
 		Usecases: u,
 		Asset:    newAsset(t, u.Asset),

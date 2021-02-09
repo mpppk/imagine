@@ -9,13 +9,13 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/mpppk/imagine/usecase/interactor"
+
 	"github.com/mpppk/imagine/infra"
 
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/mpppk/imagine/domain/model"
-
-	"github.com/mpppk/imagine/usecase"
 
 	"github.com/gen2brain/dlgs"
 	"github.com/mpppk/imagine/util"
@@ -34,7 +34,7 @@ const (
 )
 
 type ScanningImagesPayload struct {
-	*wsPayload
+	*WsPayload
 	FoundedAssetsNum int `json:"foundedAssetsNum"`
 }
 
@@ -43,22 +43,22 @@ type FsScanRequestPayload struct {
 }
 
 type FsScanStartPayload struct {
-	*wsPayload
+	*WsPayload
 	*BasePathPayload
 }
 
 type FsScanFailPayload struct {
-	*wsPayload
+	*WsPayload
 	Error string `json:"error"`
 }
 
 type BasePathPayload struct {
-	wsPayload `mapstructure:",squash"`
+	WsPayload `mapstructure:",squash"`
 	BasePath  string `json:"basePath"`
 }
 
 type BaseDirSelectPayload struct {
-	*wsPayload
+	*WsPayload
 	BasePath string `json:"basePath"`
 }
 
@@ -68,7 +68,7 @@ func (f *fsActionCreator) scanStart(wsName model.WSName, basePath string) *fsa.A
 	return &fsa.Action{
 		Type: FSScanStartType,
 		Payload: FsScanStartPayload{
-			wsPayload:       newWSPayload(wsName),
+			WsPayload:       newWSPayload(wsName),
 			BasePathPayload: &BasePathPayload{BasePath: basePath},
 		},
 	}
@@ -92,7 +92,7 @@ func (f *fsActionCreator) scanRunning(wsName model.WSName, paths []string) *fsa.
 	return &fsa.Action{
 		Type: FSScanRunningType,
 		Payload: &ScanningImagesPayload{
-			wsPayload:        newWSPayload(wsName),
+			WsPayload:        newWSPayload(wsName),
 			FoundedAssetsNum: len(paths),
 		},
 	}
@@ -102,7 +102,7 @@ func (f *fsActionCreator) scanFail(wsName model.WSName, msg string) *fsa.Action 
 	return &fsa.Action{
 		Type: FSScanFailType,
 		Payload: &FsScanFailPayload{
-			wsPayload: newWSPayload(wsName),
+			WsPayload: newWSPayload(wsName),
 			Error:     msg,
 		},
 	}
@@ -112,14 +112,14 @@ func (f *fsActionCreator) baseDirSelect(wsName model.WSName, basePath string) *f
 	return &fsa.Action{
 		Type: FSBaseDirSelectType,
 		Payload: &BasePathPayload{
-			wsPayload: wsPayload{WorkSpaceName: wsName},
+			WsPayload: WsPayload{WorkSpaceName: wsName},
 			BasePath:  basePath,
 		},
 	}
 }
 
 type fsScanHandler struct {
-	assetUseCase *usecase.Asset
+	assetUseCase *interactor.Asset
 	action       *fsActionCreator
 	scanning     bool
 }
@@ -203,7 +203,7 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 }
 
 type fsServeHandler struct {
-	assetUseCase *usecase.Asset
+	assetUseCase *interactor.Asset
 	action       *fsActionCreator
 	server       *http.Server
 }
@@ -238,12 +238,12 @@ func (f *fsServeHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 }
 
 type fsBaseDirDialogHandler struct {
-	assetUseCase *usecase.Asset
+	assetUseCase *interactor.Asset
 	action       *fsActionCreator
 }
 
 func (f *fsBaseDirDialogHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
-	var payload wsPayload
+	var payload WsPayload
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
@@ -265,11 +265,11 @@ func (f *fsBaseDirDialogHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) e
 }
 
 type fsHandlerCreator struct {
-	assetUseCase *usecase.Asset
+	assetUseCase *interactor.Asset
 	action       *fsActionCreator
 }
 
-func newFSHandlerCreator(assetUseCase *usecase.Asset) *fsHandlerCreator {
+func newFSHandlerCreator(assetUseCase *interactor.Asset) *fsHandlerCreator {
 	return &fsHandlerCreator{
 		assetUseCase: assetUseCase,
 		action:       &fsActionCreator{},

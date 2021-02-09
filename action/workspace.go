@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/mpppk/imagine/usecase"
+	"github.com/mpppk/imagine/usecase/interactor"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -26,7 +26,7 @@ const (
 
 const defaultWorkSpaceName = "default-workspace"
 
-type wsPayload struct {
+type WsPayload struct {
 	WorkSpaceName model.WSName `json:"workSpaceName"`
 }
 
@@ -41,15 +41,15 @@ type WorkSpaceUpdatePayload struct {
 
 type workspaceActionCreator struct{}
 
-func newWSPayload(name model.WSName) *wsPayload {
-	return &wsPayload{WorkSpaceName: name}
+func newWSPayload(name model.WSName) *WsPayload {
+	return &WsPayload{WorkSpaceName: name}
 }
 
 func (w *workspaceActionCreator) ScanResult(workSpaces []*model.WorkSpace) *fsa.Action {
 	return &fsa.Action{
 		Type: WorkSpaceScanResultType,
 		Payload: &WorkSpaceScanResultPayload{
-			BasePath:   usecase.DefaultBasePath,
+			BasePath:   interactor.DefaultBasePath,
 			WorkSpaces: workSpaces,
 		},
 	}

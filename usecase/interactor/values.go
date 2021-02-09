@@ -1,3 +1,3 @@
-package usecase
+package interactor
 
 var DefaultBasePath string

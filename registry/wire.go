@@ -8,7 +8,7 @@ import (
 	"github.com/mpppk/imagine/domain/repository"
 	"github.com/mpppk/imagine/infra"
 	"github.com/mpppk/imagine/infra/repoimpl"
-	"github.com/mpppk/imagine/usecase"
+	"github.com/mpppk/imagine/usecase/interactor"
 	"go.etcd.io/bbolt"
 )
 
@@ -18,10 +18,10 @@ func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	wire.Build(
 		action.NewHandlerCreator,
 
-		usecase.NewAsset,
+		interactor.NewAsset,
 		repoimpl.NewBBoltAsset,
 
-		usecase.NewTag,
+		interactor.NewTag,
 		repoimpl.NewBBoltTag,
 
 		repoimpl.NewBBoltWorkSpace,
@@ -31,18 +31,18 @@ func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	return nil
 }
 
-func InitializeAssetUseCase(b *bbolt.DB) *usecase.Asset {
+func InitializeAssetUseCase(b *bbolt.DB) *interactor.Asset {
 	wire.Build(
-		usecase.NewAsset,
+		interactor.NewAsset,
 		repoimpl.NewBBoltAsset,
 		repoimpl.NewBBoltTag,
 	)
 	return nil
 }
 
-func InitializeTagUseCase(b *bbolt.DB) *usecase.Tag {
+func InitializeTagUseCase(b *bbolt.DB) *interactor.Tag {
 	wire.Build(
-		usecase.NewTag,
+		interactor.NewTag,
 		repoimpl.NewBBoltTag,
 	)
 	return nil
@@ -59,9 +59,9 @@ func NewBoltClient(b *bbolt.DB) *repository.Client {
 	return nil
 }
 
-func NewBoltUseCases(b *bbolt.DB) *usecase.UseCases {
+func NewBoltUseCases(b *bbolt.DB) *interactor.UseCases {
 	wire.Build(
-		usecase.New,
+		interactor.New,
 		repoimpl.NewBBoltAsset,
 		repoimpl.NewBBoltTag,
 		repoimpl.NewBBoltWorkSpace,
@@ -70,10 +70,10 @@ func NewBoltUseCases(b *bbolt.DB) *usecase.UseCases {
 	return nil
 }
 
-func NewBoltUseCasesWithDBPath(dbPath string) (*usecase.UseCases, error) {
+func NewBoltUseCasesWithDBPath(dbPath string) (*interactor.UseCases, error) {
 	wire.Build(
 		infra.NewBoltDB,
-		usecase.New,
+		interactor.New,
 		repoimpl.NewBBoltAsset,
 		repoimpl.NewBBoltTag,
 		repoimpl.NewBBoltWorkSpace,

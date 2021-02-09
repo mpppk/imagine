@@ -10,7 +10,7 @@ import (
 	"github.com/mpppk/imagine/domain/repository"
 	"github.com/mpppk/imagine/infra"
 	"github.com/mpppk/imagine/infra/repoimpl"
-	"github.com/mpppk/imagine/usecase"
+	"github.com/mpppk/imagine/usecase/interactor"
 	"go.etcd.io/bbolt"
 )
 
@@ -19,8 +19,8 @@ import (
 func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	asset := repoimpl.NewBBoltAsset(b)
 	tag := repoimpl.NewBBoltTag(b)
-	usecaseAsset := usecase.NewAsset(asset, tag)
-	usecaseTag := usecase.NewTag(tag)
+	usecaseAsset := interactor.NewAsset(asset, tag)
+	usecaseTag := interactor.NewTag(tag)
 	workSpace := repoimpl.NewBBoltWorkSpace(b)
 	meta := repoimpl.NewBoltMeta(b)
 	client := repository.NewClient(asset, tag, workSpace, meta)
@@ -28,16 +28,16 @@ func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	return handlerCreator
 }
 
-func InitializeAssetUseCase(b *bbolt.DB) *usecase.Asset {
+func InitializeAssetUseCase(b *bbolt.DB) *interactor.Asset {
 	asset := repoimpl.NewBBoltAsset(b)
 	tag := repoimpl.NewBBoltTag(b)
-	usecaseAsset := usecase.NewAsset(asset, tag)
+	usecaseAsset := interactor.NewAsset(asset, tag)
 	return usecaseAsset
 }
 
-func InitializeTagUseCase(b *bbolt.DB) *usecase.Tag {
+func InitializeTagUseCase(b *bbolt.DB) *interactor.Tag {
 	tag := repoimpl.NewBBoltTag(b)
-	usecaseTag := usecase.NewTag(tag)
+	usecaseTag := interactor.NewTag(tag)
 	return usecaseTag
 }
 
@@ -50,16 +50,16 @@ func NewBoltClient(b *bbolt.DB) *repository.Client {
 	return client
 }
 
-func NewBoltUseCases(b *bbolt.DB) *usecase.UseCases {
+func NewBoltUseCases(b *bbolt.DB) *interactor.UseCases {
 	asset := repoimpl.NewBBoltAsset(b)
 	tag := repoimpl.NewBBoltTag(b)
 	workSpace := repoimpl.NewBBoltWorkSpace(b)
 	meta := repoimpl.NewBoltMeta(b)
-	useCases := usecase.New(asset, tag, workSpace, meta)
+	useCases := interactor.New(asset, tag, workSpace, meta)
 	return useCases
 }
 
-func NewBoltUseCasesWithDBPath(dbPath string) (*usecase.UseCases, error) {
+func NewBoltUseCasesWithDBPath(dbPath string) (*interactor.UseCases, error) {
 	db, err := infra.NewBoltDB(dbPath)
 	if err != nil {
 		return nil, err
@@ -68,6 +68,6 @@ func NewBoltUseCasesWithDBPath(dbPath string) (*usecase.UseCases, error) {
 	tag := repoimpl.NewBBoltTag(db)
 	workSpace := repoimpl.NewBBoltWorkSpace(db)
 	meta := repoimpl.NewBoltMeta(db)
-	useCases := usecase.New(asset, tag, workSpace, meta)
+	useCases := interactor.New(asset, tag, workSpace, meta)
 	return useCases, nil
 }
