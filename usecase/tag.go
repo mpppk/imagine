@@ -1,4 +1,4 @@
-//go:generate mockgen -source=./tag.go -destination=./mock_interactor/mock_tag.go
+//go:generate mockgen -source=./tag.go -destination=./mock_usecase/mock_tag.go
 
 package usecase
 
