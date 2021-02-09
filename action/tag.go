@@ -3,10 +3,11 @@ package action
 import (
 	"fmt"
 
+	"github.com/mpppk/imagine/usecase"
+
 	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/mpppk/imagine/usecase"
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
@@ -20,17 +21,17 @@ const (
 type tagRequestPayload = model.WorkSpace
 
 type tagScanPayload struct {
-	wsPayload `mapstructure:",squash"`
+	WsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
 type tagSavePayload struct {
-	wsPayload `mapstructure:",squash"`
+	WsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
 type tagUpdatePayload struct {
-	wsPayload `mapstructure:",squash"`
+	WsPayload `mapstructure:",squash"`
 	Tags      []*model.Tag `json:"tags"`
 }
 
@@ -43,7 +44,7 @@ func (t *tagActionCreator) scan(wsName model.WSName, tags []*model.Tag) *fsa.Act
 	return &fsa.Action{
 		Type: TagScanResultType,
 		Payload: &tagScanPayload{
-			wsPayload: wsPayload{WorkSpaceName: wsName},
+			WsPayload: WsPayload{WorkSpaceName: wsName},
 			Tags:      tags,
 		},
 	}
@@ -53,14 +54,14 @@ func (t *tagActionCreator) save(wsName model.WSName, tags []*model.Tag) *fsa.Act
 	return &fsa.Action{
 		Type: TagSaveType,
 		Payload: &tagSavePayload{
-			wsPayload: wsPayload{WorkSpaceName: wsName},
+			WsPayload: WsPayload{WorkSpaceName: wsName},
 			Tags:      tags,
 		},
 	}
 }
 
 type tagScanHandler struct {
-	tagUseCase *usecase.Tag
+	tagUseCase usecase.Tag
 	action     *tagActionCreator
 }
 
@@ -82,7 +83,7 @@ func (d *tagScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 }
 
 type tagSaveHandler struct {
-	tagUseCase *usecase.Tag
+	tagUseCase usecase.Tag
 	action     *tagActionCreator
 }
 
@@ -98,11 +99,11 @@ func (t *tagSaveHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 }
 
 type tagHandlerCreator struct {
-	tagUseCase *usecase.Tag
+	tagUseCase usecase.Tag
 	action     *tagActionCreator
 }
 
-func newTagHandlerCreator(tagUseCase *usecase.Tag) *tagHandlerCreator {
+func newTagHandlerCreator(tagUseCase usecase.Tag) *tagHandlerCreator {
 	return &tagHandlerCreator{
 		tagUseCase: tagUseCase,
 		action:     &tagActionCreator{},

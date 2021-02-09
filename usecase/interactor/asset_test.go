@@ -1,10 +1,10 @@
-package usecase_test
+package interactor_test
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/mpppk/imagine/usecase"
+	"github.com/mpppk/imagine/usecase/interactor"
 
 	"github.com/mpppk/imagine/testutil"
 	"github.com/mpppk/imagine/usecase/usecasetest"
@@ -72,7 +72,7 @@ func TestAsset_AssignBoundingBox(t *testing.T) {
 			repo.EXPECT().Update(gomock.Eq(testWSName), gomock.Any()).Return(nil)
 			repo.EXPECT().Get(gomock.Eq(testWSName), gomock.Eq(tt.existAsset.ID)).Return(tt.existAsset, true, nil)
 
-			a := usecase.NewAsset(repo, nil)
+			a := interactor.NewAsset(repo, nil)
 			got, err := a.AssignBoundingBox(tt.args.ws, tt.args.assetId, tt.args.box)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AssignBoundingBox() error = %#v, wantErr %#v", err, tt.wantErr)

@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mpppk/imagine/usecase/interactor"
+
 	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/mpppk/imagine/usecase"
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
@@ -19,20 +20,20 @@ const (
 )
 
 type assetScanRequestPayload struct {
-	wsPayload  `mapstructure:",squash"`
+	WsPayload  `mapstructure:",squash"`
 	RequestNum int            `json:"RequestNum"`
 	Queries    []*model.Query `json:"queries"`
 	Reset      bool           `json:"reset"`
 }
 
 type assetScanRunningPayload struct {
-	*wsPayload
+	*WsPayload
 	Assets []*model.Asset `json:"assets"`
 	Count  int            `json:"count"`
 }
 
 type assetScanResultPayload struct {
-	*wsPayload
+	*WsPayload
 	Count int `json:"count"`
 }
 
@@ -42,7 +43,7 @@ func (a *assetActionCreator) scanRunning(wsName model.WSName, assets []*model.As
 	return &fsa.Action{
 		Type: AssetScanRunningType,
 		Payload: &assetScanRunningPayload{
-			wsPayload: newWSPayload(wsName),
+			WsPayload: newWSPayload(wsName),
 			Assets:    assets,
 			Count:     count,
 		},
@@ -53,7 +54,7 @@ func (a *assetActionCreator) scanFinish(wsName model.WSName, count int) *fsa.Act
 	return &fsa.Action{
 		Type: AssetScanFinishType,
 		Payload: &assetScanResultPayload{
-			wsPayload: newWSPayload(wsName),
+			WsPayload: newWSPayload(wsName),
 			Count:     count,
 		},
 	}
@@ -63,7 +64,7 @@ type assetScanHandler struct {
 	c                  <-chan *model.Asset
 	cnt                int
 	queryCancel        context.CancelFunc
-	assetUseCase       *usecase.Asset
+	assetUseCase       *interactor.Asset
 	assetActionCreator *assetActionCreator
 }
 
@@ -105,12 +106,12 @@ func (d *assetScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 }
 
 type assetHandlerCreator struct {
-	assetUseCase       *usecase.Asset
+	assetUseCase       *interactor.Asset
 	assetActionCreator *assetActionCreator
 }
 
 func newAssetHandlerCreator(
-	assetUseCase *usecase.Asset,
+	assetUseCase *interactor.Asset,
 ) *assetHandlerCreator {
 	return &assetHandlerCreator{
 		assetUseCase:       assetUseCase,

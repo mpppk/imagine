@@ -5,7 +5,7 @@ static/node_modules
 static/cypress/videos
 imagine
 *.db
-infra/repoimpl/mock_*
+mock_*.go
 static/out
 statik
 db/

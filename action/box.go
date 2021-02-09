@@ -3,10 +3,11 @@ package action
 import (
 	"fmt"
 
+	"github.com/mpppk/imagine/usecase/interactor"
+
 	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/mpppk/imagine/usecase"
 	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
 )
 
@@ -23,37 +24,37 @@ const (
 )
 
 type boxAssignRequestPayload struct {
-	wsPayload `mapstructure:",squash"`
+	WsPayload `mapstructure:",squash"`
 	Asset     *model.Asset       `json:"asset"`
 	Box       *model.BoundingBox `json:"box"`
 }
 
 type boxUnAssignRequestPayload struct {
-	wsPayload `mapstructure:",squash"`
+	WsPayload `mapstructure:",squash"`
 	Asset     *model.Asset        `json:"asset"`
 	BoxID     model.BoundingBoxID `json:"boxID"`
 }
 
 type boxModifyRequestPayload struct {
-	wsPayload `mapstructure:",squash"`
+	WsPayload `mapstructure:",squash"`
 	Asset     *model.Asset       `json:"asset"`
 	Box       *model.BoundingBox `json:"box"`
 }
 
 type boxAssignPayload struct {
-	wsPayload `mapstructure:",squash"`
+	WsPayload `mapstructure:",squash"`
 	Asset     *model.Asset       `json:"asset"`
 	Box       *model.BoundingBox `json:"box"`
 }
 
 type boxUnAssignPayload struct {
-	wsPayload `mapstructure:",squash"`
+	WsPayload `mapstructure:",squash"`
 	Asset     *model.Asset        `json:"asset"`
 	BoxID     model.BoundingBoxID `json:"boxID"`
 }
 
 type boxDeleteRequestPayload struct {
-	wsPayload `mapstructure:",squash"`
+	WsPayload `mapstructure:",squash"`
 	AssetID   model.AssetID       `json:"assetID"`
 	BoxID     model.BoundingBoxID `json:"boxID"`
 }
@@ -66,7 +67,7 @@ func (a *boxActionCreator) assign(name model.WSName, asset *model.Asset, box *mo
 	return &fsa.Action{
 		Type: BoxAssignType,
 		Payload: &boxAssignPayload{
-			wsPayload: wsPayload{WorkSpaceName: name},
+			WsPayload: WsPayload{WorkSpaceName: name},
 			Asset:     asset,
 			Box:       box,
 		},
@@ -77,7 +78,7 @@ func (a *boxActionCreator) unassign(name model.WSName, asset *model.Asset, boxID
 	return &fsa.Action{
 		Type: BoxUnAssignType,
 		Payload: &boxUnAssignPayload{
-			wsPayload: wsPayload{WorkSpaceName: name},
+			WsPayload: WsPayload{WorkSpaceName: name},
 			Asset:     asset,
 			BoxID:     boxID,
 		},
@@ -88,7 +89,7 @@ func (a *boxActionCreator) modify(name model.WSName, asset *model.Asset, boxID m
 	return &fsa.Action{
 		Type: BoxModifyType,
 		Payload: &boxUnAssignPayload{
-			wsPayload: wsPayload{WorkSpaceName: name},
+			WsPayload: WsPayload{WorkSpaceName: name},
 			Asset:     asset,
 			BoxID:     boxID,
 		},
@@ -99,7 +100,7 @@ func (a *boxActionCreator) delete(name model.WSName, assetID model.AssetID, boxI
 	return &fsa.Action{
 		Type: BoxDeleteType,
 		Payload: &boxDeletePayload{
-			wsPayload: wsPayload{WorkSpaceName: name},
+			WsPayload: WsPayload{WorkSpaceName: name},
 			AssetID:   assetID,
 			BoxID:     boxID,
 		},
@@ -107,7 +108,7 @@ func (a *boxActionCreator) delete(name model.WSName, assetID model.AssetID, boxI
 }
 
 type boxAssignRequestHandler struct {
-	assetUseCase     *usecase.Asset
+	assetUseCase     *interactor.Asset
 	boxActionCreator *boxActionCreator
 }
 
@@ -124,7 +125,7 @@ func (d *boxAssignRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) 
 }
 
 type boxUnAssignRequestHandler struct {
-	assetUseCase     *usecase.Asset
+	assetUseCase     *interactor.Asset
 	boxActionCreator *boxActionCreator
 }
 
@@ -142,7 +143,7 @@ func (d *boxUnAssignRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch
 }
 
 type boxModifyRequestHandler struct {
-	assetUseCase     *usecase.Asset
+	assetUseCase     *interactor.Asset
 	boxActionCreator *boxActionCreator
 }
 
@@ -160,7 +161,7 @@ func (d *boxModifyRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) 
 }
 
 type boxDeleteRequestHandler struct {
-	assetUseCase     *usecase.Asset
+	assetUseCase     *interactor.Asset
 	boxActionCreator *boxActionCreator
 }
 
@@ -177,12 +178,12 @@ func (d *boxDeleteRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) 
 }
 
 type boxHandlerCreator struct {
-	assetUseCase     *usecase.Asset
+	assetUseCase     *interactor.Asset
 	boxActionCreator *boxActionCreator
 }
 
 func newBoxHandlerCreator(
-	assetUseCase *usecase.Asset,
+	assetUseCase *interactor.Asset,
 ) *boxHandlerCreator {
 	return &boxHandlerCreator{
 		assetUseCase:     assetUseCase,

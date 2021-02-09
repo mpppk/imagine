@@ -2,13 +2,13 @@ package action
 
 import (
 	"github.com/mpppk/imagine/domain/repository"
-	"github.com/mpppk/imagine/usecase"
+	"github.com/mpppk/imagine/usecase/interactor"
 	"go.etcd.io/bbolt"
 )
 
 type HandlerCreator struct {
-	assetUseCase *usecase.Asset
-	tagUseCase   *usecase.Tag
+	assetUseCase *interactor.Asset
+	tagUseCase   *interactor.Tag
 	b            *bbolt.DB
 	Asset        *assetHandlerCreator
 	Box          *boxHandlerCreator
@@ -18,8 +18,8 @@ type HandlerCreator struct {
 }
 
 func NewHandlerCreator(
-	assetUseCase *usecase.Asset,
-	tagUseCase *usecase.Tag,
+	assetUseCase *interactor.Asset,
+	tagUseCase *interactor.Tag,
 	client *repository.Client,
 	b *bbolt.DB,
 ) *HandlerCreator {

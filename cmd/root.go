@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mpppk/imagine/usecase"
+	"github.com/mpppk/imagine/usecase/interactor"
 
 	"github.com/mpppk/imagine/infra"
 
@@ -67,7 +67,7 @@ func NewRootCmd() (*cobra.Command, error) {
 			if err != nil {
 				return err
 			}
-			usecase.DefaultBasePath = conf.BasePath
+			interactor.DefaultBasePath = conf.BasePath
 
 			logger := util.GetLogger()
 

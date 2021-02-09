@@ -4,11 +4,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mpppk/imagine/usecase/interactor"
+
 	"github.com/mpppk/imagine/testutil"
 
 	"github.com/mpppk/imagine/domain/model"
 	"github.com/mpppk/imagine/registry"
-	"github.com/mpppk/imagine/usecase"
 )
 
 type UseCaseUser struct {
@@ -42,7 +43,7 @@ func SetUpTestUseCases(t *testing.T, dbPath string, wsName model.WSName) (u *Use
 }
 
 // SetUpUseCases setup Usecases instance and cleanup function
-func SetUpUseCases(t *testing.T, dbPath string, wsName model.WSName) (u *usecase.UseCases, closer func(), remover func()) {
+func SetUpUseCases(t *testing.T, dbPath string, wsName model.WSName) (u *interactor.UseCases, closer func(), remover func()) {
 	t.Helper()
 	usecases, err := registry.NewBoltUseCasesWithDBPath(dbPath)
 	if err != nil {
