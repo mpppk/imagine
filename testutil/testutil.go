@@ -49,10 +49,11 @@ func DeepEqual(t *testing.T, want, got interface{}) {
 	}
 }
 
-func FailIfErrIsUnexpected(t *testing.T, wantErr bool, gotErr error) {
+func FatalIfErrIsUnexpected(t *testing.T, wantErr bool, gotErr error) bool {
 	if (gotErr != nil) != wantErr {
-		t.Errorf("error = %v, wantErr %v", gotErr, wantErr)
+		t.Fatalf("error = %v, wantErr %v", gotErr, wantErr)
 	}
+	return wantErr
 }
 
 func NewTempDBFile(t *testing.T) (file *os.File, closeF func(), removeF func()) {

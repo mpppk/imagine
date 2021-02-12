@@ -316,15 +316,16 @@ func (b *boltRepository) putByID(bucketNames []string, data boltData) error {
 	})
 }
 
-// updateByID
+// updateByID updates data by ID.
+// if data which have ID does not exist, return error.
 func (b *boltRepository) updateByID(bucketNames []string, data boltData) error {
 	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		id := data.GetID()
-		if id == 0 {
+		if id == 0 { // FIXME: implement HasID() to boltData
 			return fmt.Errorf("failed to update data of bolt. ID does not provided")
 		}
 
-		if bucket.Get(itob(id)) != nil {
+		if bucket.Get(itob(id)) == nil {
 			return fmt.Errorf("failed to update data of bolt. provided ID(%d) does not exist", id)
 		}
 
