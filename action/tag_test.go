@@ -3,6 +3,8 @@ package action
 import (
 	"testing"
 
+	"github.com/mpppk/imagine/domain/service/assetsvc/tagsvc"
+
 	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mpppk/imagine/usecase/mock_usecase"
@@ -57,7 +59,8 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 			defer dispatcher.Finish()
 			ctrl := gomock.NewController(t1)
 			tagUseCase := mock_usecase.NewMockTag(ctrl)
-			tagUseCase.EXPECT().PutTags(gomock.Eq(tt.args.payload.WorkSpaceName), gomock.Eq(tt.args.payload.Tags))
+			tagNames := tagsvc.ToTagNames(tt.args.payload.Tags)
+			tagUseCase.EXPECT().SetTags(gomock.Eq(tt.args.payload.WorkSpaceName), gomock.Eq(tagNames))
 
 			t := &tagSaveHandler{
 				tagUseCase: tagUseCase,

@@ -112,13 +112,6 @@ func newTag(t *testing.T, tag *interactor.Tag) *Tag {
 	}
 }
 
-func (t *Tag) PutTags(ws model.WSName, tags []*model.Tag) {
-	t.t.Helper()
-	if err := t.tag.PutTags(ws, tags); err != nil {
-		t.t.Fatalf("failed to set tags: %v, %v", err, tags)
-	}
-}
-
 // SetTags is wrapper for interactor.Tag.SetTags.
 func (t *Tag) SetTags(ws model.WSName, tagNames []string) []model.TagID {
 	t.t.Helper()

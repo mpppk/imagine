@@ -244,15 +244,6 @@ func (b *boltRepository) forEach(bucketNames []string, f func(value []byte) erro
 	})
 }
 
-// putByID update by ID of data. ID retrieved by data.GetID() method and will be used as bolt key.
-// data will be marshaled to json and used as bolt value.
-// Be careful to use this method because this method does not change NextSequence, so if you put data with new ID, NextSequence may be inconsistent.
-func (b *boltRepository) putByID(bucketNames []string, data boltData) error {
-	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		return putByID(bucket, data)
-	})
-}
-
 // updateByID updates data by ID.
 // if data which have ID does not exist, return error.
 func (b *boltRepository) updateByID(bucketNames []string, data boltData) error {

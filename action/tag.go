@@ -3,6 +3,8 @@ package action
 import (
 	"fmt"
 
+	"github.com/mpppk/imagine/domain/service/assetsvc/tagsvc"
+
 	"github.com/mpppk/imagine/usecase"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -92,7 +94,9 @@ func (t *tagSaveHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	if err := mapstructure.Decode(action.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
-	if err := t.tagUseCase.PutTags(payload.WorkSpaceName, payload.Tags); err != nil {
+
+	tagNames := tagsvc.ToTagNames(payload.Tags)
+	if _, err := t.tagUseCase.SetTags(payload.WorkSpaceName, tagNames); err != nil {
 		return fmt.Errorf("failed to handle TagUpdate action: %w", err)
 	}
 	return dispatch(t.action.save(payload.WorkSpaceName, payload.Tags))

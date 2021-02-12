@@ -91,13 +91,13 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 		assets []*model.ImportAsset
 	}
 	tests := []struct {
-		name        string
-		args        args
-		existAssets []*model.Asset
-		existTags   []*model.Tag
-		want        []model.AssetID
-		wantAssets  []*model.Asset
-		wantErr     bool
+		name          string
+		args          args
+		existAssets   []*model.Asset
+		existTagNames []string
+		want          []model.AssetID
+		wantAssets    []*model.Asset
+		wantErr       bool
 	}{
 		{
 			name: "add and update assets",
@@ -113,7 +113,7 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 					{Asset: &model.Asset{Path: "path3", Name: "path3"}},
 				},
 			},
-			existTags: []*model.Tag{{ID: 1, Name: "tag1"}},
+			existTagNames: []string{"tag1"},
 			existAssets: []*model.Asset{
 				model.NewAssetFromFilePath("path1"),
 				model.NewAssetFromFilePath("path2"),
@@ -142,7 +142,7 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 					{Asset: &model.Asset{Path: "path3", Name: "path3"}},
 				},
 			},
-			existTags: []*model.Tag{{ID: 1, Name: "tag1"}},
+			existTagNames: []string{"tag1"},
 			existAssets: []*model.Asset{
 				model.NewAssetFromFilePath("path1"),
 				model.NewAssetFromFilePath("path2"),
@@ -171,7 +171,7 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 					},
 				},
 			},
-			existTags: []*model.Tag{{ID: 1, Name: "tag1"}, {ID: 2, Name: "tag2"}},
+			existTagNames: []string{"tag1", "tag2"},
 			existAssets: []*model.Asset{
 				{Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{
 					{TagID: 1}, {TagID: 2},
@@ -191,7 +191,7 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
 			ut.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
-			ut.Tag.PutTags(tt.args.ws, tt.existTags)
+			ut.Tag.SetTags(tt.args.ws, tt.existTagNames)
 
 			err := ut.Usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {

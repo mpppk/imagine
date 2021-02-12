@@ -137,8 +137,10 @@ func (b *BBoltAsset) Has(ws model.WSName, id model.AssetID) (ok bool, err error)
 	return exist, err
 }
 
+// Update updates asset by ID.
+// if data which have ID does not exist, return error.
 func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
-	return b.base.putByID(createAssetBucketNames(ws), asset)
+	return b.base.updateByID(createAssetBucketNames(ws), asset)
 }
 
 // BatchUpdate update assets by ID.
