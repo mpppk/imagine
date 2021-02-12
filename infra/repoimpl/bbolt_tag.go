@@ -29,7 +29,7 @@ func (b *BBoltTag) Init(ws model.WSName) error {
 }
 
 func (b *BBoltTag) Add(ws model.WSName, tagWithIndex *model.TagWithIndex) (model.TagID, error) {
-	id, err := b.base.addWithID(createTagBucketNames(ws), tagWithIndex)
+	id, err := b.base.add(createTagBucketNames(ws), tagWithIndex)
 	return model.TagID(id), err
 }
 
@@ -46,7 +46,7 @@ func (b *BBoltTag) AddByName(ws model.WSName, tagName string) (model.TagID, bool
 	}
 	lastIndex++
 	tag := model.TagWithIndex{Tag: &model.Tag{Name: tagName}, Index: lastIndex}
-	id, err := b.base.addWithID(createTagBucketNames(ws), tag)
+	id, err := b.base.add(createTagBucketNames(ws), tag)
 	if err != nil {
 		return 0, false, fmt.Errorf("failed to add tag to db: %w", err)
 	}
@@ -73,7 +73,7 @@ func (b *BBoltTag) AddByNames(ws model.WSName, tagNames []string) ([]model.TagID
 		}
 		lastIndex++
 		tag := model.TagWithIndex{Tag: &model.Tag{Name: name}, Index: lastIndex}
-		id, err := b.base.addWithID(createTagBucketNames(ws), tag)
+		id, err := b.base.add(createTagBucketNames(ws), tag)
 		if err != nil {
 			return nil, fmt.Errorf("failed to add tag to db: %w", err)
 		}

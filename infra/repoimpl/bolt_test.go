@@ -45,19 +45,6 @@ func newTestDataFromJson(t *testing.T, data []byte) *TestData {
 	return &testData
 }
 
-//func getTestData(t *testing.T, r *boltRepository, bucketNames []string, id uint64) *TestData {
-//	bytes, ok, err := r.get(bucketNames, id)
-//	if !ok {
-//		t.Errorf("data not found. ID(%d)", id)
-//		return nil
-//	}
-//
-//	if err != nil {
-//		t.Errorf("failed to get data by ID(%d) from bolt.", id)
-//	}
-//	return newTestDataFromJson(t, bytes)
-//}
-
 func listTestData(t *testing.T, r *boltRepository, bucketNames []string) (testDataList []boltData) {
 	bytesList, err := r.list(bucketNames)
 	if err != nil {
@@ -71,7 +58,7 @@ func listTestData(t *testing.T, r *boltRepository, bucketNames []string) (testDa
 
 func addDataList(t *testing.T, b *boltRepository, bucketNames []string, dataList []boltData) {
 	for _, data := range dataList {
-		if _, err := b.addWithID(bucketNames, data); err != nil {
+		if _, err := b.add(bucketNames, data); err != nil {
 			t.Fatalf("failed to add data to bolt: %v", err)
 		}
 	}
@@ -159,7 +146,7 @@ func Test_boltRepository_addWithID(t *testing.T) {
 			useBoltRepository(t, tt.args.bucketNames, func(b *boltRepository) {
 				addDataList(t, b, tt.args.bucketNames, tt.existDataList)
 
-				id, err := b.addWithID(tt.args.bucketNames, tt.args.data)
+				id, err := b.add(tt.args.bucketNames, tt.args.data)
 				if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
 					return
 				}
@@ -246,7 +233,7 @@ func Test_boltRepository_saveByID(t *testing.T) {
 		name          string
 		args          args
 		existDataList []boltData
-		want uint64
+		want          uint64
 		wantDataList  []boltData
 		wantErr       bool
 	}{
@@ -257,7 +244,7 @@ func Test_boltRepository_saveByID(t *testing.T) {
 				data:        newTestData(1, "new-data"),
 			},
 			existDataList: newExistDataList("old-data1", "data2"),
-			want: 1,
+			want:          1,
 			wantDataList:  []boltData{newTestData(1, "new-data"), newTestData(2, "data2")},
 		},
 		{
@@ -267,7 +254,7 @@ func Test_boltRepository_saveByID(t *testing.T) {
 				data:        newTestData(1, "new-data"),
 			},
 			existDataList: newExistDataList("old-data1", "data2"),
-			want: 1,
+			want:          1,
 			wantDataList:  []boltData{newTestData(1, "new-data"), newTestData(2, "data2")},
 		},
 		{
@@ -286,8 +273,8 @@ func Test_boltRepository_saveByID(t *testing.T) {
 				data:        newTestData(0, "data2"), // ID will be ignored
 			},
 			existDataList: newExistDataList("data1"),
-			wantDataList: []boltData{newTestData(1, "data1"), newTestData(2, "data2")},
-			want: 2,
+			wantDataList:  []boltData{newTestData(1, "data1"), newTestData(2, "data2")},
+			want:          2,
 			wantErr:       false,
 		},
 	}

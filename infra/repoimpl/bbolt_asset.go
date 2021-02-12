@@ -84,7 +84,7 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 		dataList = append(dataList, asset)
 		paths = append(paths, asset.Path)
 	}
-	idList, err := b.base.addJsonListWithID(createAssetBucketNames(ws), dataList)
+	idList, err := b.base.batchAdd(createAssetBucketNames(ws), dataList)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 }
 
 func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, error) {
-	id, err := b.base.addWithID(createAssetBucketNames(ws), asset)
+	id, err := b.base.add(createAssetBucketNames(ws), asset)
 	if err != nil {
 		return 0, err
 	}
@@ -190,7 +190,7 @@ func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (asse
 	for _, id := range idList {
 		rawIdList = append(rawIdList, uint64(id))
 	}
-	contents, err := b.base.getByIDList(createAssetBucketNames(ws), rawIdList)
+	contents, err := b.base.batchGet(createAssetBucketNames(ws), rawIdList)
 	if err != nil {
 		return nil, err
 	}
