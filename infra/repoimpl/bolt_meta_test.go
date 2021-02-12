@@ -28,7 +28,7 @@ func TestBoltMeta_SetAndGetVersion(t *testing.T) {
 				t.Errorf("failed to create semver struct: %v", err)
 			}
 			if err := ut.Usecases.Client.Meta.SetDBVersion(v); (err != nil) != tt.wantErr {
-				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("SetDBVersion() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			gotVersion, ok, err := ut.Usecases.Client.Meta.GetDBVersion()
 			if err != nil || !ok {

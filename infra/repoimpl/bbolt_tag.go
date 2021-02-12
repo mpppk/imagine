@@ -97,8 +97,11 @@ func (b *BBoltTag) RecreateBucket(ws model.WSName) error {
 	return b.base.recreateBucket(createTagBucketNames(ws))
 }
 
-func (b *BBoltTag) Update(ws model.WSName, tagWithIndex *model.TagWithIndex) error {
-	return b.base.updateByID(createTagBucketNames(ws), tagWithIndex)
+// Put puts tag data to bolt.
+// If a tag with the same ID is already exists, update it by new tag.
+// If tag does not exist yet, add new tag.
+func (b *BBoltTag) Put(ws model.WSName, tagWithIndex *model.TagWithIndex) error {
+	return b.base.putByID(createTagBucketNames(ws), tagWithIndex)
 }
 
 func (b *BBoltTag) ListByAsync(ws model.WSName, f func(tagWithIndex *model.TagWithIndex) bool, cap int) (assetChan <-chan *model.TagWithIndex, err error) {

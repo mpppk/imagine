@@ -57,7 +57,7 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 			defer dispatcher.Finish()
 			ctrl := gomock.NewController(t1)
 			tagUseCase := mock_usecase.NewMockTag(ctrl)
-			tagUseCase.EXPECT().SetTags(gomock.Eq(tt.args.payload.WorkSpaceName), gomock.Eq(tt.args.payload.Tags))
+			tagUseCase.EXPECT().PutTags(gomock.Eq(tt.args.payload.WorkSpaceName), gomock.Eq(tt.args.payload.Tags))
 
 			t := &tagSaveHandler{
 				tagUseCase: tagUseCase,

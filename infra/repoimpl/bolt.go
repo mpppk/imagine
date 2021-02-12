@@ -269,7 +269,9 @@ func (b *boltRepository) getIDByString(bucketNames []string, key string) (id uin
 //	return data, data != nil, err
 //}
 
-func (b *boltRepository) updateByID(bucketNames []string, data boltData) error {
+// putByID update by ID of data. ID retrieved by data.GetID() method and will be used as bolt key.
+// data will be marshaled to json and used as bolt value.
+func (b *boltRepository) putByID(bucketNames []string, data boltData) error {
 	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		s, err := json.Marshal(data)
 		if err != nil {

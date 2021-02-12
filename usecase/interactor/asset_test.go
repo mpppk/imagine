@@ -191,7 +191,7 @@ func TestAsset_AddOrMergeImportAssets(t *testing.T) {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
 			ut.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
-			ut.Tag.SetTags(tt.args.ws, tt.existTags)
+			ut.Tag.PutTags(tt.args.ws, tt.existTags)
 
 			err := ut.Usecases.Asset.AddOrMergeImportAssets(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {

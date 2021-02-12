@@ -39,7 +39,7 @@ func TestBBoltAsset_add(t *testing.T) {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, wsName, func(t *testing.T, ut *usecasetest.UseCases) {
 			if _, err := ut.Usecases.Client.Asset.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
-				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Add() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			got, exist, err := ut.Usecases.Client.Asset.Get(wsName, tt.args.asset.ID)
 			if err != nil || !exist {
@@ -351,7 +351,7 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
 			ut.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
-			ut.Tag.SetTags(tt.args.ws, tt.existTags)
+			ut.Tag.PutTags(tt.args.ws, tt.existTags)
 
 			updatedAssets, skippedAssets, err := ut.Usecases.Client.Asset.BatchUpdateByID(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
@@ -421,7 +421,7 @@ func TestBBoltAsset_BatchAdd(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
-			ut.Tag.SetTags(tt.args.ws, tt.existTags)
+			ut.Tag.PutTags(tt.args.ws, tt.existTags)
 
 			idList, err := ut.Usecases.Client.Asset.BatchAdd(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
@@ -483,7 +483,7 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
 			ut.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
-			ut.Tag.SetTags(tt.args.ws, tt.existTags)
+			ut.Tag.PutTags(tt.args.ws, tt.existTags)
 
 			updatedAssets, skippedAssets, err := ut.Usecases.Client.Asset.BatchUpdateByPath(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {

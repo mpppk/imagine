@@ -40,7 +40,7 @@ func TestAssetList(t *testing.T) {
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Asset.AddOrMergeImportAssets(c.wsName, c.existAssets)
-				usecases.Tag.SetTags(c.wsName, c.existTags)
+				usecases.Tag.PutTags(c.wsName, c.existTags)
 			})
 
 			cmdWithFlag := c.command + " --db " + u.DBPath
