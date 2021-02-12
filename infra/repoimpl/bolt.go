@@ -40,6 +40,15 @@ func putByID(bucket *bolt.Bucket, data boltData) error {
 	return nil
 }
 
+func addWithID(bucket *bolt.Bucket, data boltData) (uint64, error) {
+	id, err := bucket.NextSequence()
+	if err != nil {
+		return 0, err
+	}
+	data.SetID(id)
+	return id, putByID(bucket, data)
+}
+
 type boltRepository struct {
 	bolt *bolt.DB
 }
@@ -230,18 +239,9 @@ func (b *boltRepository) addJsonListWithID(bucketNames []string, dataList []bolt
 func (b *boltRepository) addWithID(bucketNames []string, data boltData) (uint64, error) {
 	var retId uint64
 	e := b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		id, err := bucket.NextSequence()
-		if err != nil {
-			return err
-		}
-		data.SetID(id)
+		id, err := addWithID(bucket, data)
 		retId = id
-		//s, err := json.Marshal(data)
-		//if err != nil {
-		//	return fmt.Errorf("failed to marshal data to json: %w", err)
-		//}
-		//return bucket.Put(itob(data.GetID()), s)
-		return putByID(bucket, data)
+		return err
 	})
 	return retId, e
 }
@@ -334,14 +334,25 @@ func (b *boltRepository) updateByID(bucketNames []string, data boltData) error {
 }
 
 // saveByID add or update data.
-// If data already exists, update it. Otherwise add data with new ID.
-func (b *boltRepository) saveByID(bucketNames []string, data boltData) (id uint64, err error) {
+// If data ID does not provided, add new data.
+// If data ID provided, update data which have the ID.
+// If data ID provided, but data which have the ID does not exist, return error.
+func (b *boltRepository) saveByID(bucketNames []string, data boltData) (retID uint64, err error) {
 	err = b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		id := data.GetID()
-		if id != 0 && bucket.Get(itob(id)) != nil {
-			// update data
+		retID = data.GetID()
+
+		// update data
+		if retID != 0 {
+			if bucket.Get(itob(retID)) == nil {
+				return fmt.Errorf("failed to save data by ID(%d). ID is provided but does not exist", retID)
+			}
+			return putByID(bucket, data)
 		}
-		return putByID(bucket, data)
+
+		// add data
+		id, err := addWithID(bucket, data)
+		retID = id
+		return err
 	})
 	return
 }

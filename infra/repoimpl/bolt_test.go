@@ -236,3 +236,75 @@ func Test_boltRepository_updateByID(t *testing.T) {
 		})
 	}
 }
+
+func Test_boltRepository_saveByID(t *testing.T) {
+	type args struct {
+		bucketNames []string
+		data        boltData
+	}
+	tests := []struct {
+		name          string
+		args          args
+		existDataList []boltData
+		want uint64
+		wantDataList  []boltData
+		wantErr       bool
+	}{
+		{
+			name: "update data",
+			args: args{
+				bucketNames: []string{"test-bucket"},
+				data:        newTestData(1, "new-data"),
+			},
+			existDataList: newExistDataList("old-data1", "data2"),
+			want: 1,
+			wantDataList:  []boltData{newTestData(1, "new-data"), newTestData(2, "data2")},
+		},
+		{
+			name: "update data on nested bucket",
+			args: args{
+				bucketNames: []string{"test-bucket", "nested-bucket"},
+				data:        newTestData(1, "new-data"),
+			},
+			existDataList: newExistDataList("old-data1", "data2"),
+			want: 1,
+			wantDataList:  []boltData{newTestData(1, "new-data"), newTestData(2, "data2")},
+		},
+		{
+			name: "fail if data which have same ID does not exist",
+			args: args{
+				bucketNames: []string{"test-bucket"},
+				data:        newTestData(2, "data2"),
+			},
+			existDataList: newExistDataList("data1"),
+			wantErr:       true,
+		},
+		{
+			name: "add data if data does not have ID",
+			args: args{
+				bucketNames: []string{"test-bucket"},
+				data:        newTestData(0, "data2"), // ID will be ignored
+			},
+			existDataList: newExistDataList("data1"),
+			wantDataList: []boltData{newTestData(1, "data1"), newTestData(2, "data2")},
+			want: 2,
+			wantErr:       false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			useBoltRepository(t, tt.args.bucketNames, func(b *boltRepository) {
+				addDataList(t, b, tt.args.bucketNames, tt.existDataList)
+
+				id, err := b.saveByID(tt.args.bucketNames, tt.args.data)
+				if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
+					return
+				}
+				testutil.Diff(t, tt.want, id)
+				dataList := listTestData(t, b, tt.args.bucketNames)
+				testutil.Diff(t, tt.wantDataList, dataList)
+			})
+		})
+	}
+}
