@@ -42,7 +42,7 @@ func Test_bboltPathRepository_Add(t *testing.T) {
 				t.Errorf("Add() exist = %v, error = %v, wantErr %v", exist, err, tt.wantErr)
 			}
 			if id != tt.args.assetID {
-				t.Errorf("Add() error. added asset id is %v but return value of Get() is %v", tt.args.assetID, id)
+				t.Errorf("Add() error. added asset ID is %v but return value of Get() is %v", tt.args.assetID, id)
 			}
 		})
 	}

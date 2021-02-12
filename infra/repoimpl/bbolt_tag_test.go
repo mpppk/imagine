@@ -56,8 +56,8 @@ func TestBBoltTag_Put(t *testing.T) {
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
 			ut.Tag.PutTags(tt.args.ws, tt.existTags)
 
-			if err := ut.Usecases.Client.Tag.Put(tt.args.ws, tt.args.tag); (err != nil) != tt.wantErr {
-				t.Errorf("Put() error = %v, wantErr %v", err, tt.wantErr)
+			if err := ut.Usecases.Client.Tag.Save(tt.args.ws, tt.args.tag); (err != nil) != tt.wantErr {
+				t.Errorf("Save() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			got, _, err := ut.Usecases.Client.Tag.Get(tt.args.ws, tt.args.tag.ID)
@@ -66,6 +66,60 @@ func TestBBoltTag_Put(t *testing.T) {
 			}
 
 			testutil.Diff(t, tt.args.tag, got)
+		})
+	}
+}
+
+func TestBBoltTag_AddByNames(t *testing.T) {
+	type args struct {
+		ws       model.WSName
+		tagNames []string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		existTags []*model.Tag
+		want      []model.TagID
+		wantTags  []*model.Tag
+		wantErr   bool
+	}{
+		{
+			name:      "add tag",
+			existTags: []*model.Tag{{ID: 1, Name: "tag1"}},
+			args: args{
+				ws:       "default-workspace",
+				tagNames: []string{"tag2"},
+			},
+			want:     []model.TagID{2},
+			wantTags: []*model.Tag{{ID: 1, Name: "tag1"}, {ID: 2, Name: "tag2"}},
+			wantErr:  false,
+		},
+		{
+			name:      "add tag to empty DB",
+			existTags: []*model.Tag{},
+			args: args{
+				ws:       "default-workspace",
+				tagNames: []string{"tag1"},
+			},
+			want:     []model.TagID{1},
+			wantTags: []*model.Tag{{ID: 1, Name: "tag1"}},
+			wantErr:  false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Tag.PutTags(tt.args.ws, tt.existTags)
+
+			idList, err := ut.Usecases.Client.Tag.AddByNames(tt.args.ws, tt.args.tagNames)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddByNames() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			testutil.Diff(t, tt.want, idList)
+
+			gotTags := ut.Tag.List(tt.args.ws)
+			testutil.Diff(t, tt.wantTags, gotTags)
 		})
 	}
 }

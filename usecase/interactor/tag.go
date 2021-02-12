@@ -35,9 +35,7 @@ func (a *Tag) List(ws model.WSName) (tags []*model.Tag, err error) {
 	return
 }
 
-// PutTags add or update tags.
-// If tag which have specified id is exist, it will be updated. Otherwise add new tag.
-func (a *Tag) PutTags(ws model.WSName, tags []*model.Tag) error {
+func (a *Tag) AddOrUpdateTags(ws model.WSName, tags []*model.Tag) error {
 	for i, tag := range tags {
 		tagWithIndex := &model.TagWithIndex{
 			Tag:   tag,
@@ -46,13 +44,28 @@ func (a *Tag) PutTags(ws model.WSName, tags []*model.Tag) error {
 		if _, exist, err := a.tagRepository.Get(ws, tag.ID); err != nil {
 			return fmt.Errorf("failed to get tag. id:%d : %w", tag.ID, err)
 		} else if exist {
-			if err := a.tagRepository.Put(ws, tagWithIndex); err != nil {
+			if err := a.tagRepository.Save(ws, tagWithIndex); err != nil {
 				return fmt.Errorf("failed to set tags: %w", err)
 			}
 		} else {
 			if _, err := a.tagRepository.Add(ws, tagWithIndex); err != nil {
 				return fmt.Errorf("failed to set tags: %w", err)
 			}
+		}
+	}
+	return nil
+}
+
+// PutTags add or update tags.
+// If tag which have specified id is exist, it will be updated. Otherwise add new tag.
+func (a *Tag) PutTags(ws model.WSName, tags []*model.Tag) error {
+	for i, tag := range tags {
+		tagWithIndex := &model.TagWithIndex{
+			Tag:   tag,
+			Index: i,
+		}
+		if err := a.tagRepository.Save(ws, tagWithIndex); err != nil {
+			return fmt.Errorf("failed to set tags: %w", err)
 		}
 	}
 	return nil

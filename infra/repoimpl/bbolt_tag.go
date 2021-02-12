@@ -53,6 +53,10 @@ func (b *BBoltTag) AddByName(ws model.WSName, tagName string) (model.TagID, bool
 	return model.TagID(id), true, err
 }
 
+// AddByNames adds tags which have provided names. Then returns ID list of created tags.
+// If tag which have same name exists, do nothing and return the exist tag ID.
+// For example, assume that ["tag1", "tag2", "tag3"] are provided as tagNames, and "tag2" already exist with ID=1.
+// In this case, return values is [2,1,3].
 func (b *BBoltTag) AddByNames(ws model.WSName, tagNames []string) ([]model.TagID, error) {
 	tagSet, err := b.ListAsSet(ws)
 	if err != nil {
@@ -63,7 +67,8 @@ func (b *BBoltTag) AddByNames(ws model.WSName, tagNames []string) ([]model.TagID
 	lastIndex := len(tagMap)
 	var idList []model.TagID
 	for _, name := range tagNames {
-		if _, ok := tagNameMap[name]; ok {
+		if tag, ok := tagNameMap[name]; ok {
+			idList = append(idList, tag.ID)
 			continue
 		}
 		lastIndex++
@@ -100,7 +105,7 @@ func (b *BBoltTag) RecreateBucket(ws model.WSName) error {
 // Put puts tag data to bolt.
 // If a tag with the same ID is already exists, update it by new tag.
 // If tag does not exist yet, add new tag.
-func (b *BBoltTag) Put(ws model.WSName, tagWithIndex *model.TagWithIndex) error {
+func (b *BBoltTag) Save(ws model.WSName, tagWithIndex *model.TagWithIndex) error {
 	return b.base.putByID(createTagBucketNames(ws), tagWithIndex)
 }
 

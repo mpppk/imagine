@@ -108,7 +108,7 @@ func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, er
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, exist bool, err error) {
 	data, exist, err := b.base.get(createAssetBucketNames(ws), uint64(id))
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to get asset by id(%v): %w", id, err)
+		return nil, false, fmt.Errorf("failed to get asset by ID(%v): %w", id, err)
 	}
 	if !exist {
 		return nil, false, nil
@@ -183,7 +183,7 @@ func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
 	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
 
-// ListByIDList list assets by provided id ID list.
+// ListByIDList list assets by provided ID ID list.
 // If ID which does not exist is provided, nil will be returned.
 func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (assets []*model.Asset, err error) {
 	var rawIdList []uint64

@@ -11,9 +11,9 @@ type Tag interface {
 	AddByNames(ws model.WSName, tagNames []string) ([]model.TagID, error)
 	Get(ws model.WSName, id model.TagID) (tagWithIndex *model.TagWithIndex, exist bool, err error)
 
-	// Put persists tag.
-	// If the tag already exists, update it. Otherwise add new tag.
-	Put(ws model.WSName, tagWithIndex *model.TagWithIndex) error
+	// Save persists tag.
+	// If the tag already exists, update it. Otherwise add new tag with new ID.
+	Save(ws model.WSName, tagWithIndex *model.TagWithIndex) error
 
 	RecreateBucket(ws model.WSName) error
 	ListAll(ws model.WSName) ([]*model.TagWithIndex, error)
