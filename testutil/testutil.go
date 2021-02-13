@@ -76,18 +76,24 @@ func NewTempDBFile(t *testing.T) (file *os.File, closeF func(), removeF func()) 
 	return file, closeF, removeF
 }
 
-func NewTempBoltDB(t *testing.T) (db *bolt.DB, closeF func(), removeF func()) {
-	file, closeF, removeF := NewTempDBFile(t)
+func NewTempBoltDB(t *testing.T) (db *bolt.DB, closeF func() error, removeF func()) {
+	file, closeFile, removeFile := NewTempDBFile(t)
+	defer closeFile()
 	db, err := infra.NewBoltDB(file.Name())
 	if err != nil {
 		t.Fatalf("failed to create bolt DB: %v", err)
 	}
-	return db, closeF, removeF
+	return db, db.Close, removeFile
 }
 
-func UseTempBoltDB(t *testing.T, f func(db *bolt.DB) error) error {
+func UseTempBoltDB(t *testing.T, f func(db *bolt.DB) error) (err error) {
 	db, closeF, removeF := NewTempBoltDB(t)
-	defer closeF()
 	defer removeF()
-	return f(db)
+	defer func() {
+		err = closeF()
+	}()
+	if e := f(db); e != nil {
+		return e
+	}
+	return
 }
