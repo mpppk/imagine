@@ -39,7 +39,7 @@ func TestBBoltAsset_add(t *testing.T) {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, wsName, func(t *testing.T, ut *usecasetest.UseCases) {
 			if _, err := ut.Usecases.Client.Asset.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
-				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Add() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			got, exist, err := ut.Usecases.Client.Asset.Get(wsName, tt.args.asset.ID)
 			if err != nil || !exist {
@@ -314,7 +314,7 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 		name              string
 		args              args
 		existAssets       []*model.ImportAsset
-		existTags         []*model.Tag
+		existTagNames     []string
 		wantUpdatedAssets []*model.Asset
 		wantSkippedAssets []*model.Asset
 		wantAssets        []*model.Asset
@@ -326,7 +326,7 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 				model.NewImportAssetFromFilePath("path2"),
 				model.NewImportAssetFromFilePath("path3"),
 			},
-			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			existTagNames: []string{"tag1", "tag2", "tag3"},
 			args: args{
 				ws: "workspace-for-test",
 				assets: []*model.Asset{
@@ -351,7 +351,7 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
 			ut.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
-			ut.Tag.SetTags(tt.args.ws, tt.existTags)
+			ut.Tag.SetTags(tt.args.ws, tt.existTagNames)
 
 			updatedAssets, skippedAssets, err := ut.Usecases.Client.Asset.BatchUpdateByID(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
@@ -372,16 +372,16 @@ func TestBBoltAsset_BatchAdd(t *testing.T) {
 		assets []*model.Asset
 	}
 	tests := []struct {
-		name       string
-		args       args
-		existTags  []*model.Tag
-		want       []model.AssetID
-		wantAssets []*model.Asset
-		wantErr    bool
+		name          string
+		args          args
+		existTagNames []string
+		want          []model.AssetID
+		wantAssets    []*model.Asset
+		wantErr       bool
 	}{
 		{
-			name:      "add assets",
-			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			name:          "add assets",
+			existTagNames: []string{"tag1", "tag2", "tag3"},
 			args: args{
 				ws: "workspace-for-test",
 				assets: []*model.Asset{
@@ -396,8 +396,8 @@ func TestBBoltAsset_BatchAdd(t *testing.T) {
 			},
 		},
 		{
-			name:      "error if arg asset have ID",
-			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			name:          "error if arg asset have ID",
+			existTagNames: []string{"tag1", "tag2", "tag3"},
 			args: args{
 				ws: "workspace-for-test",
 				assets: []*model.Asset{
@@ -407,8 +407,8 @@ func TestBBoltAsset_BatchAdd(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:      "error if arg asset does not have ID",
-			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			name:          "error if arg asset does not have ID",
+			existTagNames: []string{"tag1", "tag2", "tag3"},
 			args: args{
 				ws: "workspace-for-test",
 				assets: []*model.Asset{
@@ -421,7 +421,7 @@ func TestBBoltAsset_BatchAdd(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
-			ut.Tag.SetTags(tt.args.ws, tt.existTags)
+			ut.Tag.SetTags(tt.args.ws, tt.existTagNames)
 
 			idList, err := ut.Usecases.Client.Asset.BatchAdd(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {
@@ -444,7 +444,7 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 		name              string
 		args              args
 		existAssets       []*model.ImportAsset
-		existTags         []*model.Tag
+		existTagNames     []string
 		wantUpdatedAssets []*model.Asset
 		wantSkippedAssets []*model.Asset
 		wantAssets        []*model.Asset
@@ -456,7 +456,7 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 				model.NewImportAssetFromFilePath("path2"),
 				model.NewImportAssetFromFilePath("path3"),
 			},
-			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
+			existTagNames: []string{"tag1", "tag2", "tag3"},
 			args: args{
 				ws: "workspace-for-test",
 				assets: []*model.Asset{
@@ -483,7 +483,7 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
 			ut.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
-			ut.Tag.SetTags(tt.args.ws, tt.existTags)
+			ut.Tag.SetTags(tt.args.ws, tt.existTagNames)
 
 			updatedAssets, skippedAssets, err := ut.Usecases.Client.Asset.BatchUpdateByPath(tt.args.ws, tt.args.assets)
 			if (err != nil) != tt.wantErr {

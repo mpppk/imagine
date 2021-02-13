@@ -8,6 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mpppk/imagine/infra"
+
+	bolt "go.etcd.io/bbolt"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/cobra"
 )
@@ -45,6 +49,13 @@ func DeepEqual(t *testing.T, want, got interface{}) {
 	}
 }
 
+func FatalIfErrIsUnexpected(t *testing.T, wantErr bool, gotErr error) bool {
+	if (gotErr != nil) != wantErr {
+		t.Fatalf("error = %v, wantErr %v", gotErr, wantErr)
+	}
+	return wantErr
+}
+
 func NewTempDBFile(t *testing.T) (file *os.File, closeF func(), removeF func()) {
 	file, err := ioutil.TempFile("", "imagine-test_*.imagine")
 	if err != nil {
@@ -63,4 +74,26 @@ func NewTempDBFile(t *testing.T) (file *os.File, closeF func(), removeF func()) 
 		}
 	}
 	return file, closeF, removeF
+}
+
+func NewTempBoltDB(t *testing.T) (db *bolt.DB, closeF func() error, removeF func()) {
+	file, closeFile, removeFile := NewTempDBFile(t)
+	defer closeFile()
+	db, err := infra.NewBoltDB(file.Name())
+	if err != nil {
+		t.Fatalf("failed to create bolt DB: %v", err)
+	}
+	return db, db.Close, removeFile
+}
+
+func UseTempBoltDB(t *testing.T, f func(db *bolt.DB) error) (err error) {
+	db, closeF, removeF := NewTempBoltDB(t)
+	defer removeF()
+	defer func() {
+		err = closeF()
+	}()
+	if e := f(db); e != nil {
+		return e
+	}
+	return
 }

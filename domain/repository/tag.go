@@ -10,7 +10,11 @@ type Tag interface {
 	AddByName(ws model.WSName, tagName string) (model.TagID, bool, error)
 	AddByNames(ws model.WSName, tagNames []string) ([]model.TagID, error)
 	Get(ws model.WSName, id model.TagID) (tagWithIndex *model.TagWithIndex, exist bool, err error)
-	Update(ws model.WSName, tagWithIndex *model.TagWithIndex) error
+
+	// Save persists tag and return ID of the tag.
+	// If the tag already exists, update it. Otherwise add new tag with new ID.
+	Save(ws model.WSName, tagWithIndex *model.TagWithIndex) (model.TagID, error)
+
 	RecreateBucket(ws model.WSName) error
 	ListAll(ws model.WSName) ([]*model.TagWithIndex, error)
 	ListByAsync(ws model.WSName, f func(tagWithIndex *model.TagWithIndex) bool, cap int) (tagChan <-chan *model.TagWithIndex, err error)

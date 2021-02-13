@@ -11,12 +11,12 @@ import (
 
 func TestAssetList(t *testing.T) {
 	cases := []struct {
-		name        string
-		wsName      model.WSName
-		existTags   []*model.Tag
-		existAssets []*model.ImportAsset
-		command     string
-		want        string
+		name          string
+		wsName        model.WSName
+		existTagNames []string
+		existAssets   []*model.ImportAsset
+		command       string
+		want          string
 	}{
 		{
 			wsName: "default-workspace",
@@ -25,8 +25,8 @@ func TestAssetList(t *testing.T) {
 				{Asset: model.NewAssetFromFilePath("path2")},
 				{Asset: model.NewAssetFromFilePath("path3")},
 			},
-			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
-			command:   `asset list`,
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			command:       `asset list`,
 			want: `{"id":1,"name":"path1","path":"path1","boundingBoxes":null}
 {"id":2,"name":"path2","path":"path2","boundingBoxes":null}
 {"id":3,"name":"path3","path":"path3","boundingBoxes":null}
@@ -40,7 +40,7 @@ func TestAssetList(t *testing.T) {
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Asset.AddOrMergeImportAssets(c.wsName, c.existAssets)
-				usecases.Tag.SetTags(c.wsName, c.existTags)
+				usecases.Tag.SetTags(c.wsName, c.existTagNames)
 			})
 
 			cmdWithFlag := c.command + " --db " + u.DBPath

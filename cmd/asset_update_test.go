@@ -12,14 +12,14 @@ import (
 
 func TestAssetUpdate(t *testing.T) {
 	cases := []struct {
-		name        string
-		wsName      model.WSName
-		existTags   []*model.Tag
-		existAssets []*model.ImportAsset
-		stdInText   string
-		command     string
-		want        string
-		wantAssets  []*model.Asset
+		name          string
+		wsName        model.WSName
+		existTagNames []string
+		existAssets   []*model.ImportAsset
+		stdInText     string
+		command       string
+		want          string
+		wantAssets    []*model.Asset
 	}{
 		{
 			name:   "Do nothing",
@@ -29,8 +29,8 @@ func TestAssetUpdate(t *testing.T) {
 				model.NewImportAssetFromFilePath("path2"),
 				model.NewImportAssetFromFilePath("path3"),
 			},
-			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
-			command:   `asset update`,
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			command:       `asset update`,
 			wantAssets: []*model.Asset{
 				{ID: 1, Name: "path1", Path: "path1"},
 				{ID: 2, Name: "path2", Path: "path2"},
@@ -45,9 +45,9 @@ func TestAssetUpdate(t *testing.T) {
 				model.NewImportAssetFromFilePath("path2"),
 				model.NewImportAssetFromFilePath("path3"),
 			},
-			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
-			command:   `asset update`,
-			stdInText: `{"id": 1, "boundingBoxes": [{"tagID": 1}]}`,
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			command:       `asset update`,
+			stdInText:     `{"id": 1, "boundingBoxes": [{"tagID": 1}]}`,
 			wantAssets: []*model.Asset{
 				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
 				{ID: 2, Name: "path2", Path: "path2"},
@@ -62,9 +62,9 @@ func TestAssetUpdate(t *testing.T) {
 				{Asset: model.NewAssetFromFilePath("path2")},
 				{Asset: model.NewAssetFromFilePath("path3")},
 			},
-			existTags: []*model.Tag{{Name: "tag1"}, {Name: "tag2"}, {Name: "tag3"}},
-			command:   `asset update`,
-			stdInText: `{"path": "path1", "boundingBoxes": [{"tagID": 1}]}`,
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			command:       `asset update`,
+			stdInText:     `{"path": "path1", "boundingBoxes": [{"tagID": 1}]}`,
 			wantAssets: []*model.Asset{
 				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
 				{ID: 2, Name: "path2", Path: "path2"},
@@ -79,7 +79,7 @@ func TestAssetUpdate(t *testing.T) {
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Asset.AddOrMergeImportAssets(c.wsName, c.existAssets)
-				usecases.Tag.SetTags(c.wsName, c.existTags)
+				usecases.Tag.SetTags(c.wsName, c.existTagNames)
 			})
 
 			cmdWithFlag := c.command + " --db " + u.DBPath

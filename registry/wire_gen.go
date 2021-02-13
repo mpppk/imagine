@@ -19,26 +19,26 @@ import (
 func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	asset := repoimpl.NewBBoltAsset(b)
 	tag := repoimpl.NewBBoltTag(b)
-	usecaseAsset := interactor.NewAsset(asset, tag)
-	usecaseTag := interactor.NewTag(tag)
+	interactorAsset := interactor.NewAsset(asset, tag)
+	interactorTag := interactor.NewTag(tag)
 	workSpace := repoimpl.NewBBoltWorkSpace(b)
 	meta := repoimpl.NewBoltMeta(b)
 	client := repository.NewClient(asset, tag, workSpace, meta)
-	handlerCreator := action.NewHandlerCreator(usecaseAsset, usecaseTag, client, b)
+	handlerCreator := action.NewHandlerCreator(interactorAsset, interactorTag, client, b)
 	return handlerCreator
 }
 
 func InitializeAssetUseCase(b *bbolt.DB) *interactor.Asset {
 	asset := repoimpl.NewBBoltAsset(b)
 	tag := repoimpl.NewBBoltTag(b)
-	usecaseAsset := interactor.NewAsset(asset, tag)
-	return usecaseAsset
+	interactorAsset := interactor.NewAsset(asset, tag)
+	return interactorAsset
 }
 
 func InitializeTagUseCase(b *bbolt.DB) *interactor.Tag {
 	tag := repoimpl.NewBBoltTag(b)
-	usecaseTag := interactor.NewTag(tag)
-	return usecaseTag
+	interactorTag := interactor.NewTag(tag)
+	return interactorTag
 }
 
 func NewBoltClient(b *bbolt.DB) *repository.Client {

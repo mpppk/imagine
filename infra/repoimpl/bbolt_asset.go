@@ -84,7 +84,7 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 		dataList = append(dataList, asset)
 		paths = append(paths, asset.Path)
 	}
-	idList, err := b.base.addJsonListWithID(createAssetBucketNames(ws), dataList)
+	idList, err := b.base.batchAdd(createAssetBucketNames(ws), dataList)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 }
 
 func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, error) {
-	id, err := b.base.addWithID(createAssetBucketNames(ws), asset)
+	id, err := b.base.add(createAssetBucketNames(ws), asset)
 	if err != nil {
 		return 0, err
 	}
@@ -108,7 +108,7 @@ func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, er
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, exist bool, err error) {
 	data, exist, err := b.base.get(createAssetBucketNames(ws), uint64(id))
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to get asset by id(%v): %w", id, err)
+		return nil, false, fmt.Errorf("failed to get asset by ID(%v): %w", id, err)
 	}
 	if !exist {
 		return nil, false, nil
@@ -137,6 +137,8 @@ func (b *BBoltAsset) Has(ws model.WSName, id model.AssetID) (ok bool, err error)
 	return exist, err
 }
 
+// Update updates asset by ID.
+// if data which have ID does not exist, return error.
 func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
 	return b.base.updateByID(createAssetBucketNames(ws), asset)
 }
@@ -183,14 +185,14 @@ func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
 	return b.base.delete(createAssetBucketNames(ws), uint64(id))
 }
 
-// ListByIDList list assets by provided id ID list.
+// ListByIDList list assets by provided ID ID list.
 // If ID which does not exist is provided, nil will be returned.
 func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (assets []*model.Asset, err error) {
 	var rawIdList []uint64
 	for _, id := range idList {
 		rawIdList = append(rawIdList, uint64(id))
 	}
-	contents, err := b.base.getByIDList(createAssetBucketNames(ws), rawIdList)
+	contents, err := b.base.batchGet(createAssetBucketNames(ws), rawIdList)
 	if err != nil {
 		return nil, err
 	}

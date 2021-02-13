@@ -29,7 +29,7 @@ func (b *BBoltTag) Init(ws model.WSName) error {
 }
 
 func (b *BBoltTag) Add(ws model.WSName, tagWithIndex *model.TagWithIndex) (model.TagID, error) {
-	id, err := b.base.addWithID(createTagBucketNames(ws), tagWithIndex)
+	id, err := b.base.add(createTagBucketNames(ws), tagWithIndex)
 	return model.TagID(id), err
 }
 
@@ -46,13 +46,17 @@ func (b *BBoltTag) AddByName(ws model.WSName, tagName string) (model.TagID, bool
 	}
 	lastIndex++
 	tag := model.TagWithIndex{Tag: &model.Tag{Name: tagName}, Index: lastIndex}
-	id, err := b.base.addWithID(createTagBucketNames(ws), tag)
+	id, err := b.base.add(createTagBucketNames(ws), tag)
 	if err != nil {
 		return 0, false, fmt.Errorf("failed to add tag to db: %w", err)
 	}
 	return model.TagID(id), true, err
 }
 
+// AddByNames adds tags which have provided names. Then returns ID list of created tags.
+// If tag which have same name exists, do nothing and return the exist tag ID.
+// For example, assume that ["tag1", "tag2", "tag3"] are provided as tagNames, and "tag2" already exist with ID=1.
+// In this case, return values is [2,1,3].
 func (b *BBoltTag) AddByNames(ws model.WSName, tagNames []string) ([]model.TagID, error) {
 	tagSet, err := b.ListAsSet(ws)
 	if err != nil {
@@ -63,12 +67,13 @@ func (b *BBoltTag) AddByNames(ws model.WSName, tagNames []string) ([]model.TagID
 	lastIndex := len(tagMap)
 	var idList []model.TagID
 	for _, name := range tagNames {
-		if _, ok := tagNameMap[name]; ok {
+		if tag, ok := tagNameMap[name]; ok {
+			idList = append(idList, tag.ID)
 			continue
 		}
 		lastIndex++
 		tag := model.TagWithIndex{Tag: &model.Tag{Name: name}, Index: lastIndex}
-		id, err := b.base.addWithID(createTagBucketNames(ws), tag)
+		id, err := b.base.add(createTagBucketNames(ws), tag)
 		if err != nil {
 			return nil, fmt.Errorf("failed to add tag to db: %w", err)
 		}
@@ -97,8 +102,12 @@ func (b *BBoltTag) RecreateBucket(ws model.WSName) error {
 	return b.base.recreateBucket(createTagBucketNames(ws))
 }
 
-func (b *BBoltTag) Update(ws model.WSName, tagWithIndex *model.TagWithIndex) error {
-	return b.base.updateByID(createTagBucketNames(ws), tagWithIndex)
+// Save saves tag to bolt.
+// If a tag with the same ID is already exists, update it by provided tag.
+// If tag does not exist yet, add provided tag.
+func (b *BBoltTag) Save(ws model.WSName, tagWithIndex *model.TagWithIndex) (model.TagID, error) {
+	id, err := b.base.saveByID(createTagBucketNames(ws), tagWithIndex)
+	return model.TagID(id), err
 }
 
 func (b *BBoltTag) ListByAsync(ws model.WSName, f func(tagWithIndex *model.TagWithIndex) bool, cap int) (assetChan <-chan *model.TagWithIndex, err error) {
