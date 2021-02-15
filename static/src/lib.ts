@@ -7,7 +7,7 @@ export const makeLorcaMiddleware = (): Middleware => (_store) => (next) => (
   if (process.browser && (window as any).dispatchToServer === undefined) {
     // tslint:disable-next-line:no-console
     console.error(
-      'action is not dispatched to server because dispatchToServer funvtion is undefined. action:',
+      'action is not dispatched to server because dispatchToServer function is undefined. action:',
       action
     );
   }

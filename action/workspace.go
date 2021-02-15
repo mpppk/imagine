@@ -12,7 +12,7 @@ import (
 
 	"github.com/mpppk/imagine/domain/model"
 
-	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa"
 )
 
 const (

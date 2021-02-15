@@ -7,7 +7,7 @@ import (
 
 	"github.com/mpppk/imagine/action"
 	"github.com/mpppk/imagine/infra"
-	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa"
 	"go.etcd.io/bbolt"
 )
 

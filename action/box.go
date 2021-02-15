@@ -8,7 +8,7 @@ import (
 	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mitchellh/mapstructure"
-	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa"
 )
 
 const (

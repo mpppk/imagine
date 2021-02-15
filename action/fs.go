@@ -19,7 +19,7 @@ import (
 
 	"github.com/gen2brain/dlgs"
 	"github.com/mpppk/imagine/util"
-	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa"
 )
 
 const (

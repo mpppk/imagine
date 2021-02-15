@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/mitchellh/go-homedir"
-	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
