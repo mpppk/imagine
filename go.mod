@@ -17,7 +17,7 @@ require (
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
-	github.com/mpppk/lorca-fsa/lorca-fsa v0.0.0-20210213034107-fc474b5d70c3
+	github.com/mpppk/lorca-fsa v0.2.0
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.14.1 // indirect
 	github.com/onsi/gomega v1.10.2 // indirect
@@ -40,7 +40,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )
-
-// replace github.com/zserge/lorca => ../lorca-fsa/lorca
-
-//replace github.com/mpppk/lorca-fsa/lorca-fsa => ../lorca-fsa/lorca-fsa

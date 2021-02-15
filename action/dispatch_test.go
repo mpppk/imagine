@@ -5,7 +5,7 @@ import (
 
 	"github.com/mpppk/imagine/testutil"
 
-	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa"
 )
 
 type mockDispatcher struct {

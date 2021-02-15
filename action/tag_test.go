@@ -11,7 +11,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa"
 )
 
 func Test_tagSaveHandler_Do(t1 *testing.T) {

@@ -1,7 +1,7 @@
 package action
 
 import (
-	fsa "github.com/mpppk/lorca-fsa/lorca-fsa"
+	fsa "github.com/mpppk/lorca-fsa"
 )
 
 const (
