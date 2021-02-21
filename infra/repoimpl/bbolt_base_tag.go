@@ -28,6 +28,16 @@ func (b *BBoltBaseTag) loBucketFunc(ws model.WSName, f func(bucket *bolt.Bucket)
 	return b.base.loBucketFunc(b.createBucketNames(ws), f)
 }
 
+func (b *BBoltBaseTag) count(ws model.WSName) (int, error) {
+	tagSet, err := b.ListAsSet(ws)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get tag set: %w", err)
+	}
+
+	tagMap, _ := tagSet.ToMap()
+	return len(tagMap), nil
+}
+
 //func (b *BBoltBaseTag) Init(ws model.WSName) error {
 //	if err := b.base.createBucketIfNotExist(b.createBucketNames(ws)); err != nil {
 //		return fmt.Errorf("failed to create tag bucket: %w", err)
@@ -38,58 +48,95 @@ func (b *BBoltBaseTag) loBucketFunc(ws model.WSName, f func(bucket *bolt.Bucket)
 //	return nil
 //}
 
-func (b *BBoltBaseTag) Add(ws model.WSName, tagWithIndex *model.TagWithIndex) (model.TagID, error) {
-	id, err := b.base.add(b.createBucketNames(ws), tagWithIndex)
-	return model.TagID(id), err
+func (b *BBoltBaseTag) Add(ws model.WSName, unregisteredTag *model.UnregisteredTag) (*model.TagWithIndex, error) {
+	errMsg := "failed to add tag"
+	tagNum, err := b.count(ws)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+
+	unregisteredTagWithIndex, err := model.NewUnregisteredTagWithIndexFromUnregisteredTag(unregisteredTag, tagNum)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+	tag, err := b.AddWithIndex(ws, unregisteredTagWithIndex)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+	return tag, nil
 }
 
-func (b *BBoltBaseTag) AddByName(ws model.WSName, tagName string) (model.TagID, bool, error) {
-	tagSet, err := b.ListAsSet(ws)
+func (b *BBoltBaseTag) AddWithIndex(ws model.WSName, unregisteredTagWithIndex *model.UnregisteredTagWithIndex) (*model.TagWithIndex, error) {
+	errMsg := "failed to add tag with index"
+	id, err := b.base.add(b.createBucketNames(ws), unregisteredTagWithIndex)
 	if err != nil {
-		return 0, false, fmt.Errorf("failed to get tag set: %w", err)
+		return nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+	return unregisteredTagWithIndex.Register(model.TagID(id)), nil
+}
+
+func (b *BBoltBaseTag) AddByName(ws model.WSName, tagName string) (*model.TagWithIndex, bool, error) {
+	//tagSet, err := b.ListAsSet(ws)
+	//if err != nil {
+	//	return 0, false, fmt.Errorf("failed to get tag set: %w", err)
+	//}
+	//
+	//tagMap, tagNameMap := tagSet.ToMap()
+	//lastIndex := len(tagMap)
+	//if _, ok := tagNameMap[tagName]; ok {
+	//	return 0, false, nil
+	//}
+	//lastIndex++
+	errMsg := "failed to add tag to db by name"
+	//tag := &model.TagWithIndex{Tag: &model.Tag{Name: tagName}, Index: lastIndex}
+	unregisteredTag, err := model.NewUnregisteredTag(tagName)
+	if err != nil {
+		return nil, false, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
-	tagMap, tagNameMap := tagSet.ToMap()
-	lastIndex := len(tagMap)
-	if _, ok := tagNameMap[tagName]; ok {
-		return 0, false, nil
-	}
-	lastIndex++
-	tag := &model.TagWithIndex{Tag: &model.Tag{Name: tagName}, Index: lastIndex}
-	id, err := b.Add(ws, tag)
+	tag, err := b.Add(ws, unregisteredTag)
 	if err != nil {
-		return 0, false, fmt.Errorf("failed to add tag to db by name: %w", err)
+		return nil, false, fmt.Errorf("%s: %w", errMsg, err)
 	}
-	return id, true, err
+	return tag, true, err
 }
 
 // AddByNames adds tags which have provided names. Then returns ID list of created tags.
 // If tag which have same name exists, do nothing and return the exist tag ID.
 // For example, assume that ["tag1", "tag2", "tag3"] are provided as tagNames, and "tag2" already exist with ID=1.
 // In this case, return values is [2,1,3].
-func (b *BBoltBaseTag) AddByNames(ws model.WSName, tagNames []string) ([]model.TagID, error) {
+func (b *BBoltBaseTag) AddByNames(ws model.WSName, tagNames []string) ([]*model.TagWithIndex, error) {
+	errMsg := "failed to add tags by names"
 	tagSet, err := b.ListAsSet(ws)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get tag set: %w", err)
+		return nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	tagMap, tagNameMap := tagSet.ToMap()
 	lastIndex := len(tagMap)
-	var idList []model.TagID
+	//lastIndex, err := b.count(ws)
+	//if err != nil {
+	//	return nil, fmt.Errorf("%s: %w", errMsg, err)
+	//}
+	var tags []*model.TagWithIndex
 	for _, name := range tagNames {
 		if tag, ok := tagNameMap[name]; ok {
-			idList = append(idList, tag.ID)
+			tags = append(tags, tag)
 			continue
 		}
+		//tag := &model.TagWithIndex{Tag: &model.Tag{Name: name}, Index: lastIndex}
+		tag, err := model.NewUnregisteredTagWithIndex(name, lastIndex)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", errMsg, err)
+		}
 		lastIndex++
-		tag := &model.TagWithIndex{Tag: &model.Tag{Name: name}, Index: lastIndex}
-		id, err := b.Add(ws, tag)
+		id, err := b.AddWithIndex(ws, tag)
 		if err != nil {
 			return nil, fmt.Errorf("failed to add tag by names: %w", err)
 		}
-		idList = append(idList, id)
+		tags = append(tags, id)
 	}
-	return idList, err
+	return tags, err
 }
 
 func (b *BBoltBaseTag) Get(ws model.WSName, id model.TagID) (tagWithIndex *model.TagWithIndex, exist bool, err error) {
@@ -103,7 +150,7 @@ func (b *BBoltBaseTag) Get(ws model.WSName, id model.TagID) (tagWithIndex *model
 
 	var a model.TagWithIndex
 	if err := json.Unmarshal(data, &a); err != nil {
-		return nil, exist, fmt.Errorf("failed to unmarshal json to tagWithIndex. contents: %s: %w", string(data), err)
+		return nil, exist, fmt.Errorf("failed to unmarshal json to tag. contents: %s: %w", string(data), err)
 	}
 	return &a, exist, nil
 }
@@ -116,9 +163,9 @@ func (b *BBoltBaseTag) RecreateBucket(ws model.WSName) error {
 // If a tag with the same ID is already exists, update it by provided tag.
 // If tag does not exist yet, add provided tag.
 // If tag which has same name exists on tag history but different ID, return error.
-func (b *BBoltBaseTag) Save(ws model.WSName, tagWithIndex *model.TagWithIndex) (model.TagID, error) {
+func (b *BBoltBaseTag) Save(ws model.WSName, tagWithIndex *model.TagWithIndex) (*model.TagWithIndex, error) {
 	id, err := b.base.saveByID(b.createBucketNames(ws), tagWithIndex)
-	return model.TagID(id), err
+	return tagWithIndex.ReRegister(model.TagID(id)), err
 }
 
 func (b *BBoltBaseTag) ListByAsync(ws model.WSName, f func(tagWithIndex *model.TagWithIndex) bool, cap int) (assetChan <-chan *model.TagWithIndex, err error) {
@@ -172,7 +219,7 @@ func (b *BBoltBaseTag) ListAsSet(ws model.WSName) (set *model.TagSet, err error)
 
 	set = model.NewTagSet(nil)
 	for _, tag := range tags {
-		set.Set(tag.Tag)
+		set.Set(tag)
 	}
 	return
 }
@@ -182,7 +229,7 @@ func (b *BBoltBaseTag) ForEach(ws model.WSName, f func(tagWithIndex *model.TagWi
 		return bucket.ForEach(func(k, v []byte) error {
 			var tagWithIndex model.TagWithIndex
 			if err := json.Unmarshal(v, &tagWithIndex); err != nil {
-				return fmt.Errorf("failed to unmarshal tagWithIndex: %w", err)
+				return fmt.Errorf("failed to unmarshal tag: %w", err)
 			}
 			return f(&tagWithIndex)
 		})

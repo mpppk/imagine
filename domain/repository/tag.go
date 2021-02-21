@@ -6,9 +6,10 @@ import "github.com/mpppk/imagine/domain/model"
 
 type Tag interface {
 	Init(ws model.WSName) error
-	Add(ws model.WSName, tagWithIndex *model.TagWithIndex) (model.TagID, error)
-	AddByName(ws model.WSName, tagName string) (model.TagID, bool, error)
-	AddByNames(ws model.WSName, tagNames []string) ([]model.TagID, error)
+	Add(ws model.WSName, tag *model.UnregisteredTag) (*model.TagWithIndex, error)
+	AddWithIndex(ws model.WSName, tagWithIndex *model.UnregisteredTagWithIndex) (*model.TagWithIndex, error)
+	AddByName(ws model.WSName, tagName string) (*model.TagWithIndex, bool, error)
+	AddByNames(ws model.WSName, tagNames []string) ([]*model.TagWithIndex, error)
 	Get(ws model.WSName, id model.TagID) (tagWithIndex *model.TagWithIndex, exist bool, err error)
 
 	// UpdateByTagSet update tags by provided TagSet.
@@ -21,7 +22,7 @@ type Tag interface {
 
 	// Save persists tag and return ID of the tag.
 	// If the tag already exists, update it. Otherwise add new tag with new ID.
-	Save(ws model.WSName, tagWithIndex *model.TagWithIndex) (model.TagID, error)
+	Save(ws model.WSName, tagWithIndex *model.TagWithIndex) (*model.TagWithIndex, error)
 
 	RecreateBucket(ws model.WSName) error
 	ListAll(ws model.WSName) ([]*model.TagWithIndex, error)

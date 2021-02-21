@@ -1,32 +1,34 @@
-package model
+package model_test
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/mpppk/imagine/domain/model"
 
 	"github.com/mpppk/imagine/testutil"
 )
 
 func TestReplaceBoundingBoxByID(t *testing.T) {
 	type args struct {
-		boxes      []*BoundingBox
-		replaceBox *BoundingBox
+		boxes      []*model.BoundingBox
+		replaceBox *model.BoundingBox
 	}
 	tests := []struct {
 		name         string
 		args         args
-		wantNewBoxes []*BoundingBox
+		wantNewBoxes []*model.BoundingBox
 	}{
 		{
 			args: args{
-				boxes: []*BoundingBox{
+				boxes: []*model.BoundingBox{
 					{ID: 0},
 					{ID: 1},
 					{ID: 2},
 				},
-				replaceBox: &BoundingBox{ID: 1, X: 1},
+				replaceBox: &model.BoundingBox{ID: 1, X: 1},
 			},
-			wantNewBoxes: []*BoundingBox{
+			wantNewBoxes: []*model.BoundingBox{
 				{ID: 0}, {ID: 1, X: 1}, {ID: 2},
 			},
 		},
@@ -35,7 +37,7 @@ func TestReplaceBoundingBoxByID(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if gotNewBoxes := ReplaceBoundingBoxByID(tt.args.boxes, tt.args.replaceBox); !reflect.DeepEqual(gotNewBoxes, tt.wantNewBoxes) {
+			if gotNewBoxes := model.ReplaceBoundingBoxByID(tt.args.boxes, tt.args.replaceBox); !reflect.DeepEqual(gotNewBoxes, tt.wantNewBoxes) {
 				t.Errorf("ReplaceBoundingBoxByID() = %v, want %v", gotNewBoxes, tt.wantNewBoxes)
 			}
 		})
@@ -45,29 +47,29 @@ func TestReplaceBoundingBoxByID(t *testing.T) {
 func TestAssetIsUpdatableByID(t *testing.T) {
 	tests := []struct {
 		name  string
-		asset *Asset
+		asset *model.Asset
 		want  bool
 	}{
 		{
 			name:  "return true if asset has ID",
-			asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
+			asset: &model.Asset{ID: 1, Name: "path1", Path: "path1"},
 			want:  true,
 		},
 		{
 			name: "return true if asset has ID and boxes have tag ID",
-			asset: &Asset{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*BoundingBox{
+			asset: &model.Asset{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{
 				{TagID: 1}, {TagID: 2},
 			}},
 			want: true,
 		},
 		{
 			name:  "return false if asset does not have ID",
-			asset: &Asset{Name: "path1", Path: "path1"},
+			asset: &model.Asset{Name: "path1", Path: "path1"},
 			want:  false,
 		},
 		{
 			name: "return false if box does not have tag ID",
-			asset: &Asset{Name: "path1", Path: "path1", BoundingBoxes: []*BoundingBox{
+			asset: &model.Asset{Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{
 				{},
 			}},
 			want: false,
@@ -91,53 +93,53 @@ func TestAssetIsUpdatableByID(t *testing.T) {
 
 func TestAssetMerge(t *testing.T) {
 	type args struct {
-		asset *Asset
+		asset *model.Asset
 	}
 	tests := []struct {
 		name  string
 		args  args
-		asset *Asset
-		want  *Asset
+		asset *model.Asset
+		want  *model.Asset
 	}{
 		{
 			name:  "do nothing if arg asset is nil",
-			asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
+			asset: &model.Asset{ID: 1, Name: "path1", Path: "path1"},
 			args: args{
 				asset: nil,
 			},
-			want: &Asset{ID: 1, Name: "path1", Path: "path1"},
+			want: &model.Asset{ID: 1, Name: "path1", Path: "path1"},
 		},
 		{
 			name:  "update path",
-			asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
+			asset: &model.Asset{ID: 1, Name: "path1", Path: "path1"},
 			args: args{
-				asset: &Asset{ID: 1, Path: "path2"},
+				asset: &model.Asset{ID: 1, Path: "path2"},
 			},
-			want: &Asset{ID: 1, Name: "path2", Path: "path2"},
+			want: &model.Asset{ID: 1, Name: "path2", Path: "path2"},
 		},
 		{
 			name:  "reserve path because the property is omitted",
-			asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
+			asset: &model.Asset{ID: 1, Name: "path1", Path: "path1"},
 			args: args{
-				asset: &Asset{ID: 1},
+				asset: &model.Asset{ID: 1},
 			},
-			want: &Asset{ID: 1, Name: "path1", Path: "path1"},
+			want: &model.Asset{ID: 1, Name: "path1", Path: "path1"},
 		},
 		{
 			name:  "update bounding boxes",
-			asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
+			asset: &model.Asset{ID: 1, Name: "path1", Path: "path1"},
 			args: args{
-				asset: &Asset{ID: 1, BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+				asset: &model.Asset{ID: 1, BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
 			},
-			want: &Asset{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+			want: &model.Asset{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
 		},
 		{
 			name:  "update path and reserve boxes",
-			asset: &Asset{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+			asset: &model.Asset{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
 			args: args{
-				asset: &Asset{ID: 1, Path: "path2"},
+				asset: &model.Asset{ID: 1, Path: "path2"},
 			},
-			want: &Asset{ID: 1, Name: "path2", Path: "path2", BoundingBoxes: []*BoundingBox{{TagID: 1}}},
+			want: &model.Asset{ID: 1, Name: "path2", Path: "path2", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
 		},
 	}
 	for _, tt := range tests {
@@ -157,53 +159,53 @@ func TestNewImportAssetFromJson(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *ImportAsset
+		want    *model.ImportAsset
 		wantErr bool
 	}{
 		{
 			name: "asset and box have all properties",
 			args: args{json: `{"id": 1, "name": "path1", "path": "path1", "boundingBoxes": [{"id": 2, "tagID": 3,"tagName": "tag1"}]}`},
-			want: &ImportAsset{
-				Asset: &Asset{ID: 1, Name: "path1", Path: "path1"},
-				BoundingBoxes: []*ImportBoundingBox{
-					{TagName: "tag1", BoundingBox: &BoundingBox{ID: 2, TagID: 3}},
+			want: &model.ImportAsset{
+				Asset: &model.Asset{ID: 1, Name: "path1", Path: "path1"},
+				BoundingBoxes: []*model.ImportBoundingBox{
+					{TagName: "tag1", BoundingBox: &model.BoundingBox{ID: 2, TagID: 3}},
 				},
 			},
 		},
 		{
 			name: "asset has only path",
 			args: args{json: `{"path": "path1", "boundingBoxes": [{"id": 2, "tagID": 3,"tagName": "tag1"}]}`},
-			want: &ImportAsset{
-				Asset: &Asset{Path: "path1"},
-				BoundingBoxes: []*ImportBoundingBox{
-					{TagName: "tag1", BoundingBox: &BoundingBox{ID: 2, TagID: 3}},
+			want: &model.ImportAsset{
+				Asset: &model.Asset{Path: "path1"},
+				BoundingBoxes: []*model.ImportBoundingBox{
+					{TagName: "tag1", BoundingBox: &model.BoundingBox{ID: 2, TagID: 3}},
 				},
 			},
 		},
 		{
 			name: "asset has only id",
 			args: args{json: `{"id": 1, "boundingBoxes": [{"id": 2, "tagID": 3,"tagName": "tag1"}]}`},
-			want: &ImportAsset{
-				Asset: &Asset{ID: 1},
-				BoundingBoxes: []*ImportBoundingBox{
-					{TagName: "tag1", BoundingBox: &BoundingBox{ID: 2, TagID: 3}},
+			want: &model.ImportAsset{
+				Asset: &model.Asset{ID: 1},
+				BoundingBoxes: []*model.ImportBoundingBox{
+					{TagName: "tag1", BoundingBox: &model.BoundingBox{ID: 2, TagID: 3}},
 				},
 			},
 		},
 		{
 			name: "box has only tag id",
 			args: args{json: `{"id": 1, "boundingBoxes": [{"tagID": 3}]}`},
-			want: &ImportAsset{
-				Asset:         &Asset{ID: 1},
-				BoundingBoxes: []*ImportBoundingBox{{BoundingBox: &BoundingBox{TagID: 3}}},
+			want: &model.ImportAsset{
+				Asset:         &model.Asset{ID: 1},
+				BoundingBoxes: []*model.ImportBoundingBox{{BoundingBox: &model.BoundingBox{TagID: 3}}},
 			},
 		},
 		{
 			name: "box has only tag name",
 			args: args{json: `{"id": 1, "boundingBoxes": [{"tagName": "tag1"}]}`},
-			want: &ImportAsset{
-				Asset:         &Asset{ID: 1},
-				BoundingBoxes: []*ImportBoundingBox{{TagName: "tag1"}},
+			want: &model.ImportAsset{
+				Asset:         &model.Asset{ID: 1},
+				BoundingBoxes: []*model.ImportBoundingBox{{TagName: "tag1"}},
 			},
 		},
 		{
@@ -226,7 +228,7 @@ func TestNewImportAssetFromJson(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := NewImportAssetFromJson([]byte(tt.args.json))
+			got, err := model.NewImportAssetFromJson([]byte(tt.args.json))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewImportAssetFromJson() error = %v, wantErr %v", err, tt.wantErr)
 				return

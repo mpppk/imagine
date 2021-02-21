@@ -34,15 +34,15 @@ func Test_bboltPathRepository_Add(t *testing.T) {
 			defer teardown(t, fileName, db)
 
 			if err := repo.Add(tt.args.ws, tt.args.path, tt.args.assetID); (err != nil) != tt.wantErr {
-				t.Errorf("Add() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("AddWithIndex() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			id, exist, err := repo.Get(tt.args.ws, tt.args.path)
 			if err != nil || !exist {
-				t.Errorf("Add() exist = %v, error = %v, wantErr %v", exist, err, tt.wantErr)
+				t.Errorf("AddWithIndex() exist = %v, error = %v, wantErr %v", exist, err, tt.wantErr)
 			}
 			if id != tt.args.assetID {
-				t.Errorf("Add() error. added asset ID is %v but return value of Get() is %v", tt.args.assetID, id)
+				t.Errorf("AddWithIndex() error. added asset ID is %v but return value of Get() is %v", tt.args.assetID, id)
 			}
 		})
 	}
