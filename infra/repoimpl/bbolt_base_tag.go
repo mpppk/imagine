@@ -96,17 +96,12 @@ func (b *BBoltBaseTag) AddByNames(ws model.WSName, tagNames []string) ([]*model.
 
 	tagMap, tagNameMap := tagSet.ToMap()
 	lastIndex := len(tagMap)
-	//lastIndex, err := b.count(ws)
-	//if err != nil {
-	//	return nil, fmt.Errorf("%s: %w", errMsg, err)
-	//}
 	var tags []*model.TagWithIndex
 	for _, name := range tagNames {
 		if tag, ok := tagNameMap[name]; ok {
 			tags = append(tags, tag)
 			continue
 		}
-		//tag := &model.TagWithIndex{Tag: &model.Tag{Name: name}, Index: lastIndex}
 		tag, err := model.NewUnregisteredTagWithIndex(name, lastIndex)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", errMsg, err)
@@ -122,7 +117,7 @@ func (b *BBoltBaseTag) AddByNames(ws model.WSName, tagNames []string) ([]*model.
 }
 
 func (b *BBoltBaseTag) Get(ws model.WSName, id model.TagID) (tagWithIndex *model.TagWithIndex, exist bool, err error) {
-	data, exist, err := b.base.get(b.createBucketNames(ws), uint64(id))
+	data, exist, err := b.base.Get(b.createBucketNames(ws), uint64(id))
 	if err != nil {
 		return nil, exist, err
 	}
@@ -146,7 +141,7 @@ func (b *BBoltBaseTag) RecreateBucket(ws model.WSName) error {
 // If tag does not exist yet, add provided tag.
 // If tag which has same name exists on tag history but different ID, return error.
 func (b *BBoltBaseTag) Save(ws model.WSName, tagWithIndex *model.TagWithIndex) (*model.TagWithIndex, error) {
-	id, err := b.base.saveByID(b.createBucketNames(ws), tagWithIndex)
+	id, err := b.base.SaveByID(b.createBucketNames(ws), tagWithIndex)
 	return tagWithIndex.ReRegister(model.TagID(id)), err
 }
 

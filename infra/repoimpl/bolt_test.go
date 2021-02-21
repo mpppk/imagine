@@ -62,7 +62,7 @@ func newTestDataWithOutIDFromJson(t *testing.T, data []byte) *TestDataWithOutID 
 }
 
 func listTestData(t *testing.T, r *boltRepository, bucketNames []string) (testDataList []boltData) {
-	bytesList, err := r.list(bucketNames)
+	bytesList, err := r.List(bucketNames)
 	if err != nil {
 		t.Errorf("failed to list data from bolt.")
 	}
@@ -73,7 +73,7 @@ func listTestData(t *testing.T, r *boltRepository, bucketNames []string) (testDa
 }
 
 func listTestDataWithOutID(t *testing.T, r *boltRepository, bucketNames []string) (testDataList []*TestDataWithOutID) {
-	bytesList, err := r.list(bucketNames)
+	bytesList, err := r.List(bucketNames)
 	if err != nil {
 		t.Errorf("failed to list data from bolt.")
 	}
@@ -85,7 +85,7 @@ func listTestDataWithOutID(t *testing.T, r *boltRepository, bucketNames []string
 
 func addDataList(t *testing.T, b *boltRepository, bucketNames []string, dataList []interface{}) {
 	for _, data := range dataList {
-		if _, err := b.add(bucketNames, data); err != nil {
+		if _, err := b.Add(bucketNames, data); err != nil {
 			t.Fatalf("failed to add data to bolt: %v", err)
 		}
 	}
@@ -181,7 +181,7 @@ func Test_boltRepository_add(t *testing.T) {
 			useBoltRepository(t, tt.args.bucketNames, func(b *boltRepository) {
 				addDataList(t, b, tt.args.bucketNames, tt.existDataList)
 
-				id, err := b.add(tt.args.bucketNames, tt.args.data)
+				id, err := b.Add(tt.args.bucketNames, tt.args.data)
 				if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
 					return
 				}
@@ -248,7 +248,7 @@ func Test_boltRepository_updateByID(t *testing.T) {
 			useBoltRepository(t, tt.args.bucketNames, func(b *boltRepository) {
 				addBoltDataList(t, b, tt.args.bucketNames, tt.existDataList)
 
-				err := b.updateByID(tt.args.bucketNames, tt.args.data)
+				err := b.UpdateByID(tt.args.bucketNames, tt.args.data)
 				if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
 					return
 				}
@@ -319,7 +319,7 @@ func Test_boltRepository_saveByID(t *testing.T) {
 			useBoltRepository(t, tt.args.bucketNames, func(b *boltRepository) {
 				addBoltDataList(t, b, tt.args.bucketNames, tt.existDataList)
 
-				id, err := b.saveByID(tt.args.bucketNames, tt.args.data)
+				id, err := b.SaveByID(tt.args.bucketNames, tt.args.data)
 				if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
 					return
 				}
