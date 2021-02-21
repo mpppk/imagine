@@ -38,16 +38,6 @@ func (b *BBoltBaseTag) count(ws model.WSName) (int, error) {
 	return len(tagMap), nil
 }
 
-//func (b *BBoltBaseTag) Init(ws model.WSName) error {
-//	if err := b.base.createBucketIfNotExist(b.createBucketNames(ws)); err != nil {
-//		return fmt.Errorf("failed to create tag bucket: %w", err)
-//	}
-//	if err := b.base.createBucketIfNotExist(createTagHistoryBucketNames(ws)); err != nil {
-//		return fmt.Errorf("failed to create tag history bucket: %w", err)
-//	}
-//	return nil
-//}
-
 func (b *BBoltBaseTag) Add(ws model.WSName, unregisteredTag *model.UnregisteredTag) (*model.TagWithIndex, error) {
 	errMsg := "failed to add tag"
 	tagNum, err := b.count(ws)
@@ -68,7 +58,7 @@ func (b *BBoltBaseTag) Add(ws model.WSName, unregisteredTag *model.UnregisteredT
 
 func (b *BBoltBaseTag) AddWithIndex(ws model.WSName, unregisteredTagWithIndex *model.UnregisteredTagWithIndex) (*model.TagWithIndex, error) {
 	errMsg := "failed to add tag with index"
-	id, err := b.base.add(b.createBucketNames(ws), unregisteredTagWithIndex)
+	id, err := b.base.AddWithID(b.createBucketNames(ws), unregisteredTagWithIndex.Register(0))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
@@ -76,25 +66,17 @@ func (b *BBoltBaseTag) AddWithIndex(ws model.WSName, unregisteredTagWithIndex *m
 }
 
 func (b *BBoltBaseTag) AddByName(ws model.WSName, tagName string) (*model.TagWithIndex, bool, error) {
-	//tagSet, err := b.ListAsSet(ws)
-	//if err != nil {
-	//	return 0, false, fmt.Errorf("failed to get tag set: %w", err)
-	//}
-	//
-	//tagMap, tagNameMap := tagSet.ToMap()
-	//lastIndex := len(tagMap)
-	//if _, ok := tagNameMap[tagName]; ok {
-	//	return 0, false, nil
-	//}
-	//lastIndex++
 	errMsg := "failed to add tag to db by name"
-	//tag := &model.TagWithIndex{Tag: &model.Tag{Name: tagName}, Index: lastIndex}
-	unregisteredTag, err := model.NewUnregisteredTag(tagName)
+	count, err := b.count(ws)
+	if err != nil {
+		return nil, false, fmt.Errorf("%s: %w", errMsg, err)
+	}
+	unregisteredTag, err := model.NewUnregisteredTagWithIndex(tagName, count)
 	if err != nil {
 		return nil, false, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
-	tag, err := b.Add(ws, unregisteredTag)
+	tag, err := b.AddWithIndex(ws, unregisteredTag)
 	if err != nil {
 		return nil, false, fmt.Errorf("%s: %w", errMsg, err)
 	}

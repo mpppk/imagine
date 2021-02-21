@@ -30,9 +30,7 @@ func (a *Tag) List(ws model.WSName) (tags []*model.TagWithIndex, err error) {
 		return tagsWithIndex[i].Index < tagsWithIndex[j].Index
 	})
 
-	for _, tagWithIndex := range tagsWithIndex {
-		tags = append(tags, tagWithIndex)
-	}
+	tags = append(tags, tagsWithIndex...)
 
 	return
 }
@@ -69,13 +67,6 @@ func (a *Tag) SaveTags(ws model.WSName, tags []*model.Tag) (newTags []*model.Tag
 // All existing tags will be replaced. (Internally, this method recreate tag bucket)
 func (a *Tag) SetTags(ws model.WSName, tagNames []string) (tags []*model.TagWithIndex, err error) {
 	errMsg := "failed to set tags2"
-	//a.updateByTagSetFunc(ws, func(tagSet *model.TagSet) (*model.TagSet, error) {
-	//	newTagSet := model.NewTagSet(nil)
-	//	for _, tagName := range tagNames {
-	//		newTagSet.Set()
-	//	}
-	//	return tagSet, nil
-	//})
 	tagSet, err := a.tagRepository.ListAsSet(ws)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", errMsg, err)
@@ -108,17 +99,3 @@ func (a *Tag) SetTags(ws model.WSName, tagNames []string) (tags []*model.TagWith
 
 	return
 }
-
-//func (a *Tag) updateByTagSetFunc(ws model.WSName, f func(tagSet *model.TagSet) (*model.TagSet, error)) error {
-//	errMsg := "updateByTagSetFunc failed"
-//	tagSet, err := a.tagRepository.ListAsSet(ws)
-//	if err != nil {
-//		return fmt.Errorf("%s: %w", errMsg, err)
-//	}
-//
-//	newTagSet, err := f(tagSet)
-//	if err != nil {
-//		return fmt.Errorf("%s: %w", errMsg, err)
-//	}
-//	return a.tagRepository.UpdateByTagSet(ws, newTagSet)
-//}

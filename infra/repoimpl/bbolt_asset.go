@@ -98,7 +98,7 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 }
 
 func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, error) {
-	id, err := b.base.add(createAssetBucketNames(ws), asset)
+	id, err := b.base.AddWithID(createAssetBucketNames(ws), asset)
 	if err != nil {
 		return 0, err
 	}

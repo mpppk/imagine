@@ -187,7 +187,7 @@ func TestBBoltTag_AddByNames(t *testing.T) {
 		args          args
 		existTagNames []string
 		want          []*model.TagWithIndex
-		wantTags      []*model.Tag
+		wantTags      []*model.TagWithIndex
 		wantErr       bool
 	}{
 		{
@@ -200,8 +200,11 @@ func TestBBoltTag_AddByNames(t *testing.T) {
 			want: []*model.TagWithIndex{
 				testutil.MustNewTagWithIndex(2, "tag2", 1),
 			},
-			wantTags: []*model.Tag{{ID: 1, Name: "tag1"}, {ID: 2, Name: "tag2"}},
-			wantErr:  false,
+			wantTags: []*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			},
+			wantErr: false,
 		},
 		{
 			name:          "add tag to empty DB",
@@ -213,8 +216,10 @@ func TestBBoltTag_AddByNames(t *testing.T) {
 			want: []*model.TagWithIndex{
 				testutil.MustNewTagWithIndex(1, "tag1", 0),
 			},
-			wantTags: []*model.Tag{{ID: 1, Name: "tag1"}},
-			wantErr:  false,
+			wantTags: []*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
