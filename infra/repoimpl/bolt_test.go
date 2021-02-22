@@ -9,6 +9,14 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+type TestDataWithOutID struct {
+	Msg string
+}
+
+func newUnregisteredTestData(msg string) *TestDataWithOutID {
+	return &TestDataWithOutID{Msg: msg}
+}
+
 type TestData struct {
 	ID  uint64
 	Msg string
@@ -45,8 +53,16 @@ func newTestDataFromJson(t *testing.T, data []byte) *TestData {
 	return &testData
 }
 
+func newTestDataWithOutIDFromJson(t *testing.T, data []byte) *TestDataWithOutID {
+	var testData TestDataWithOutID
+	if err := json.Unmarshal(data, &testData); err != nil {
+		t.Errorf("failed to unmarshal json to TestData. data:%v", string(data))
+	}
+	return &testData
+}
+
 func listTestData(t *testing.T, r *boltRepository, bucketNames []string) (testDataList []boltData) {
-	bytesList, err := r.list(bucketNames)
+	bytesList, err := r.List(bucketNames)
 	if err != nil {
 		t.Errorf("failed to list data from bolt.")
 	}
@@ -56,10 +72,29 @@ func listTestData(t *testing.T, r *boltRepository, bucketNames []string) (testDa
 	return
 }
 
-func addDataList(t *testing.T, b *boltRepository, bucketNames []string, dataList []boltData) {
+func listTestDataWithOutID(t *testing.T, r *boltRepository, bucketNames []string) (testDataList []*TestDataWithOutID) {
+	bytesList, err := r.List(bucketNames)
+	if err != nil {
+		t.Errorf("failed to list data from bolt.")
+	}
+	for _, bytes := range bytesList {
+		testDataList = append(testDataList, newTestDataWithOutIDFromJson(t, bytes))
+	}
+	return
+}
+
+func addDataList(t *testing.T, b *boltRepository, bucketNames []string, dataList []interface{}) {
 	for _, data := range dataList {
-		if _, err := b.add(bucketNames, data); err != nil {
+		if _, err := b.Add(bucketNames, data); err != nil {
 			t.Fatalf("failed to add data to bolt: %v", err)
+		}
+	}
+}
+
+func addBoltDataList(t *testing.T, b *boltRepository, bucketNames []string, dataList []boltData) {
+	for _, data := range dataList {
+		if _, err := b.AddWithID(bucketNames, data); err != nil {
+			t.Fatalf("failed to add bolt data to bolt: %v", err)
 		}
 	}
 }
@@ -96,48 +131,48 @@ func Test_itob(t *testing.T) {
 	}
 }
 
-func Test_boltRepository_addWithID(t *testing.T) {
+func Test_boltRepository_add(t *testing.T) {
 	type args struct {
 		bucketNames []string
-		data        boltData
+		data        *TestDataWithOutID
 	}
 	tests := []struct {
 		name          string
 		args          args
-		existDataList []boltData
+		existDataList []interface{}
 		want          uint64
-		wantDataList  []boltData
+		wantDataList  []*TestDataWithOutID
 		wantErr       bool
 	}{
 		{
 			name: "add data to empty bucket",
 			args: args{
 				bucketNames: []string{"test-bucket"},
-				data:        newTestData(99, "new-data"), // ID will be ignored
+				data:        newUnregisteredTestData("new-data"), // ID will be ignored
 			},
-			existDataList: []boltData{},
+			existDataList: []interface{}{},
 			want:          1,
-			wantDataList:  []boltData{newTestData(1, "new-data")},
+			wantDataList:  []*TestDataWithOutID{newUnregisteredTestData("new-data")},
 		},
 		{
 			name: "add data to bucket",
 			args: args{
 				bucketNames: []string{"test-bucket"},
-				data:        newTestData(99, "new-data"), // ID will be ignored
+				data:        newUnregisteredTestData("new-data"), // ID will be ignored
 			},
-			existDataList: newExistDataList("data1"),
+			existDataList: []interface{}{newUnregisteredTestData("data1")},
 			want:          2,
-			wantDataList:  []boltData{newTestData(1, "data1"), newTestData(2, "new-data")},
+			wantDataList:  []*TestDataWithOutID{newUnregisteredTestData("data1"), newUnregisteredTestData("new-data")},
 		},
 		{
 			name: "add data to nested bucket",
 			args: args{
 				bucketNames: []string{"test-bucket", "nested-bucket"},
-				data:        newTestData(99, "new-data"), // ID will be ignored
+				data:        newUnregisteredTestData("new-data"), // ID will be ignored
 			},
-			existDataList: newExistDataList("data1"),
+			existDataList: []interface{}{newUnregisteredTestData("data1")},
 			want:          2,
-			wantDataList:  []boltData{newTestData(1, "data1"), newTestData(2, "new-data")},
+			wantDataList:  []*TestDataWithOutID{newUnregisteredTestData("data1"), newUnregisteredTestData("new-data")},
 		},
 	}
 
@@ -146,12 +181,12 @@ func Test_boltRepository_addWithID(t *testing.T) {
 			useBoltRepository(t, tt.args.bucketNames, func(b *boltRepository) {
 				addDataList(t, b, tt.args.bucketNames, tt.existDataList)
 
-				id, err := b.add(tt.args.bucketNames, tt.args.data)
+				id, err := b.Add(tt.args.bucketNames, tt.args.data)
 				if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
 					return
 				}
 				testutil.Diff(t, tt.want, id)
-				dataList := listTestData(t, b, tt.args.bucketNames)
+				dataList := listTestDataWithOutID(t, b, tt.args.bucketNames)
 				testutil.Diff(t, tt.wantDataList, dataList)
 			})
 		})
@@ -211,9 +246,9 @@ func Test_boltRepository_updateByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			useBoltRepository(t, tt.args.bucketNames, func(b *boltRepository) {
-				addDataList(t, b, tt.args.bucketNames, tt.existDataList)
+				addBoltDataList(t, b, tt.args.bucketNames, tt.existDataList)
 
-				err := b.updateByID(tt.args.bucketNames, tt.args.data)
+				err := b.UpdateByID(tt.args.bucketNames, tt.args.data)
 				if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
 					return
 				}
@@ -282,9 +317,9 @@ func Test_boltRepository_saveByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			useBoltRepository(t, tt.args.bucketNames, func(b *boltRepository) {
-				addDataList(t, b, tt.args.bucketNames, tt.existDataList)
+				addBoltDataList(t, b, tt.args.bucketNames, tt.existDataList)
 
-				id, err := b.saveByID(tt.args.bucketNames, tt.args.data)
+				id, err := b.SaveByID(tt.args.bucketNames, tt.args.data)
 				if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
 					return
 				}

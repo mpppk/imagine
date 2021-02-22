@@ -35,7 +35,7 @@ func (q *Query) Match(asset *Asset, tagSet *TagSet) bool {
 		}
 		return !asset.HasTag(tag.ID)
 	case StartWithQueryOP:
-		f := func(tag *Tag) bool {
+		f := func(tag *TagWithIndex) bool {
 			return strings.HasPrefix(tag.Name, q.Value)
 		}
 		return asset.HasAnyOneOfTagID(tagSet.SubSetBy(f))

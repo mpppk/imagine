@@ -5,12 +5,12 @@ package usecase
 import "github.com/mpppk/imagine/domain/model"
 
 type Tag interface {
-	List(ws model.WSName) (tags []*model.Tag, err error)
+	List(ws model.WSName) (tags []*model.TagWithIndex, err error)
 
 	// SaveTags persists provided tags.
 	// For each tags, if it already exists, update it. Otherwise, add it.
-	SaveTags(ws model.WSName, tags []*model.Tag) ([]model.TagID, error)
+	SaveTags(ws model.WSName, tags []*model.Tag) ([]*model.TagWithIndex, error)
 
 	// SetTags remove all existing tags and persists provided tags.
-	SetTags(ws model.WSName, tagNames []string) ([]model.TagID, error)
+	SetTags(ws model.WSName, tagNames []string) ([]*model.TagWithIndex, error)
 }

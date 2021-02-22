@@ -84,7 +84,7 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 		dataList = append(dataList, asset)
 		paths = append(paths, asset.Path)
 	}
-	idList, err := b.base.batchAdd(createAssetBucketNames(ws), dataList)
+	idList, err := b.base.BatchAddWithID(createAssetBucketNames(ws), dataList)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 }
 
 func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, error) {
-	id, err := b.base.add(createAssetBucketNames(ws), asset)
+	id, err := b.base.AddWithID(createAssetBucketNames(ws), asset)
 	if err != nil {
 		return 0, err
 	}
@@ -106,7 +106,7 @@ func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, er
 }
 
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, exist bool, err error) {
-	data, exist, err := b.base.get(createAssetBucketNames(ws), uint64(id))
+	data, exist, err := b.base.Get(createAssetBucketNames(ws), uint64(id))
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to get asset by ID(%v): %w", id, err)
 	}
@@ -133,14 +133,14 @@ func (b *BBoltAsset) GetByPath(ws model.WSName, path string) (asset *model.Asset
 }
 
 func (b *BBoltAsset) Has(ws model.WSName, id model.AssetID) (ok bool, err error) {
-	_, exist, err := b.base.get(createAssetBucketNames(ws), uint64(id))
+	_, exist, err := b.base.Get(createAssetBucketNames(ws), uint64(id))
 	return exist, err
 }
 
 // Update updates asset by ID.
 // if data which have ID does not exist, return error.
 func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
-	return b.base.updateByID(createAssetBucketNames(ws), asset)
+	return b.base.UpdateByID(createAssetBucketNames(ws), asset)
 }
 
 // BatchUpdate update assets by ID.
@@ -154,7 +154,7 @@ func (b *BBoltAsset) BatchUpdateByID(ws model.WSName, assets []*model.Asset) (up
 		}
 		dataList = append(dataList, asset)
 	}
-	updatedDataList, skippedDataList, err := b.base.batchUpdateByID(createAssetBucketNames(ws), dataList)
+	updatedDataList, skippedDataList, err := b.base.BatchUpdateByID(createAssetBucketNames(ws), dataList)
 	for _, data := range updatedDataList {
 		asset := data.(*model.Asset)
 		updatedAssets = append(updatedAssets, asset)
@@ -182,7 +182,7 @@ func (b *BBoltAsset) BatchUpdateByPath(ws model.WSName, assets []*model.Asset) (
 }
 
 func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
-	return b.base.delete(createAssetBucketNames(ws), uint64(id))
+	return b.base.Delete(createAssetBucketNames(ws), uint64(id))
 }
 
 // ListByIDList list assets by provided ID ID list.
@@ -192,7 +192,7 @@ func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (asse
 	for _, id := range idList {
 		rawIdList = append(rawIdList, uint64(id))
 	}
-	contents, err := b.base.batchGet(createAssetBucketNames(ws), rawIdList)
+	contents, err := b.base.BatchGet(createAssetBucketNames(ws), rawIdList)
 	if err != nil {
 		return nil, err
 	}
@@ -474,7 +474,7 @@ func (b *BBoltAsset) Revalidate(ws model.WSName) error {
 }
 
 func (b *BBoltAsset) Close() error {
-	return b.base.close()
+	return b.base.Close()
 }
 
 func toAssetIDList(idList []uint64) (assetIDList []model.AssetID) {

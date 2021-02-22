@@ -39,7 +39,7 @@ func TestBBoltAsset_add(t *testing.T) {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, wsName, func(t *testing.T, ut *usecasetest.UseCases) {
 			if _, err := ut.Usecases.Client.Asset.Add(wsName, tt.args.asset); (err != nil) != tt.wantErr {
-				t.Errorf("Add() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("AddWithIndex() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			got, exist, err := ut.Usecases.Client.Asset.Get(wsName, tt.args.asset.ID)
 			if err != nil || !exist {

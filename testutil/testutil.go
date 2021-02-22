@@ -97,3 +97,9 @@ func UseTempBoltDB(t *testing.T, f func(db *bolt.DB) error) (err error) {
 	}
 	return
 }
+
+func PanicIfErrExist(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
