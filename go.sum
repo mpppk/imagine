@@ -57,6 +57,8 @@ github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/gen2brain/dlgs v0.0.0-20201118155338-03fe7f81ad25 h1:x2nGRhm8HbvCAS4TN6TfsXu3iWTXsuNNfVCNPByyKMc=
 github.com/gen2brain/dlgs v0.0.0-20201118155338-03fe7f81ad25/go.mod h1:/eFcjDXaU2THSOOqLxOPETIbHETnamk8FA/hMjhg/gU=
+github.com/gen2brain/dlgs v0.0.0-20210222160047-2f436553172f h1:HPKrg4xeWLWOGAJGVJIYXWhVSdy2kaihuoSy7kBP7S4=
+github.com/gen2brain/dlgs v0.0.0-20210222160047-2f436553172f/go.mod h1:/eFcjDXaU2THSOOqLxOPETIbHETnamk8FA/hMjhg/gU=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
