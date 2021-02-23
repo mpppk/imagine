@@ -5,18 +5,19 @@ import (
 	"fmt"
 
 	"github.com/mpppk/imagine/domain/model"
+	"github.com/mpppk/imagine/infra/blt"
 	bolt "go.etcd.io/bbolt"
 )
 
 type BBoltBaseTag struct {
 	bucketName string
-	base       *boltRepository
+	base       *blt.Repository
 }
 
 func NewBBoltBaseTag(b *bolt.DB, bucketName string) *BBoltBaseTag {
 	return &BBoltBaseTag{
 		bucketName: bucketName,
-		base:       newBoltRepository(b),
+		base:       blt.NewRepository(b),
 	}
 }
 
@@ -25,7 +26,7 @@ func (b *BBoltBaseTag) createBucketNames(ws model.WSName) []string {
 }
 
 func (b *BBoltBaseTag) loBucketFunc(ws model.WSName, f func(bucket *bolt.Bucket) error) error {
-	return b.base.loBucketFunc(b.createBucketNames(ws), f)
+	return b.base.LoBucketFunc(b.createBucketNames(ws), f)
 }
 
 func (b *BBoltBaseTag) count(ws model.WSName) (int, error) {
@@ -132,9 +133,9 @@ func (b *BBoltBaseTag) Get(ws model.WSName, id model.TagID) (tagWithIndex *model
 	return &a, exist, nil
 }
 
-func (b *BBoltBaseTag) RecreateBucket(ws model.WSName) error {
-	return b.base.recreateBucket(b.createBucketNames(ws))
-}
+//func (b *BBoltBaseTag) RecreateBucket(ws model.WSName) error {
+//	return b.base.recreateBucket(b.createBucketNames(ws))
+//}
 
 // Save saves tag to bolt.
 // If a tag with the same ID is already exists, update it by provided tag.

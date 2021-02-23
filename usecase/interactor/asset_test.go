@@ -4,6 +4,9 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/mpppk/imagine/domain/client"
+	"github.com/mpppk/imagine/infra/queryimpl"
+
 	"github.com/mpppk/imagine/usecase/interactor"
 
 	"github.com/mpppk/imagine/testutil"
@@ -23,6 +26,13 @@ func newBox(boxId model.BoundingBoxID, tagId model.TagID, tagName string) *model
 		ID:    boxId,
 		TagID: tagId,
 	}
+}
+
+func newMockBoltTag(t *testing.T) *client.Tag {
+	ctrl := gomock.NewController(t)
+	repo := repoimpl.NewMockTag(ctrl)
+	query := queryimpl.NewMockTag(ctrl)
+	return &client.Tag{TagRepository: repo, TagQuery: query}
 }
 
 func TestAsset_AssignBoundingBox(t *testing.T) {
@@ -65,6 +75,7 @@ func TestAsset_AssignBoundingBox(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	repo := repoimpl.NewMockAsset(ctrl)
 	repo.EXPECT().Init(gomock.Eq(testWSName)).Return(nil)
+	mockTag := newMockBoltTag(t)
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
@@ -72,7 +83,7 @@ func TestAsset_AssignBoundingBox(t *testing.T) {
 			repo.EXPECT().Update(gomock.Eq(testWSName), gomock.Any()).Return(nil)
 			repo.EXPECT().Get(gomock.Eq(testWSName), gomock.Eq(tt.existAsset.ID)).Return(tt.existAsset, true, nil)
 
-			a := interactor.NewAsset(repo, nil)
+			a := interactor.NewAsset(repo, mockTag)
 			got, err := a.AssignBoundingBox(tt.args.ws, tt.args.assetId, tt.args.box)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AssignBoundingBox() error = %#v, wantErr %#v", err, tt.wantErr)

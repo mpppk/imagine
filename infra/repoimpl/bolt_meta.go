@@ -3,13 +3,15 @@ package repoimpl
 import (
 	"fmt"
 
+	"github.com/mpppk/imagine/infra/blt"
+
 	"github.com/blang/semver/v4"
 	"github.com/mpppk/imagine/domain/repository"
 	bolt "go.etcd.io/bbolt"
 )
 
 type BoltMeta struct {
-	base        *boltRepository
+	base        *blt.Repository
 	bucketNames []string
 }
 
@@ -45,19 +47,19 @@ func (b *BoltMeta) SetDBVersion(version *semver.Version) error {
 
 func NewBoltMeta(b *bolt.DB) repository.Meta {
 	return &BoltMeta{
-		base:        newBoltRepository(b),
-		bucketNames: createMetaBucketNames(),
+		base:        blt.NewRepository(b),
+		bucketNames: blt.CreateMetaBucketNames(),
 	}
 }
 
 func (b *BoltMeta) Init() error {
-	return b.base.createBucketIfNotExist(createMetaBucketNames())
+	return b.base.CreateBucketIfNotExist(blt.CreateMetaBucketNames())
 }
 
 func (b *BoltMeta) loBucketFunc(f func(bucket *bolt.Bucket) error) error {
-	return b.base.loBucketFunc(b.bucketNames, f)
+	return b.base.LoBucketFunc(b.bucketNames, f)
 }
 
 func (b *BoltMeta) bucketFunc(f func(bucket *bolt.Bucket) error) error {
-	return b.base.bucketFunc(b.bucketNames, f)
+	return b.base.BucketFunc(b.bucketNames, f)
 }

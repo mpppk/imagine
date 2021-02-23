@@ -7,8 +7,9 @@ package registry
 
 import (
 	"github.com/mpppk/imagine/action"
-	"github.com/mpppk/imagine/domain/repository"
+	"github.com/mpppk/imagine/domain/client"
 	"github.com/mpppk/imagine/infra"
+	"github.com/mpppk/imagine/infra/queryimpl"
 	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/mpppk/imagine/usecase/interactor"
 	"go.etcd.io/bbolt"
@@ -19,43 +20,53 @@ import (
 func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	asset := repoimpl.NewBBoltAsset(b)
 	tag := repoimpl.NewBBoltTag(b)
-	interactorAsset := interactor.NewAsset(asset, tag)
-	interactorTag := interactor.NewTag(tag)
+	queryTag := queryimpl.NewBBoltTag(b)
+	clientTag := client.NewTag(tag, queryTag)
+	interactorAsset := interactor.NewAsset(asset, clientTag)
+	interactorTag := interactor.NewTag(clientTag)
 	workSpace := repoimpl.NewBBoltWorkSpace(b)
 	meta := repoimpl.NewBoltMeta(b)
-	client := repository.NewClient(asset, tag, workSpace, meta)
-	handlerCreator := action.NewHandlerCreator(interactorAsset, interactorTag, client, b)
+	clientClient := client.New(asset, clientTag, workSpace, meta)
+	handlerCreator := action.NewHandlerCreator(interactorAsset, interactorTag, clientClient, b)
 	return handlerCreator
 }
 
 func InitializeAssetUseCase(b *bbolt.DB) *interactor.Asset {
 	asset := repoimpl.NewBBoltAsset(b)
 	tag := repoimpl.NewBBoltTag(b)
-	interactorAsset := interactor.NewAsset(asset, tag)
+	queryTag := queryimpl.NewBBoltTag(b)
+	clientTag := client.NewTag(tag, queryTag)
+	interactorAsset := interactor.NewAsset(asset, clientTag)
 	return interactorAsset
 }
 
 func InitializeTagUseCase(b *bbolt.DB) *interactor.Tag {
 	tag := repoimpl.NewBBoltTag(b)
-	interactorTag := interactor.NewTag(tag)
+	queryTag := queryimpl.NewBBoltTag(b)
+	clientTag := client.NewTag(tag, queryTag)
+	interactorTag := interactor.NewTag(clientTag)
 	return interactorTag
 }
 
-func NewBoltClient(b *bbolt.DB) *repository.Client {
+func NewBoltClient(b *bbolt.DB) *client.Client {
 	asset := repoimpl.NewBBoltAsset(b)
 	tag := repoimpl.NewBBoltTag(b)
+	queryTag := queryimpl.NewBBoltTag(b)
+	clientTag := client.NewTag(tag, queryTag)
 	workSpace := repoimpl.NewBBoltWorkSpace(b)
 	meta := repoimpl.NewBoltMeta(b)
-	client := repository.NewClient(asset, tag, workSpace, meta)
-	return client
+	clientClient := client.New(asset, clientTag, workSpace, meta)
+	return clientClient
 }
 
 func NewBoltUseCases(b *bbolt.DB) *interactor.UseCases {
 	asset := repoimpl.NewBBoltAsset(b)
 	tag := repoimpl.NewBBoltTag(b)
+	queryTag := queryimpl.NewBBoltTag(b)
+	clientTag := client.NewTag(tag, queryTag)
 	workSpace := repoimpl.NewBBoltWorkSpace(b)
 	meta := repoimpl.NewBoltMeta(b)
-	useCases := interactor.New(asset, tag, workSpace, meta)
+	useCases := interactor.New(asset, clientTag, workSpace, meta)
 	return useCases
 }
 
@@ -66,8 +77,10 @@ func NewBoltUseCasesWithDBPath(dbPath string) (*interactor.UseCases, error) {
 	}
 	asset := repoimpl.NewBBoltAsset(db)
 	tag := repoimpl.NewBBoltTag(db)
+	queryTag := queryimpl.NewBBoltTag(db)
+	clientTag := client.NewTag(tag, queryTag)
 	workSpace := repoimpl.NewBBoltWorkSpace(db)
 	meta := repoimpl.NewBoltMeta(db)
-	useCases := interactor.New(asset, tag, workSpace, meta)
+	useCases := interactor.New(asset, clientTag, workSpace, meta)
 	return useCases, nil
 }

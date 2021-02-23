@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mpppk/imagine/domain/repository"
+	"github.com/mpppk/imagine/infra/blt"
 
 	"github.com/mpppk/imagine/domain/model"
 	bolt "go.etcd.io/bbolt"
@@ -12,22 +13,22 @@ import (
 type BBoltTag struct {
 	*BBoltBaseTag
 	historyRepository *BBoltBaseTag
-	base              *boltRepository
+	base              *blt.Repository
 }
 
 func NewBBoltTag(b *bolt.DB) repository.Tag {
 	return &BBoltTag{
-		BBoltBaseTag:      NewBBoltBaseTag(b, tagBucketName),
-		historyRepository: NewBBoltBaseTag(b, tagHistoryBucketName),
-		base:              newBoltRepository(b),
+		BBoltBaseTag:      NewBBoltBaseTag(b, blt.TagBucketName),
+		historyRepository: NewBBoltBaseTag(b, blt.TagHistoryBucketName),
+		base:              blt.NewRepository(b),
 	}
 }
 
 func (b *BBoltTag) Init(ws model.WSName) error {
-	if err := b.base.createBucketIfNotExist(createTagBucketNames(ws)); err != nil {
+	if err := b.base.CreateBucketIfNotExist(blt.CreateTagBucketNames(ws)); err != nil {
 		return fmt.Errorf("failed to create tag bucket: %w", err)
 	}
-	if err := b.base.createBucketIfNotExist(createTagHistoryBucketNames(ws)); err != nil {
+	if err := b.base.CreateBucketIfNotExist(blt.CreateTagHistoryBucketNames(ws)); err != nil {
 		return fmt.Errorf("failed to create tag history bucket: %w", err)
 	}
 	return nil

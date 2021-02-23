@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 
+	client2 "github.com/mpppk/imagine/domain/client"
+
 	"github.com/mpppk/imagine/usecase/interactor"
 
 	"github.com/mitchellh/mapstructure"
-
-	"github.com/mpppk/imagine/domain/repository"
 
 	"github.com/mpppk/imagine/domain/model"
 
@@ -63,7 +63,7 @@ func (w *workspaceActionCreator) Update(workSpace *model.WorkSpace) *fsa.Action 
 }
 
 type workspaceScanHandler struct {
-	client *repository.Client
+	client *client2.Client
 	action *workspaceActionCreator
 }
 
@@ -86,7 +86,7 @@ func (d *workspaceScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) err
 }
 
 type workspaceUpdateHandler struct {
-	client *repository.Client
+	client *client2.Client
 	action *workspaceActionCreator
 }
 
@@ -104,11 +104,11 @@ func (d *workspaceUpdateHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) e
 }
 
 type workspaceHandlerCreator struct {
-	client *repository.Client
+	client *client2.Client
 	action *workspaceActionCreator
 }
 
-func newWorkspaceHandlerCreator(client *repository.Client) *workspaceHandlerCreator {
+func newWorkspaceHandlerCreator(client *client2.Client) *workspaceHandlerCreator {
 	return &workspaceHandlerCreator{
 		client: client,
 		action: &workspaceActionCreator{},

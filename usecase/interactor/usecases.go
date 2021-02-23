@@ -3,6 +3,8 @@ package interactor
 import (
 	"fmt"
 
+	"github.com/mpppk/imagine/domain/client"
+
 	"github.com/mpppk/imagine/domain/model"
 	"github.com/mpppk/imagine/domain/repository"
 )
@@ -11,15 +13,15 @@ type UseCases struct {
 	Asset     *Asset
 	Tag       *Tag
 	Migration *Migration
-	Client    *repository.Client
+	Client    *client.Client
 }
 
-func New(asset repository.Asset, tag repository.Tag, workspace repository.WorkSpace, meta repository.Meta) *UseCases {
+func New(asset repository.Asset, tag *client.Tag, workspace repository.WorkSpace, meta repository.Meta) *UseCases {
 	return &UseCases{
 		Asset:     NewAsset(asset, tag),
 		Tag:       NewTag(tag),
 		Migration: NewMigration(asset, meta),
-		Client:    repository.NewClient(asset, tag, workspace, meta),
+		Client:    client.New(asset, tag, workspace, meta),
 	}
 }
 

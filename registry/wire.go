@@ -5,8 +5,9 @@ package registry
 import (
 	"github.com/google/wire"
 	"github.com/mpppk/imagine/action"
-	"github.com/mpppk/imagine/domain/repository"
+	"github.com/mpppk/imagine/domain/client"
 	"github.com/mpppk/imagine/infra"
+	"github.com/mpppk/imagine/infra/queryimpl"
 	"github.com/mpppk/imagine/infra/repoimpl"
 	"github.com/mpppk/imagine/usecase/interactor"
 	"go.etcd.io/bbolt"
@@ -21,20 +22,24 @@ func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 		interactor.NewAsset,
 		repoimpl.NewBBoltAsset,
 
+		client.NewTag,
 		interactor.NewTag,
 		repoimpl.NewBBoltTag,
+		queryimpl.NewBBoltTag,
 
 		repoimpl.NewBBoltWorkSpace,
 		repoimpl.NewBoltMeta,
-		repository.NewClient,
+		client.New,
 	)
 	return nil
 }
 
 func InitializeAssetUseCase(b *bbolt.DB) *interactor.Asset {
 	wire.Build(
+		client.NewTag,
 		interactor.NewAsset,
 		repoimpl.NewBBoltAsset,
+		queryimpl.NewBBoltTag,
 		repoimpl.NewBBoltTag,
 	)
 	return nil
@@ -42,15 +47,19 @@ func InitializeAssetUseCase(b *bbolt.DB) *interactor.Asset {
 
 func InitializeTagUseCase(b *bbolt.DB) *interactor.Tag {
 	wire.Build(
+		client.NewTag,
 		interactor.NewTag,
+		queryimpl.NewBBoltTag,
 		repoimpl.NewBBoltTag,
 	)
 	return nil
 }
 
-func NewBoltClient(b *bbolt.DB) *repository.Client {
+func NewBoltClient(b *bbolt.DB) *client.Client {
 	wire.Build(
-		repository.NewClient,
+		client.New,
+		client.NewTag,
+		queryimpl.NewBBoltTag,
 		repoimpl.NewBBoltAsset,
 		repoimpl.NewBBoltTag,
 		repoimpl.NewBBoltWorkSpace,
@@ -62,6 +71,8 @@ func NewBoltClient(b *bbolt.DB) *repository.Client {
 func NewBoltUseCases(b *bbolt.DB) *interactor.UseCases {
 	wire.Build(
 		interactor.New,
+		client.NewTag,
+		queryimpl.NewBBoltTag,
 		repoimpl.NewBBoltAsset,
 		repoimpl.NewBBoltTag,
 		repoimpl.NewBBoltWorkSpace,
@@ -74,6 +85,8 @@ func NewBoltUseCasesWithDBPath(dbPath string) (*interactor.UseCases, error) {
 	wire.Build(
 		infra.NewBoltDB,
 		interactor.New,
+		client.NewTag,
+		queryimpl.NewBBoltTag,
 		repoimpl.NewBBoltAsset,
 		repoimpl.NewBBoltTag,
 		repoimpl.NewBBoltWorkSpace,
