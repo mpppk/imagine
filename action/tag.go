@@ -96,7 +96,7 @@ func (t *tagSaveHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	}
 
 	tagNames := tagsvc.ToTagNames(payload.Tags)
-	if _, err := t.tagUseCase.SetTags(payload.WorkSpaceName, tagNames); err != nil {
+	if _, err := t.tagUseCase.SetTagByNames(payload.WorkSpaceName, tagNames); err != nil {
 		return fmt.Errorf("failed to handle TagUpdate action: %w", err)
 	}
 	return dispatch(t.action.save(payload.WorkSpaceName, payload.Tags))

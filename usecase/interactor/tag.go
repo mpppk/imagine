@@ -70,9 +70,9 @@ func (a *Tag) SaveTags(ws model.WSName, tags []*model.Tag) (newTags []*model.Tag
 	return
 }
 
-// SetTags set provided tags.
+// SetTagByNames set provided tags.
 // All existing tags will be replaced. (Internally, this method recreate tag bucket)
-func (a *Tag) SetTags(ws model.WSName, tagNames []string) (tags []*model.TagWithIndex, err error) {
+func (a *Tag) SetTagByNames(ws model.WSName, tagNames []string) (tags []*model.TagWithIndex, err error) {
 	errMsg := "failed to set tags2"
 	tagSet, err := a.tagQuery.ListAsSet(ws)
 	if err != nil {
@@ -99,7 +99,7 @@ func (a *Tag) SetTags(ws model.WSName, tagNames []string) (tags []*model.TagWith
 
 	tags = append(tags, tags2...)
 
-	// delete tags2 which does not have given name
+	// delete tag which does not have given name
 	if err := a.tagRepository.Delete(ws, tagsvc.ToTagIDList(nonExistsTagSet.ToTags())); err != nil {
 		return nil, fmt.Errorf("%s: %w", errMsg, err)
 	}

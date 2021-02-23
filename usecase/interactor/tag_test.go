@@ -10,7 +10,7 @@ import (
 	"github.com/mpppk/imagine/domain/model"
 )
 
-func TestTag_SetTags(t *testing.T) {
+func TestTag_SetTagByNames(t *testing.T) {
 	type args struct {
 		ws       model.WSName
 		tagNames []string
@@ -51,11 +51,32 @@ func TestTag_SetTags(t *testing.T) {
 				testutil.MustNewTagWithIndex(2, "new-tag2", 1),
 			},
 		},
+		{
+			name: "remove tag if does not provided",
+			existTags: []*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			},
+			args: args{ws: "default-workspace", tagNames: []string{"tag2"}},
+			want: []*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag2", 0),
+			},
+		},
+		{
+			name: "add tag",
+			existTags: []*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			},
+			args: args{ws: "default-workspace", tagNames: []string{"tag1", "tag2"}},
+			want: []*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
-			tags, err := ut.Usecases.Tag.SetTags(tt.args.ws, tt.args.tagNames)
+			tags, err := ut.Usecases.Tag.SetTagByNames(tt.args.ws, tt.args.tagNames)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PutTags() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -70,7 +91,7 @@ func TestTag_SetTags(t *testing.T) {
 	}
 }
 
-func TestTag_SetTagsTwice(t *testing.T) {
+func TestTag_SetTagByNamesTwice(t *testing.T) {
 	type args struct {
 		ws       model.WSName
 		tagNames []string
@@ -115,7 +136,7 @@ func TestTag_SetTagsTwice(t *testing.T) {
 		},
 	}
 	testF := func(t *testing.T, ut *usecasetest.UseCases, args args, want []*model.TagWithIndex, wantErr bool) {
-		tags, err := ut.Usecases.Tag.SetTags(args.ws, args.tagNames)
+		tags, err := ut.Usecases.Tag.SetTagByNames(args.ws, args.tagNames)
 		if (err != nil) != wantErr {
 			t.Errorf("PutTags() error = %v, wantErr %v", err, wantErr)
 			return
