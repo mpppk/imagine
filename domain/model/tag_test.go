@@ -444,6 +444,157 @@ func TestTagSet_SplitBy(t1 *testing.T) {
 	}
 }
 
+func TestTagSet_SubSetByID(t1 *testing.T) {
+	type args struct {
+		idList []model.TagID
+	}
+	tests := []struct {
+		name      string
+		tagSet    *model.TagSet
+		args      args
+		wantM     map[model.TagID]*model.TagWithIndex
+		wantNameM map[string]*model.TagWithIndex
+	}{
+		{
+			name:      "return empty subset if TagSet is empty",
+			tagSet:    model.NewTagSet([]*model.TagWithIndex{}),
+			args:      args{idList: []model.TagID{1}},
+			wantM:     map[model.TagID]*model.TagWithIndex{},
+			wantNameM: map[string]*model.TagWithIndex{},
+		},
+		{
+			name: "return empty subset if any tag does not match",
+			tagSet: model.NewTagSet([]*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			}),
+			args:      args{idList: []model.TagID{4}},
+			wantM:     map[model.TagID]*model.TagWithIndex{},
+			wantNameM: map[string]*model.TagWithIndex{},
+		},
+		{
+			name: "return subset with two tags",
+			tagSet: model.NewTagSet([]*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			}),
+			args: args{idList: []model.TagID{1, 2}},
+			wantM: map[model.TagID]*model.TagWithIndex{
+				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			},
+			wantNameM: map[string]*model.TagWithIndex{
+				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
+				"tag2": testutil.MustNewTagWithIndex(2, "tag2", 1),
+			},
+		},
+		{
+			name: "return subset with one tag",
+			tagSet: model.NewTagSet([]*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			}),
+			args: args{idList: []model.TagID{1}},
+			wantM: map[model.TagID]*model.TagWithIndex{
+				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+			},
+			wantNameM: map[string]*model.TagWithIndex{
+				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t1.Run(tt.name, func(t1 *testing.T) {
+			t := tt.tagSet
+			subset := t.SubSetByID(tt.args.idList)
+			gotM, gotNameM := subset.ToMap()
+			testutil.Diff(t1, tt.wantM, gotM)
+			testutil.Diff(t1, tt.wantNameM, gotNameM)
+		})
+	}
+}
+
+func TestTagSet_SplitByID(t1 *testing.T) {
+	type args struct {
+		idList []model.TagID
+	}
+	tests := []struct {
+		name       string
+		tagSet     *model.TagSet
+		args       args
+		wantTrueM  map[model.TagID]*model.TagWithIndex
+		wantFalseM map[model.TagID]*model.TagWithIndex
+	}{
+		{
+			name:       "return empty subset if TagSet is empty",
+			tagSet:     model.NewTagSet([]*model.TagWithIndex{}),
+			args:       args{idList: []model.TagID{1}},
+			wantTrueM:  map[model.TagID]*model.TagWithIndex{},
+			wantFalseM: map[model.TagID]*model.TagWithIndex{},
+		},
+		{
+			name: "all tags in false tag set if non exists ID is given",
+			tagSet: model.NewTagSet([]*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			}),
+			args:      args{idList: []model.TagID{4}},
+			wantTrueM: map[model.TagID]*model.TagWithIndex{},
+			wantFalseM: map[model.TagID]*model.TagWithIndex{
+				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			},
+		},
+		{
+			name: "two match",
+			tagSet: model.NewTagSet([]*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			}),
+			args: args{idList: []model.TagID{1, 2}},
+			wantTrueM: map[model.TagID]*model.TagWithIndex{
+				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			},
+			wantFalseM: map[model.TagID]*model.TagWithIndex{
+				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			},
+		},
+		{
+			name: "one true",
+			tagSet: model.NewTagSet([]*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			}),
+			args: args{idList: []model.TagID{1}},
+			wantTrueM: map[model.TagID]*model.TagWithIndex{
+				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+			},
+			wantFalseM: map[model.TagID]*model.TagWithIndex{
+				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t1.Run(tt.name, func(t1 *testing.T) {
+			t := tt.tagSet
+			trueSet, falseSet := t.SplitByID(tt.args.idList)
+			trueM, _ := trueSet.ToMap()
+			falseM, _ := falseSet.ToMap()
+			testutil.Diff(t1, tt.wantTrueM, trueM)
+			testutil.Diff(t1, tt.wantFalseM, falseM)
+		})
+	}
+}
+
 func TestTagSet_SubSetByNames(t1 *testing.T) {
 	type args struct {
 		names []string
@@ -513,6 +664,84 @@ func TestTagSet_SubSetByNames(t1 *testing.T) {
 			gotM, gotNameM := subset.ToMap()
 			testutil.Diff(t1, tt.wantM, gotM)
 			testutil.Diff(t1, tt.wantNameM, gotNameM)
+		})
+	}
+}
+
+func TestTagSet_SplitByNames(t1 *testing.T) {
+	type args struct {
+		tagNames []string
+	}
+	tests := []struct {
+		name       string
+		tagSet     *model.TagSet
+		args       args
+		wantTrueM  map[model.TagID]*model.TagWithIndex
+		wantFalseM map[model.TagID]*model.TagWithIndex
+	}{
+		{
+			name:       "return empty subset if TagSet is empty",
+			tagSet:     model.NewTagSet([]*model.TagWithIndex{}),
+			args:       args{tagNames: []string{"tag1"}},
+			wantTrueM:  map[model.TagID]*model.TagWithIndex{},
+			wantFalseM: map[model.TagID]*model.TagWithIndex{},
+		},
+		{
+			name: "all tags in false tag set if non exists ID is given",
+			tagSet: model.NewTagSet([]*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			}),
+			args:      args{tagNames: []string{"tag4"}},
+			wantTrueM: map[model.TagID]*model.TagWithIndex{},
+			wantFalseM: map[model.TagID]*model.TagWithIndex{
+				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			},
+		},
+		{
+			name: "two match",
+			tagSet: model.NewTagSet([]*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			}),
+			args: args{tagNames: []string{"tag1", "tag2"}},
+			wantTrueM: map[model.TagID]*model.TagWithIndex{
+				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			},
+			wantFalseM: map[model.TagID]*model.TagWithIndex{
+				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			},
+		},
+		{
+			name: "one true",
+			tagSet: model.NewTagSet([]*model.TagWithIndex{
+				testutil.MustNewTagWithIndex(1, "tag1", 0),
+				testutil.MustNewTagWithIndex(2, "tag2", 1),
+				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			}),
+			args: args{tagNames: []string{"tag1"}},
+			wantTrueM: map[model.TagID]*model.TagWithIndex{
+				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+			},
+			wantFalseM: map[model.TagID]*model.TagWithIndex{
+				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t1.Run(tt.name, func(t1 *testing.T) {
+			t := tt.tagSet
+			trueSet, falseSet := t.SplitByNames(tt.args.tagNames)
+			trueM, _ := trueSet.ToMap()
+			falseM, _ := falseSet.ToMap()
+			testutil.Diff(t1, tt.wantTrueM, trueM)
+			testutil.Diff(t1, tt.wantFalseM, falseM)
 		})
 	}
 }

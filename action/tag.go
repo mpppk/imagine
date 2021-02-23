@@ -3,8 +3,6 @@ package action
 import (
 	"fmt"
 
-	"github.com/mpppk/imagine/domain/service/assetsvc/tagsvc"
-
 	"github.com/mpppk/imagine/usecase"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -29,7 +27,7 @@ type tagScanPayload struct {
 
 type tagSavePayload struct {
 	WsPayload `mapstructure:",squash"`
-	Tags      []*model.Tag `json:"tags"`
+	Tags      []*model.TagWithIndex `json:"tags"`
 }
 
 type tagUpdatePayload struct {
@@ -52,7 +50,7 @@ func (t *tagActionCreator) scan(wsName model.WSName, tags []*model.TagWithIndex)
 	}
 }
 
-func (t *tagActionCreator) save(wsName model.WSName, tags []*model.Tag) *fsa.Action {
+func (t *tagActionCreator) save(wsName model.WSName, tags []*model.TagWithIndex) *fsa.Action {
 	return &fsa.Action{
 		Type: TagSaveType,
 		Payload: &tagSavePayload{
@@ -95,11 +93,11 @@ func (t *tagSaveHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 		return fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	tagNames := tagsvc.ToTagNames(payload.Tags)
-	if _, err := t.tagUseCase.SetTags(payload.WorkSpaceName, tagNames); err != nil {
-		return fmt.Errorf("failed to handle TagUpdate action: %w", err)
+	newTags, err := t.tagUseCase.SetTags(payload.WorkSpaceName, payload.Tags)
+	if err != nil {
+		return fmt.Errorf("failed to save tags on tagSaveHandler: %w", err)
 	}
-	return dispatch(t.action.save(payload.WorkSpaceName, payload.Tags))
+	return dispatch(t.action.save(payload.WorkSpaceName, newTags))
 }
 
 type tagHandlerCreator struct {

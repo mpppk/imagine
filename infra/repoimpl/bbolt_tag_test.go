@@ -47,7 +47,7 @@ func TestBBoltTag_SetTags(t *testing.T) {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args1.ws, func(t *testing.T, ut *usecasetest.UseCases) {
 			f := func(args args, want, wantTags []*model.TagWithIndex) {
-				tags, err := ut.Usecases.Tag.SetTags(args.ws, args.tagNames)
+				tags, err := ut.Usecases.Tag.SetTagByNames(args.ws, args.tagNames)
 				if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
 					return
 				}
@@ -112,7 +112,7 @@ func TestBBoltTag_Save(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
-			ut.Tag.SetTags(tt.args.ws, tt.existTagNames)
+			ut.Tag.SetTagByNames(tt.args.ws, tt.existTagNames)
 
 			id, err := ut.Usecases.Client.Tag.Save(tt.args.ws, tt.args.tag)
 			if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
@@ -225,7 +225,7 @@ func TestBBoltTag_AddByNames(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
-			ut.Tag.SetTags(tt.args.ws, tt.existTagNames)
+			ut.Tag.SetTagByNames(tt.args.ws, tt.existTagNames)
 
 			idList, err := ut.Usecases.Client.Tag.AddByNames(tt.args.ws, tt.args.tagNames)
 			if (err != nil) != tt.wantErr {

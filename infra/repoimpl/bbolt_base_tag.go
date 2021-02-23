@@ -29,6 +29,10 @@ func (b *BBoltBaseTag) loBucketFunc(ws model.WSName, f func(bucket *bolt.Bucket)
 	return b.base.LoBucketFunc(b.createBucketNames(ws), f)
 }
 
+func (b *BBoltBaseTag) bucketFunc(ws model.WSName, f func(bucket *bolt.Bucket) error) error {
+	return b.base.BucketFunc(b.createBucketNames(ws), f)
+}
+
 func (b *BBoltBaseTag) count(ws model.WSName) (int, error) {
 	tagSet, err := b.ListAsSet(ws)
 	if err != nil {
@@ -133,10 +137,6 @@ func (b *BBoltBaseTag) Get(ws model.WSName, id model.TagID) (tagWithIndex *model
 	return &a, exist, nil
 }
 
-//func (b *BBoltBaseTag) RecreateBucket(ws model.WSName) error {
-//	return b.base.recreateBucket(b.createBucketNames(ws))
-//}
-
 // Save saves tag to bolt.
 // If a tag with the same ID is already exists, update it by provided tag.
 // If tag does not exist yet, add provided tag.
@@ -217,7 +217,12 @@ func (b *BBoltBaseTag) ForEach(ws model.WSName, f func(tagWithIndex *model.TagWi
 // Delete deletes tags which have provided ID.
 // Internally, even if tag is deleted, it still reserved on tag bucket with `deleted` flag.
 func (b *BBoltBaseTag) Delete(ws model.WSName, idList []model.TagID) error {
-	// tag bucketから消す
-	// deleted tag bucketに追加
-	return nil
+	return b.bucketFunc(ws, func(bucket *bolt.Bucket) error {
+		for _, id := range idList {
+			if err := bucket.Delete(blt.Itob(uint64(id))); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
