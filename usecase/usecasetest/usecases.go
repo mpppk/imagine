@@ -3,6 +3,8 @@ package usecasetest
 import (
 	"testing"
 
+	"github.com/mpppk/imagine/domain/client"
+
 	"github.com/mpppk/imagine/usecase/interactor"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -73,7 +75,7 @@ type Client struct {
 	Tag   *TagRepository
 }
 
-func newClient(t *testing.T, c *repository.Client) *Client {
+func newClient(t *testing.T, c *client.Client) *Client {
 	return &Client{
 		Asset: newAssetRepository(t, c.Asset),
 		Tag:   newTagRepository(t, c.Tag),

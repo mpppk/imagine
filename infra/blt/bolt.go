@@ -1,4 +1,4 @@
-package repoimpl
+package blt
 
 import (
 	"encoding/binary"
@@ -9,36 +9,36 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-type boltData interface {
+type BoltData interface {
 	GetID() uint64
 	SetID(id uint64)
 }
 
-type boltRepository struct {
+type Repository struct {
 	bolt *bolt.DB
 }
 
-func newBoltRepository(b *bolt.DB) *boltRepository {
-	return &boltRepository{
+func NewRepository(b *bolt.DB) *Repository {
+	return &Repository{
 		bolt: b,
 	}
 }
 
 // ---- utilities ----
 
-func itob(v uint64) []byte {
+func Itob(v uint64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, v)
 	return b
 }
 
-func btoi(bytes []byte) uint64 {
+func Btoi(bytes []byte) uint64 {
 	padding := make([]byte, 8-len(bytes))
 	i := binary.BigEndian.Uint64(append(padding, bytes...))
 	return i
 }
 
-func toJson(data boltData) ([]byte, error) {
+func toJson(data BoltData) ([]byte, error) {
 	s, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal bolt data to json: %w", err)
@@ -69,7 +69,7 @@ func add(bucket *bolt.Bucket, data interface{}) (uint64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to marshal bolt data to json: %w", err)
 	}
-	if err := bucket.Put(itob(id), s); err != nil {
+	if err := bucket.Put(Itob(id), s); err != nil {
 		return 0, fmt.Errorf("failed to add data to bolt. ID:%d", id)
 	}
 	return id, nil
@@ -77,7 +77,7 @@ func add(bucket *bolt.Bucket, data interface{}) (uint64, error) {
 
 // addWithID adds data to bolt. ID will be generated and set to data. So this method change ID of given data.
 // Even if ID is given, it is always ignored.
-func addWithID(bucket *bolt.Bucket, unregisteredData boltData) (uint64, error) {
+func addWithID(bucket *bolt.Bucket, unregisteredData BoltData) (uint64, error) {
 	id, err := nextSequence(bucket)
 	if err != nil {
 		return 0, err
@@ -89,12 +89,12 @@ func addWithID(bucket *bolt.Bucket, unregisteredData boltData) (uint64, error) {
 	return id, nil
 }
 
-func putByID(bucket *bolt.Bucket, data boltData) error {
+func putByID(bucket *bolt.Bucket, data BoltData) error {
 	s, err := toJson(data)
 	if err != nil {
 		return err
 	}
-	if err := bucket.Put(itob(data.GetID()), s); err != nil {
+	if err := bucket.Put(Itob(data.GetID()), s); err != nil {
 		return fmt.Errorf("failed to put data to bolt. ID:%d", data.GetID())
 	}
 	return nil
@@ -102,7 +102,7 @@ func putByID(bucket *bolt.Bucket, data boltData) error {
 
 // ---- bucket operations ----
 
-func (b *boltRepository) createBucketIfNotExist(bucketNames []string) error {
+func (b *Repository) CreateBucketIfNotExist(bucketNames []string) error {
 	return b.bolt.Update(func(tx *bolt.Tx) error {
 		_, err := b.getOrCreateBucket(bucketNames, tx)
 		return err
@@ -110,7 +110,7 @@ func (b *boltRepository) createBucketIfNotExist(bucketNames []string) error {
 }
 
 // getOrCreateBucket gets or creates buckets
-func (b *boltRepository) getOrCreateBucket(bucketNames []string, tx *bolt.Tx) (*bolt.Bucket, error) {
+func (b *Repository) getOrCreateBucket(bucketNames []string, tx *bolt.Tx) (*bolt.Bucket, error) {
 	if len(bucketNames) == 0 {
 		return nil, errors.New("empty bucket name is provided")
 	}
@@ -135,7 +135,7 @@ func (b *boltRepository) getOrCreateBucket(bucketNames []string, tx *bolt.Tx) (*
 }
 
 // getBucket gets bucket
-func (b *boltRepository) getBucket(bucketNames []string, tx *bolt.Tx) (*bolt.Bucket, error) {
+func (b *Repository) getBucket(bucketNames []string, tx *bolt.Tx) (*bolt.Bucket, error) {
 	if len(bucketNames) == 0 {
 		return nil, errors.New("empty bucket name is provided")
 	}
@@ -159,7 +159,7 @@ func (b *boltRepository) getBucket(bucketNames []string, tx *bolt.Tx) (*bolt.Buc
 	return bucket, nil
 }
 
-func (b *boltRepository) internalBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) func(tx *bolt.Tx) error {
+func (b *Repository) internalBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) func(tx *bolt.Tx) error {
 	return func(tx *bolt.Tx) error {
 		bucket, err := b.getOrCreateBucket(bucketNames, tx)
 		if err != nil {
@@ -169,7 +169,7 @@ func (b *boltRepository) internalBucketFunc(bucketNames []string, f func(bucket 
 	}
 }
 
-func (b *boltRepository) internalLOBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) func(tx *bolt.Tx) error {
+func (b *Repository) internalLOBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) func(tx *bolt.Tx) error {
 	return func(tx *bolt.Tx) error {
 		bucket, err := b.getBucket(bucketNames, tx)
 		if err != nil {
@@ -179,7 +179,7 @@ func (b *boltRepository) internalLOBucketFunc(bucketNames []string, f func(bucke
 	}
 }
 
-func (b *boltRepository) bucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
+func (b *Repository) BucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
 	f2 := func(bucket *bolt.Bucket) error {
 		e := f(bucket)
 		return e
@@ -188,7 +188,7 @@ func (b *boltRepository) bucketFunc(bucketNames []string, f func(bucket *bolt.Bu
 	return e
 }
 
-func (b *boltRepository) loBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
+func (b *Repository) LoBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
 	f2 := func(bucket *bolt.Bucket) error {
 		e := f(bucket)
 		return e
@@ -196,12 +196,12 @@ func (b *boltRepository) loBucketFunc(bucketNames []string, f func(bucket *bolt.
 	return b.bolt.View(b.internalLOBucketFunc(bucketNames, f2))
 }
 
-func (b *boltRepository) recreateBucket(bucketNames []string) error {
+func (b *Repository) RecreateBucket(bucketNames []string) error {
 	if len(bucketNames) == 0 {
 		return fmt.Errorf("empty bucket name is given to deleteBucket")
 	}
 
-	return b.bucketFunc(bucketNames[:len(bucketNames)-1], func(bucket *bolt.Bucket) error {
+	return b.BucketFunc(bucketNames[:len(bucketNames)-1], func(bucket *bolt.Bucket) error {
 		lastBucketName := bucketNames[len(bucketNames)-1]
 		lastBucketNameBytes := []byte(lastBucketName)
 		if err := bucket.DeleteBucket(lastBucketNameBytes); err != nil {
@@ -215,7 +215,7 @@ func (b *boltRepository) recreateBucket(bucketNames []string) error {
 	})
 }
 
-func (b *boltRepository) batchBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
+func (b *Repository) batchBucketFunc(bucketNames []string, f func(bucket *bolt.Bucket) error) error {
 	f2 := func(bucket *bolt.Bucket) error {
 		e := f(bucket)
 		return e
@@ -226,18 +226,18 @@ func (b *boltRepository) batchBucketFunc(bucketNames []string, f func(bucket *bo
 
 // ---- data operations ----
 
-func (b *boltRepository) AddIntByString(bucketNames []string, k string, v uint64) error {
-	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		e := bucket.Put([]byte(k), itob(v))
+func (b *Repository) AddIntByString(bucketNames []string, k string, v uint64) error {
+	return b.BucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		e := bucket.Put([]byte(k), Itob(v))
 		return e
 	})
 }
 
 // add adds data to bolt and set new ID which generated by bolt to data. So this method modifies data argument.
 // This method always assign new ID to data, so even if already data have ID other than 0, it will be ignored and overwritten.
-func (b *boltRepository) Add(bucketNames []string, data interface{}) (uint64, error) {
+func (b *Repository) Add(bucketNames []string, data interface{}) (uint64, error) {
 	var retId uint64
-	e := b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+	e := b.BucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		id, err := add(bucket, data)
 		retId = id
 		return err
@@ -247,9 +247,9 @@ func (b *boltRepository) Add(bucketNames []string, data interface{}) (uint64, er
 
 // addWithID adds data to bolt and set new ID which generated by bolt to data. So this method modifies data argument.
 // This method always assign new ID to data, so even if already data have ID other than 0, it will be ignored and overwritten.
-func (b *boltRepository) AddWithID(bucketNames []string, data boltData) (uint64, error) {
+func (b *Repository) AddWithID(bucketNames []string, data BoltData) (uint64, error) {
 	var retId uint64
-	e := b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+	e := b.BucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		id, err := addWithID(bucket, data)
 		retId = id
 		return err
@@ -257,24 +257,24 @@ func (b *boltRepository) AddWithID(bucketNames []string, data boltData) (uint64,
 	return retId, e
 }
 
-func (b *boltRepository) Get(bucketNames []string, id uint64) (data []byte, exist bool, err error) {
-	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		data = bucket.Get(itob(id))
+func (b *Repository) Get(bucketNames []string, id uint64) (data []byte, exist bool, err error) {
+	err = b.LoBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		data = bucket.Get(Itob(id))
 		return nil
 	})
 	return data, data != nil, err
 }
 
-func (b *boltRepository) GetIDByString(bucketNames []string, key string) (id uint64, exist bool, err error) {
+func (b *Repository) GetIDByString(bucketNames []string, key string) (id uint64, exist bool, err error) {
 	var data []byte
-	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+	err = b.LoBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		data = bucket.Get([]byte(key))
 		return nil
 	})
-	return btoi(data), data != nil, err
+	return Btoi(data), data != nil, err
 }
 
-func (b *boltRepository) List(bucketNames []string) (dataList [][]byte, err error) {
+func (b *Repository) List(bucketNames []string) (dataList [][]byte, err error) {
 	err = b.ForEach(bucketNames, func(value []byte) error {
 		dataList = append(dataList, value)
 		return nil
@@ -282,8 +282,8 @@ func (b *boltRepository) List(bucketNames []string) (dataList [][]byte, err erro
 	return
 }
 
-func (b *boltRepository) ForEach(bucketNames []string, f func(value []byte) error) error {
-	return b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+func (b *Repository) ForEach(bucketNames []string, f func(value []byte) error) error {
+	return b.LoBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		return bucket.ForEach(func(k, v []byte) error {
 			return f(v)
 		})
@@ -292,14 +292,14 @@ func (b *boltRepository) ForEach(bucketNames []string, f func(value []byte) erro
 
 // UpdateByID updates data by ID.
 // if data which have ID does not exist, return error.
-func (b *boltRepository) UpdateByID(bucketNames []string, data boltData) error {
-	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+func (b *Repository) UpdateByID(bucketNames []string, data BoltData) error {
+	return b.BucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		id := data.GetID()
-		if id == 0 { // FIXME: implement HasID() to boltData
+		if id == 0 { // FIXME: implement HasID() to BoltData
 			return fmt.Errorf("failed to update data of bolt. ID does not provided")
 		}
 
-		if bucket.Get(itob(id)) == nil {
+		if bucket.Get(Itob(id)) == nil {
 			return fmt.Errorf("failed to update data of bolt. provided ID(%d) does not exist", id)
 		}
 
@@ -311,13 +311,13 @@ func (b *boltRepository) UpdateByID(bucketNames []string, data boltData) error {
 // If data ID does not provided, add new data.
 // If data ID provided, update data which have the ID.
 // If data ID provided, but data which have the ID does not exist, return error.
-func (b *boltRepository) SaveByID(bucketNames []string, data boltData) (retID uint64, err error) {
-	err = b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+func (b *Repository) SaveByID(bucketNames []string, data BoltData) (retID uint64, err error) {
+	err = b.BucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		retID = data.GetID()
 
 		// update data
 		if retID != 0 {
-			if bucket.Get(itob(retID)) == nil {
+			if bucket.Get(Itob(retID)) == nil {
 				return fmt.Errorf("failed to save data by ID(%d). ID is provided but does not exist", retID)
 			}
 			return putByID(bucket, data)
@@ -331,20 +331,20 @@ func (b *boltRepository) SaveByID(bucketNames []string, data boltData) (retID ui
 	return
 }
 
-func (b *boltRepository) Delete(bucketNames []string, id uint64) error {
-	return b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
-		return bucket.Delete(itob(id))
+func (b *Repository) Delete(bucketNames []string, id uint64) error {
+	return b.BucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+		return bucket.Delete(Itob(id))
 	})
 }
 
-func (b *boltRepository) Close() error {
+func (b *Repository) Close() error {
 	return b.bolt.Close()
 }
 
 // ---- batch operations ----
 
-func (b *boltRepository) BatchGetByString(bucketNames []string, keys []string) (dataList [][]byte, err error) {
-	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+func (b *Repository) BatchGetByString(bucketNames []string, keys []string) (dataList [][]byte, err error) {
+	err = b.LoBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		for _, key := range keys {
 			dataList = append(dataList, bucket.Get([]byte(key)))
 		}
@@ -354,10 +354,10 @@ func (b *boltRepository) BatchGetByString(bucketNames []string, keys []string) (
 }
 
 // BatchUpdateByID update data by ID. If ID does not exist in bucket, skip the data.
-func (b *boltRepository) BatchUpdateByID(bucketNames []string, dataList []boltData) (updatedDataList []boltData, skippedDataList []boltData, err error) {
-	err = b.bucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+func (b *Repository) BatchUpdateByID(bucketNames []string, dataList []BoltData) (updatedDataList []BoltData, skippedDataList []BoltData, err error) {
+	err = b.BucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		for _, data := range dataList {
-			key := itob(data.GetID())
+			key := Itob(data.GetID())
 			if v := bucket.Get(key); v == nil {
 				skippedDataList = append(skippedDataList, data)
 				continue
@@ -378,17 +378,17 @@ func (b *boltRepository) BatchUpdateByID(bucketNames []string, dataList []boltDa
 	return
 }
 
-func (b *boltRepository) BatchGet(bucketNames []string, idList []uint64) (dataList [][]byte, err error) {
-	err = b.loBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
+func (b *Repository) BatchGet(bucketNames []string, idList []uint64) (dataList [][]byte, err error) {
+	err = b.LoBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		for _, id := range idList {
-			dataList = append(dataList, bucket.Get(itob(id)))
+			dataList = append(dataList, bucket.Get(Itob(id)))
 		}
 		return nil
 	})
 	return dataList, err
 }
 
-func (b *boltRepository) BatchAddWithID(bucketNames []string, dataList []boltData) (idList []uint64, err error) {
+func (b *Repository) BatchAddWithID(bucketNames []string, dataList []BoltData) (idList []uint64, err error) {
 	e := b.batchBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		for _, data := range dataList {
 			id, err := addWithID(bucket, data)
@@ -402,10 +402,10 @@ func (b *boltRepository) BatchAddWithID(bucketNames []string, dataList []boltDat
 	return idList, e
 }
 
-func (b *boltRepository) BatchAddIntByString(bucketNames []string, keys []string, values []uint64) error {
+func (b *Repository) BatchAddIntByString(bucketNames []string, keys []string, values []uint64) error {
 	return b.batchBucketFunc(bucketNames, func(bucket *bolt.Bucket) error {
 		for i, key := range keys {
-			if err := bucket.Put([]byte(key), itob(values[i])); err != nil {
+			if err := bucket.Put([]byte(key), Itob(values[i])); err != nil {
 				return err
 			}
 		}

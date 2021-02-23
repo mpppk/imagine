@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/mpppk/imagine/domain/client"
+
+	"github.com/mpppk/imagine/domain/query"
 	"github.com/mpppk/imagine/domain/service/assetsvc/tagsvc"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -11,17 +14,21 @@ import (
 )
 
 type Tag struct {
+	// FIXME: use client
 	tagRepository repository.Tag
+	tagQuery      query.Tag
 }
 
-func NewTag(tagRepository repository.Tag) *Tag {
+func NewTag(c *client.Tag) *Tag {
+	// FIXME: use client
 	return &Tag{
-		tagRepository: tagRepository,
+		tagRepository: c.TagRepository,
+		tagQuery:      c.TagQuery,
 	}
 }
 
 func (a *Tag) List(ws model.WSName) (tags []*model.TagWithIndex, err error) {
-	tagsWithIndex, err := a.tagRepository.ListAll(ws)
+	tagsWithIndex, err := a.tagQuery.ListAll(ws)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +51,7 @@ func (a *Tag) SaveTags(ws model.WSName, tags []*model.Tag) (newTags []*model.Tag
 			Tag:   tag,
 			Index: i,
 		}
-		if _, exist, err := a.tagRepository.Get(ws, tag.ID); err != nil {
+		if _, exist, err := a.tagQuery.Get(ws, tag.ID); err != nil {
 			return nil, fmt.Errorf("failed to get tag. id:%d : %w", tag.ID, err)
 		} else if exist {
 			newTag, err := a.tagRepository.Save(ws, tagWithIndex)
@@ -67,7 +74,7 @@ func (a *Tag) SaveTags(ws model.WSName, tags []*model.Tag) (newTags []*model.Tag
 // All existing tags will be replaced. (Internally, this method recreate tag bucket)
 func (a *Tag) SetTags(ws model.WSName, tagNames []string) (tags []*model.TagWithIndex, err error) {
 	errMsg := "failed to set tags2"
-	tagSet, err := a.tagRepository.ListAsSet(ws)
+	tagSet, err := a.tagQuery.ListAsSet(ws)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", errMsg, err)
 	}

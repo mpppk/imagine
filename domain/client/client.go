@@ -1,19 +1,45 @@
-package repository
+package client
 
 import (
 	"fmt"
 
+	"github.com/mpppk/imagine/domain/query"
+
+	"github.com/mpppk/imagine/domain/repository"
+
 	"github.com/mpppk/imagine/domain/model"
 )
 
-type Client struct {
-	Asset     Asset
-	Tag       Tag
-	WorkSpace WorkSpace
-	Meta      Meta
+type TagRepository = repository.Tag
+type TagQuery = query.Tag
+
+type Tag struct {
+	TagRepository
+	TagQuery
 }
 
-func NewClient(asset Asset, tag Tag, workspace WorkSpace, meta Meta) *Client {
+func NewTag(r repository.Tag, q query.Tag) *Tag {
+	return &Tag{r, q}
+}
+
+func (t *Tag) Init(ws model.WSName) error {
+	if err := t.TagRepository.Init(ws); err != nil {
+		return err
+	}
+	if err := t.TagQuery.Init(ws); err != nil {
+		return err
+	}
+	return nil
+}
+
+type Client struct {
+	Asset     repository.Asset
+	Tag       *Tag
+	WorkSpace repository.WorkSpace
+	Meta      repository.Meta
+}
+
+func New(asset repository.Asset, tag *Tag, workspace repository.WorkSpace, meta repository.Meta) *Client {
 	return &Client{
 		Asset:     asset,
 		Tag:       tag,
@@ -37,7 +63,7 @@ func (c *Client) initWorkSpace(ws model.WSName) error {
 		return fmt.Errorf("failed to initialize asset repository: %w", err)
 	}
 	if err := c.Tag.Init(ws); err != nil {
-		return fmt.Errorf("failed to initialize asset repository: %w", err)
+		return fmt.Errorf("failed to initialize tag repository: %w", err)
 	}
 	return nil
 }

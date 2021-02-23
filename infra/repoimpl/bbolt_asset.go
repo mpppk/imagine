@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/mpppk/imagine/infra/blt"
+
 	"github.com/mpppk/imagine/domain/service/assetsvc"
 
 	"github.com/mpppk/imagine/domain/repository"
@@ -16,22 +18,22 @@ import (
 )
 
 type BBoltAsset struct {
-	base           *boltRepository
+	base           *blt.Repository
 	pathRepository *bboltPathRepository
 }
 
 func NewBBoltAsset(b *bolt.DB) repository.Asset {
 	return &BBoltAsset{
-		base:           newBoltRepository(b),
+		base:           blt.NewRepository(b),
 		pathRepository: newBBoltPathRepository(b),
 	}
 }
 
 func (b *BBoltAsset) Init(ws model.WSName) error {
-	if err := b.base.createBucketIfNotExist(createAssetBucketNames(ws)); err != nil {
+	if err := b.base.CreateBucketIfNotExist(blt.CreateAssetBucketNames(ws)); err != nil {
 		return fmt.Errorf("failed to create asset bucket: %w", err)
 	}
-	if err := b.base.createBucketIfNotExist(createPathBucketNames(ws)); err != nil {
+	if err := b.base.CreateBucketIfNotExist(blt.CreatePathBucketNames(ws)); err != nil {
 		return fmt.Errorf("failed to create path bucket: %w", err)
 	}
 	return nil
@@ -74,7 +76,7 @@ func (b *BBoltAsset) AddByFilePathIfDoesNotExist(ws model.WSName, filePath strin
 // BatchAdd add Assets.
 // provided assets must not have ID and must have path. If asset does not satisfy them, error will be returned.
 func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.AssetID, error) {
-	var dataList []boltData
+	var dataList []blt.BoltData
 	var paths []string
 	for _, asset := range assets {
 		if !asset.IsAddable() {
@@ -84,7 +86,7 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 		dataList = append(dataList, asset)
 		paths = append(paths, asset.Path)
 	}
-	idList, err := b.base.BatchAddWithID(createAssetBucketNames(ws), dataList)
+	idList, err := b.base.BatchAddWithID(blt.CreateAssetBucketNames(ws), dataList)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +100,7 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 }
 
 func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, error) {
-	id, err := b.base.AddWithID(createAssetBucketNames(ws), asset)
+	id, err := b.base.AddWithID(blt.CreateAssetBucketNames(ws), asset)
 	if err != nil {
 		return 0, err
 	}
@@ -106,7 +108,7 @@ func (b *BBoltAsset) Add(ws model.WSName, asset *model.Asset) (model.AssetID, er
 }
 
 func (b *BBoltAsset) Get(ws model.WSName, id model.AssetID) (asset *model.Asset, exist bool, err error) {
-	data, exist, err := b.base.Get(createAssetBucketNames(ws), uint64(id))
+	data, exist, err := b.base.Get(blt.CreateAssetBucketNames(ws), uint64(id))
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to get asset by ID(%v): %w", id, err)
 	}
@@ -133,20 +135,20 @@ func (b *BBoltAsset) GetByPath(ws model.WSName, path string) (asset *model.Asset
 }
 
 func (b *BBoltAsset) Has(ws model.WSName, id model.AssetID) (ok bool, err error) {
-	_, exist, err := b.base.Get(createAssetBucketNames(ws), uint64(id))
+	_, exist, err := b.base.Get(blt.CreateAssetBucketNames(ws), uint64(id))
 	return exist, err
 }
 
 // Update updates asset by ID.
 // if data which have ID does not exist, return error.
 func (b *BBoltAsset) Update(ws model.WSName, asset *model.Asset) error {
-	return b.base.UpdateByID(createAssetBucketNames(ws), asset)
+	return b.base.UpdateByID(blt.CreateAssetBucketNames(ws), asset)
 }
 
 // BatchUpdate update assets by ID.
 // Invalid asset will be skip. For example, an asset that contains a bounding box that does not have an ID.
 func (b *BBoltAsset) BatchUpdateByID(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
-	var dataList []boltData
+	var dataList []blt.BoltData
 	for _, asset := range assets {
 		if !asset.IsUpdatableByID() {
 			skippedAssets = append(skippedAssets, asset)
@@ -154,7 +156,7 @@ func (b *BBoltAsset) BatchUpdateByID(ws model.WSName, assets []*model.Asset) (up
 		}
 		dataList = append(dataList, asset)
 	}
-	updatedDataList, skippedDataList, err := b.base.BatchUpdateByID(createAssetBucketNames(ws), dataList)
+	updatedDataList, skippedDataList, err := b.base.BatchUpdateByID(blt.CreateAssetBucketNames(ws), dataList)
 	for _, data := range updatedDataList {
 		asset := data.(*model.Asset)
 		updatedAssets = append(updatedAssets, asset)
@@ -182,7 +184,7 @@ func (b *BBoltAsset) BatchUpdateByPath(ws model.WSName, assets []*model.Asset) (
 }
 
 func (b *BBoltAsset) Delete(ws model.WSName, id model.AssetID) error {
-	return b.base.Delete(createAssetBucketNames(ws), uint64(id))
+	return b.base.Delete(blt.CreateAssetBucketNames(ws), uint64(id))
 }
 
 // ListByIDList list assets by provided ID ID list.
@@ -192,7 +194,7 @@ func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (asse
 	for _, id := range idList {
 		rawIdList = append(rawIdList, uint64(id))
 	}
-	contents, err := b.base.BatchGet(createAssetBucketNames(ws), rawIdList)
+	contents, err := b.base.BatchGet(blt.CreateAssetBucketNames(ws), rawIdList)
 	if err != nil {
 		return nil, err
 	}
@@ -243,12 +245,12 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 
 	go func() {
 		batchNum := 50
-		min := itob(0)
+		min := blt.Itob(0)
 	L:
 		for {
 			var assets []*model.Asset
 			var lastAsset *model.Asset = nil
-			err := b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
+			err := b.base.LoBucketFunc(blt.CreateAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
 				cursor := bucket.Cursor()
 				cnt := 0
 				for k, v := cursor.Seek(min); k != nil && cnt < batchNum; k, v = cursor.Next() {
@@ -283,7 +285,7 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 				case c <- asset:
 				}
 			}
-			min = itob(uint64(lastAsset.ID))
+			min = blt.Itob(uint64(lastAsset.ID))
 		}
 		close(c)
 		close(ec)
@@ -292,7 +294,7 @@ func (b *BBoltAsset) ListByAsync(ctx context.Context, ws model.WSName, f func(as
 }
 
 func getAssetByIdFromBucket(bucket *bolt.Bucket, id model.AssetID) (*model.Asset, error) {
-	v := bucket.Get(itob(uint64(id)))
+	v := bucket.Get(blt.Itob(uint64(id)))
 	var asset model.Asset
 	if err := json.Unmarshal(v, &asset); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal asset: %w", err)
@@ -308,7 +310,7 @@ func (b *BBoltAsset) ListByIDListAsync(ctx context.Context, ws model.WSName, idL
 	L:
 		for index < len(idList) {
 			var assets []*model.Asset
-			err := b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
+			err := b.base.LoBucketFunc(blt.CreateAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
 				batchCnt := 0
 				for batchCnt <= cap {
 					if index+batchCnt >= len(idList) {
@@ -354,12 +356,12 @@ func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func
 
 	go func() {
 		batchNum := 50
-		min := itob(0)
+		min := blt.Itob(0)
 	L:
 		for {
 			var assets [][]byte
 			var lastAssetID uint64 = 0
-			err := b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
+			err := b.base.LoBucketFunc(blt.CreateAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
 				cursor := bucket.Cursor()
 				cnt := 0
 				for k, v := cursor.Seek(min); k != nil && cnt < batchNum; k, v = cursor.Next() {
@@ -372,7 +374,7 @@ func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func
 						copy(newV, v)
 						assets = append(assets, newV)
 					}
-					lastAssetID = btoi(k)
+					lastAssetID = blt.Btoi(k)
 				}
 				return nil
 			})
@@ -392,7 +394,7 @@ func (b *BBoltAsset) ListRawByAsync(ctx context.Context, ws model.WSName, f func
 				case c <- asset:
 				}
 			}
-			min = itob(lastAssetID)
+			min = blt.Itob(lastAssetID)
 		}
 		close(c)
 		close(ec)
@@ -436,7 +438,7 @@ func (b *BBoltAsset) ListByTags(ws model.WSName, tags []model.Tag) (assets []*mo
 }
 
 func (b *BBoltAsset) ForEach(ws model.WSName, f func(asset *model.Asset) error) error {
-	return b.base.loBucketFunc(createAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
+	return b.base.LoBucketFunc(blt.CreateAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
 		return bucket.ForEach(func(k, v []byte) error {
 			var asset model.Asset
 			if err := json.Unmarshal(v, &asset); err != nil {

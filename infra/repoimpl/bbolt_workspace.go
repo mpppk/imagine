@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/mpppk/imagine/infra/blt"
+
 	"github.com/mpppk/imagine/domain/model"
 	"github.com/mpppk/imagine/domain/repository"
 	bolt "go.etcd.io/bbolt"
@@ -17,19 +19,19 @@ var workSpacesKey = []byte("WorkSpaces")
 var workspaceBucketNames = []string{workspaceBucketName}
 
 type BBoltWorkSpace struct {
-	base           *boltRepository
+	base           *blt.Repository
 	pathRepository *bboltPathRepository
 }
 
 func NewBBoltWorkSpace(b *bolt.DB) repository.WorkSpace {
 	return &BBoltWorkSpace{
-		base:           newBoltRepository(b),
+		base:           blt.NewRepository(b),
 		pathRepository: newBBoltPathRepository(b),
 	}
 }
 
 func (b *BBoltWorkSpace) globalBucketFunc(f func(bucket *bolt.Bucket) error) error {
-	return b.base.bucketFunc(workspaceBucketNames, f)
+	return b.base.BucketFunc(workspaceBucketNames, f)
 }
 
 func (b *BBoltWorkSpace) getWorkSpacesFromBucket(bucket *bolt.Bucket) (workspaces []*model.WorkSpace, err error) {
@@ -64,7 +66,7 @@ func (b *BBoltWorkSpace) updateWorkSpaces(f func(workspaces []*model.WorkSpace) 
 }
 
 func (b *BBoltWorkSpace) Init() error {
-	if err := b.base.createBucketIfNotExist(workspaceBucketNames); err != nil {
+	if err := b.base.CreateBucketIfNotExist(workspaceBucketNames); err != nil {
 		return fmt.Errorf("failed to create workspace bucket: %w", err)
 	}
 	return nil
