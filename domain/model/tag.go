@@ -10,6 +10,10 @@ type Tag struct {
 	Name string `json:"name"`
 }
 
+func (t *Tag) Index(index int) (*TagWithIndex, error) {
+	return NewTagWithIndex(t.ID, t.Name, index)
+}
+
 // NewTag construct and returns Tag
 func NewTag(id TagID, name string) (*Tag, error) {
 	if name == "" {
@@ -20,6 +24,13 @@ func NewTag(id TagID, name string) (*Tag, error) {
 
 func (t *Tag) Unregister() *UnregisteredTag {
 	return &UnregisteredTag{Name: t.Name}
+}
+
+func (t *Tag) SafeUnregister() (*UnregisteredTag, error) {
+	if t.ID != 0 {
+		return nil, fmt.Errorf("failed to unregister tag because it has ID(%d)", t.ID)
+	}
+	return t.Unregister(), nil
 }
 
 type UnregisteredTag struct {
@@ -72,6 +83,13 @@ func (t *TagWithIndex) Unregister() *UnregisteredTagWithIndex {
 		UnregisteredTag: t.Tag.Unregister(),
 		Index:           t.Index,
 	}
+}
+
+func (t *TagWithIndex) SafeUnregister() (*UnregisteredTagWithIndex, error) {
+	if t.ID != 0 {
+		return nil, fmt.Errorf("failed to unregister tag because it has ID(%d)", t.ID)
+	}
+	return t.Unregister(), nil
 }
 
 func (t *TagWithIndex) ReRegister(id TagID) *TagWithIndex {
@@ -180,27 +198,51 @@ func (t *TagSet) SplitBy(f func(tag *TagWithIndex) bool) (trueTagSet, falseTagSe
 	return trueSet, falseSet
 }
 
+// SubSetByID returns sub TagSet. new TagSet contains tag which have either provided ID.
+func (t *TagSet) SubSetByID(idList []TagID) *TagSet {
+	m := map[TagID]struct{}{}
+	for _, id := range idList {
+		m[id] = struct{}{}
+	}
+	return t.SubSetBy(func(tag *TagWithIndex) bool {
+		_, ok := m[tag.ID]
+		return ok
+	})
+}
+
 // SubSetByNames returns sub TagSet. new TagSet contains tag which have either provided names.
 func (t *TagSet) SubSetByNames(names []string) *TagSet {
+	m := map[string]struct{}{}
+	for _, name := range names {
+		m[name] = struct{}{}
+	}
 	return t.SubSetBy(func(tag *TagWithIndex) bool {
-		for _, name := range names {
-			if tag.Name == name {
-				return true
-			}
-		}
-		return false
+		_, ok := m[tag.Name]
+		return ok
 	})
 }
 
 // SplitByNames splits TagSet to two sub sets based on provided tag names.
 func (t *TagSet) SplitByNames(names []string) (existsTagSet, nonExistsTagSet *TagSet) {
+	m := map[string]struct{}{}
+	for _, name := range names {
+		m[name] = struct{}{}
+	}
 	return t.SplitBy(func(tag *TagWithIndex) bool {
-		for _, name := range names {
-			if tag.Name == name {
-				return true
-			}
-		}
-		return false
+		_, ok := m[tag.Name]
+		return ok
+	})
+}
+
+// SplitByID splits TagSet to two sub sets based on provided tag ID.
+func (t *TagSet) SplitByID(idList []TagID) (existsTagSet, nonExistsTagSet *TagSet) {
+	m := map[TagID]struct{}{}
+	for _, id := range idList {
+		m[id] = struct{}{}
+	}
+	return t.SplitBy(func(tag *TagWithIndex) bool {
+		_, ok := m[tag.ID]
+		return ok
 	})
 }
 
