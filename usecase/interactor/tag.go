@@ -27,7 +27,7 @@ func NewTag(c *client.Tag) *Tag {
 	}
 }
 
-func (a *Tag) List(ws model.WSName) (tags []*model.TagWithIndex, err error) {
+func (a *Tag) List(ws model.WSName) (tags []*model.Tag, err error) {
 	tagsWithIndex, err := a.tagQuery.ListAll(ws)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (a *Tag) List(ws model.WSName) (tags []*model.TagWithIndex, err error) {
 // SaveTags persists tags and return saved tags.
 // For each tag, if the tag already exists, update it. Otherwise add new tag with new ID.
 // If model.Tag has non zero value but the tag which have the ID is not persisted, fail immediately and remain tags are not proceeded.
-func (a *Tag) SaveTags(ws model.WSName, tags []*model.TagWithIndex) (newTags []*model.TagWithIndex, err error) {
+func (a *Tag) SaveTags(ws model.WSName, tags []*model.Tag) (newTags []*model.Tag, err error) {
 	errMsg := "failed to save tags"
 	for _, tag := range tags {
 		if _, exist, err := a.tagQuery.Get(ws, tag.ID); err != nil {
@@ -72,7 +72,7 @@ func (a *Tag) SaveTags(ws model.WSName, tags []*model.TagWithIndex) (newTags []*
 }
 
 // SetTags persists tags and return saved tags.
-func (a *Tag) SetTags(ws model.WSName, tags []*model.Tag) (newTags []*model.TagWithIndex, err error) {
+func (a *Tag) SetTags(ws model.WSName, tags []*model.UnindexedTag) (newTags []*model.Tag, err error) {
 	errMsg := "failed to set tags"
 	tagSet, err := a.tagQuery.ListAsSet(ws)
 	if err != nil {
@@ -97,16 +97,16 @@ func (a *Tag) SetTags(ws model.WSName, tags []*model.Tag) (newTags []*model.TagW
 
 // SetTagByNames set provided tags.
 // All existing tags will be replaced. (Internally, this method recreate tag bucket)
-func (a *Tag) SetTagByNames(ws model.WSName, tagNames []string) (tags []*model.TagWithIndex, err error) {
+func (a *Tag) SetTagByNames(ws model.WSName, tagNames []string) (tags []*model.Tag, err error) {
 	errMsg := "failed to set tags"
 	tagSet, err := a.tagQuery.ListAsSet(ws)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
-	var tags2 []*model.Tag
+	var tags2 []*model.UnindexedTag
 	for _, tagName := range tagNames {
-		tag, err := model.NewTag(0, tagName)
+		tag, err := model.NewUnindexedTag(0, tagName)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", errMsg, err)
 		}

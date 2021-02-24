@@ -12,3 +12,7 @@ db/
 
 # for GitHub Actions
 bin/
+
+.DS_Store
+*.imagine
+*.log

@@ -22,24 +22,24 @@ type tagRequestPayload = model.WorkSpace
 
 type tagScanPayload struct {
 	WsPayload `mapstructure:",squash"`
-	Tags      []*model.TagWithIndex `json:"tags"`
+	Tags      []*model.Tag `json:"tags"`
 }
 
 type tagSavePayload struct {
 	WsPayload `mapstructure:",squash"`
-	Tags      []*model.TagWithIndex `json:"tags"`
+	Tags      []*model.Tag `json:"tags"`
 }
 
 type tagUpdatePayload struct {
 	WsPayload `mapstructure:",squash"`
-	Tags      []*model.Tag `json:"tags"`
+	Tags      []*model.UnindexedTag `json:"tags"`
 }
 
 type tagActionCreator struct{}
 
-func (t *tagActionCreator) scan(wsName model.WSName, tags []*model.TagWithIndex) *fsa.Action {
+func (t *tagActionCreator) scan(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 	if tags == nil {
-		tags = []*model.TagWithIndex{}
+		tags = []*model.Tag{}
 	}
 	return &fsa.Action{
 		Type: TagScanResultType,
@@ -50,7 +50,7 @@ func (t *tagActionCreator) scan(wsName model.WSName, tags []*model.TagWithIndex)
 	}
 }
 
-func (t *tagActionCreator) save(wsName model.WSName, tags []*model.TagWithIndex) *fsa.Action {
+func (t *tagActionCreator) save(wsName model.WSName, tags []*model.Tag) *fsa.Action {
 	return &fsa.Action{
 		Type: TagSaveType,
 		Payload: &tagSavePayload{

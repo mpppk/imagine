@@ -19,10 +19,10 @@ func TestBBoltTag_SetTags(t *testing.T) {
 		args1         args
 		args2         args
 		existTagNames []string
-		want1         []*model.TagWithIndex
-		want2         []*model.TagWithIndex
-		wantTags1     []*model.TagWithIndex
-		wantTags2     []*model.TagWithIndex
+		want1         []*model.Tag
+		want2         []*model.Tag
+		wantTags1     []*model.Tag
+		wantTags2     []*model.Tag
 		wantErr       bool
 	}{
 		{
@@ -32,13 +32,13 @@ func TestBBoltTag_SetTags(t *testing.T) {
 				ws:       "default-workspace",
 				tagNames: []string{"tag1", "tag2"},
 			},
-			want1: []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			want1: []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantTags1: []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantTags1: []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			},
 			wantErr: false,
 		},
@@ -46,7 +46,7 @@ func TestBBoltTag_SetTags(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args1.ws, func(t *testing.T, ut *usecasetest.UseCases) {
-			f := func(args args, want, wantTags []*model.TagWithIndex) {
+			f := func(args args, want, wantTags []*model.Tag) {
 				tags, err := ut.Usecases.Tag.SetTagByNames(args.ws, args.tagNames)
 				if testutil.FatalIfErrIsUnexpected(t, tt.wantErr, err) {
 					return
@@ -67,14 +67,14 @@ func TestBBoltTag_SetTags(t *testing.T) {
 func TestBBoltTag_Save(t *testing.T) {
 	type args struct {
 		ws  model.WSName
-		tag *model.TagWithIndex
+		tag *model.Tag
 	}
 	tests := []struct {
 		name          string
 		args          args
 		existTagNames []string
-		want          *model.TagWithIndex
-		wantTags      []*model.Tag
+		want          *model.Tag
+		wantTags      []*model.UnindexedTag
 		wantErr       bool
 	}{
 		{
@@ -82,10 +82,10 @@ func TestBBoltTag_Save(t *testing.T) {
 			existTagNames: []string{"tag1"},
 			args: args{
 				ws:  "default-workspace",
-				tag: testutil.MustNewTagWithIndex(1, "updated-tag1", 0),
+				tag: testutil.MustNewTag(1, "updated-tag1", 0),
 			},
-			want:     testutil.MustNewTagWithIndex(1, "updated-tag1", 0),
-			wantTags: []*model.Tag{{ID: 1, Name: "updated-tag1"}},
+			want:     testutil.MustNewTag(1, "updated-tag1", 0),
+			wantTags: []*model.UnindexedTag{{ID: 1, Name: "updated-tag1"}},
 			wantErr:  false,
 		},
 		{
@@ -93,10 +93,10 @@ func TestBBoltTag_Save(t *testing.T) {
 			existTagNames: []string{"tag1"},
 			args: args{
 				ws:  "default-workspace",
-				tag: testutil.MustNewTagWithIndex(0, "updated-tag2", 1),
+				tag: testutil.MustNewTag(0, "updated-tag2", 1),
 			},
-			want:     testutil.MustNewTagWithIndex(2, "updated-tag2", 1),
-			wantTags: []*model.Tag{{ID: 1, Name: "updated-tag1"}, {ID: 2, Name: "updated-tag2"}},
+			want:     testutil.MustNewTag(2, "updated-tag2", 1),
+			wantTags: []*model.UnindexedTag{{ID: 1, Name: "updated-tag1"}, {ID: 2, Name: "updated-tag2"}},
 			wantErr:  false,
 		},
 		{
@@ -104,7 +104,7 @@ func TestBBoltTag_Save(t *testing.T) {
 			existTagNames: []string{"tag1"},
 			args: args{
 				ws:  "default-workspace",
-				tag: testutil.MustNewTagWithIndex(2, "updated-tag2", 1),
+				tag: testutil.MustNewTag(2, "updated-tag2", 1),
 			},
 			wantErr: true,
 		},
@@ -132,30 +132,30 @@ func TestBBoltTag_Save(t *testing.T) {
 
 func TestBBoltTag_Add(t *testing.T) {
 	type args struct {
-		tag *model.UnregisteredTag
+		tag *model.UnregisteredUnindexedTag
 	}
 	tests := []struct {
 		name     string
 		ws       model.WSName
 		argsList []args
-		wants    []*model.TagWithIndex
-		wantTags []*model.TagWithIndex
+		wants    []*model.Tag
+		wantTags []*model.Tag
 		wantErr  bool
 	}{
 		{
 			name: "add two tags",
 			ws:   "default-workspace",
 			argsList: []args{
-				{tag: testutil.MustNewUnregisteredTag("tag1")},
-				{tag: testutil.MustNewUnregisteredTag("tag2")},
+				{tag: testutil.MustNewUnregisteredUnindexedTag("tag1")},
+				{tag: testutil.MustNewUnregisteredUnindexedTag("tag2")},
 			},
-			wants: []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wants: []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantTags: []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantTags: []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			},
 			wantErr: false,
 		},
@@ -186,8 +186,8 @@ func TestBBoltTag_AddByNames(t *testing.T) {
 		name          string
 		args          args
 		existTagNames []string
-		want          []*model.TagWithIndex
-		wantTags      []*model.TagWithIndex
+		want          []*model.Tag
+		wantTags      []*model.Tag
 		wantErr       bool
 	}{
 		{
@@ -197,12 +197,12 @@ func TestBBoltTag_AddByNames(t *testing.T) {
 				ws:       "default-workspace",
 				tagNames: []string{"tag2"},
 			},
-			want: []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			want: []*model.Tag{
+				testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantTags: []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantTags: []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			},
 			wantErr: false,
 		},
@@ -213,11 +213,11 @@ func TestBBoltTag_AddByNames(t *testing.T) {
 				ws:       "default-workspace",
 				tagNames: []string{"tag1"},
 			},
-			want: []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			want: []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
 			},
-			wantTags: []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantTags: []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
 			},
 			wantErr: false,
 		},

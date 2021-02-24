@@ -62,7 +62,7 @@ func newTagRepository(t *testing.T, r repository.Tag) *TagRepository {
 	}
 }
 
-func (t *TagRepository) AddWithIndex(ws model.WSName, tagWithIndex *model.UnregisteredTagWithIndex) *model.TagWithIndex {
+func (t *TagRepository) AddWithIndex(ws model.WSName, tagWithIndex *model.UnregisteredTag) *model.Tag {
 	tag, err := t.repository.AddWithIndex(ws, tagWithIndex)
 	if err != nil {
 		t.t.Fatalf("failed to add tag: %v: %v", err, tagWithIndex)
@@ -114,8 +114,8 @@ func newTag(t *testing.T, tag *interactor.Tag) *Tag {
 	}
 }
 
-// SetTagByNames is wrapper for interactor.Tag.SetTagByNames.
-func (t *Tag) SetTagByNames(ws model.WSName, tagNames []string) []*model.TagWithIndex {
+// SetTagByNames is wrapper for usecase/SetTagByNames.
+func (t *Tag) SetTagByNames(ws model.WSName, tagNames []string) []*model.Tag {
 	t.t.Helper()
 	tags, err := t.tag.SetTagByNames(ws, tagNames)
 	if err != nil {
@@ -124,7 +124,7 @@ func (t *Tag) SetTagByNames(ws model.WSName, tagNames []string) []*model.TagWith
 	return tags
 }
 
-func (t *Tag) List(ws model.WSName) (tags []*model.TagWithIndex) {
+func (t *Tag) List(ws model.WSName) (tags []*model.Tag) {
 	t.t.Helper()
 	tags, err := t.tag.List(ws)
 	if err != nil {

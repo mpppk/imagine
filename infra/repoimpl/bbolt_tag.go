@@ -34,7 +34,7 @@ func (b *BBoltTag) Init(ws model.WSName) error {
 	return nil
 }
 
-func (b *BBoltTag) AddWithIndex(ws model.WSName, tagWithIndex *model.UnregisteredTagWithIndex) (*model.TagWithIndex, error) {
+func (b *BBoltTag) AddWithIndex(ws model.WSName, tagWithIndex *model.UnregisteredTag) (*model.Tag, error) {
 	errMsg := "failed to add tag with index"
 
 	//b.historyRepository.
@@ -46,7 +46,7 @@ func (b *BBoltTag) AddWithIndex(ws model.WSName, tagWithIndex *model.Unregistere
 	return id, nil
 }
 
-func (b *BBoltTag) AddByName(ws model.WSName, tagName string) (*model.TagWithIndex, bool, error) {
+func (b *BBoltTag) AddByName(ws model.WSName, tagName string) (*model.Tag, bool, error) {
 	errMsg := "failed to add tag by name"
 	id, ok, err := b.BBoltBaseTag.AddByName(ws, tagName)
 	if err != nil {
@@ -60,7 +60,7 @@ func (b *BBoltTag) AddByName(ws model.WSName, tagName string) (*model.TagWithInd
 // If tag which have same name exists, do nothing and return the exist tag ID.
 // For example, assume that ["tag1", "tag2", "tag3"] are provided as tagNames, and "tag2" already exist with ID=1.
 // In this case, return values is [2,1,3].
-func (b *BBoltTag) AddByNames(ws model.WSName, tagNames []string) ([]*model.TagWithIndex, error) {
+func (b *BBoltTag) AddByNames(ws model.WSName, tagNames []string) ([]*model.Tag, error) {
 	errMsg := "failed to add tag by name"
 	tags, err := b.BBoltBaseTag.AddByNames(ws, tagNames)
 	if err != nil {
