@@ -10,46 +10,46 @@ type UnindexedTag struct {
 	Name string `json:"name"`
 }
 
-func (t *UnindexedTag) Index(index int) (*TagWithIndex, error) {
-	return NewTagWithIndex(t.ID, t.Name, index)
+func (t *UnindexedTag) Index(index int) (*Tag, error) {
+	return NewTag(t.ID, t.Name, index)
 }
 
-// NewTag construct and returns UnindexedTag
-func NewTag(id TagID, name string) (*UnindexedTag, error) {
+// NewUnindexedTag construct and returns UnindexedTag
+func NewUnindexedTag(id TagID, name string) (*UnindexedTag, error) {
 	if name == "" {
 		return nil, fmt.Errorf("failed to create tag: name is empty")
 	}
 	return &UnindexedTag{ID: id, Name: name}, nil
 }
 
-func (t *UnindexedTag) Unregister() *UnregisteredTag {
-	return &UnregisteredTag{Name: t.Name}
+func (t *UnindexedTag) Unregister() *UnregisteredUnindexedTag {
+	return &UnregisteredUnindexedTag{Name: t.Name}
 }
 
-func (t *UnindexedTag) SafeUnregister() (*UnregisteredTag, error) {
+func (t *UnindexedTag) SafeUnregister() (*UnregisteredUnindexedTag, error) {
 	if t.ID != 0 {
 		return nil, fmt.Errorf("failed to unregister tag because it has ID(%d)", t.ID)
 	}
 	return t.Unregister(), nil
 }
 
-type UnregisteredTag struct {
+type UnregisteredUnindexedTag struct {
 	Name string
 }
 
-func (t *UnregisteredTag) Register(id TagID) *UnindexedTag {
+func (t *UnregisteredUnindexedTag) Register(id TagID) *UnindexedTag {
 	return &UnindexedTag{
 		ID:   id,
 		Name: t.Name,
 	}
 }
 
-// NewUnregisteredTag construct and returns UnregisteredTag
-func NewUnregisteredTag(name string) (*UnregisteredTag, error) {
+// NewUnregisteredUnindexedTag construct and returns UnregisteredUnindexedTag
+func NewUnregisteredUnindexedTag(name string) (*UnregisteredUnindexedTag, error) {
 	if name == "" {
 		return nil, fmt.Errorf("failed to create tag: name is empty")
 	}
-	return &UnregisteredTag{Name: name}, nil
+	return &UnregisteredUnindexedTag{Name: name}, nil
 }
 
 func (t *UnindexedTag) GetID() uint64 {
@@ -60,89 +60,89 @@ func (t *UnindexedTag) SetID(id uint64) {
 	t.ID = TagID(id)
 }
 
-type TagWithIndex struct {
+type Tag struct {
 	*UnindexedTag
 	Index int
 }
 
-// NewTagWithIndex construct and return TagWithIndex
-func NewTagWithIndex(id TagID, name string, index int) (*TagWithIndex, error) {
-	errMsg := "failed to create TagWithIndex"
+// NewTag construct and return Tag
+func NewTag(id TagID, name string, index int) (*Tag, error) {
+	errMsg := "failed to create Tag"
 	if index < 0 {
 		return nil, fmt.Errorf("%s: negative index is not allowed(%d)", errMsg, index)
 	}
-	tag, err := NewTag(id, name)
+	tag, err := NewUnindexedTag(id, name)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
-	return &TagWithIndex{UnindexedTag: tag, Index: index}, nil
+	return &Tag{UnindexedTag: tag, Index: index}, nil
 }
 
-func (t *TagWithIndex) Unregister() *UnregisteredTagWithIndex {
-	return &UnregisteredTagWithIndex{
-		UnregisteredTag: t.UnindexedTag.Unregister(),
-		Index:           t.Index,
+func (t *Tag) Unregister() *UnregisteredTag {
+	return &UnregisteredTag{
+		UnregisteredUnindexedTag: t.UnindexedTag.Unregister(),
+		Index:                    t.Index,
 	}
 }
 
-func (t *TagWithIndex) SafeUnregister() (*UnregisteredTagWithIndex, error) {
+func (t *Tag) SafeUnregister() (*UnregisteredTag, error) {
 	if t.ID != 0 {
 		return nil, fmt.Errorf("failed to unregister tag because it has ID(%d)", t.ID)
 	}
 	return t.Unregister(), nil
 }
 
-func (t *TagWithIndex) ReRegister(id TagID) *TagWithIndex {
+func (t *Tag) ReRegister(id TagID) *Tag {
 	newTag := *t
 	newTag.ID = id
 	return &newTag
 }
 
-type UnregisteredTagWithIndex struct {
-	*UnregisteredTag
+type UnregisteredTag struct {
+	*UnregisteredUnindexedTag
 	Index int
 }
 
-func (t *UnregisteredTagWithIndex) Register(id TagID) *TagWithIndex {
-	return &TagWithIndex{
-		UnindexedTag: t.UnregisteredTag.Register(id),
+func (t *UnregisteredTag) Register(id TagID) *Tag {
+	return &Tag{
+		UnindexedTag: t.UnregisteredUnindexedTag.Register(id),
 		Index:        t.Index,
 	}
 }
 
-// NewUnregisteredTagWithIndex construct and return UnregisteredTagWithIndex
-func NewUnregisteredTagWithIndex(name string, index int) (*UnregisteredTagWithIndex, error) {
-	errMsg := "failed to create TagWithIndex"
+// NewUnregisteredTag construct and return UnregisteredTag
+func NewUnregisteredTag(name string, index int) (*UnregisteredTag, error) {
+	errMsg := "failed to create Tag"
 	if index < 0 {
 		return nil, fmt.Errorf("%s: negative index is not allowed(%d)", errMsg, index)
 	}
-	tag, err := NewUnregisteredTag(name)
+	tag, err := NewUnregisteredUnindexedTag(name)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
-	return &UnregisteredTagWithIndex{UnregisteredTag: tag, Index: index}, nil
+	return &UnregisteredTag{UnregisteredUnindexedTag: tag, Index: index}, nil
 }
 
-// NewUnregisteredTagWithIndexFromUnregisteredTag construct and return UnregisteredTagWithIndex from UnregisteredTag
-func NewUnregisteredTagWithIndexFromUnregisteredTag(tag *UnregisteredTag, index int) (*UnregisteredTagWithIndex, error) {
-	errMsg := "failed to create TagWithIndex"
+// NewUnregisteredTagWithIndexFromUnregisteredTag construct and return UnregisteredTag from UnregisteredUnindexedTag
+func NewUnregisteredTagWithIndexFromUnregisteredTag(tag *UnregisteredUnindexedTag, index int) (*UnregisteredTag, error) {
+	errMsg := "failed to create Tag"
 	if index < 0 {
 		return nil, fmt.Errorf("%s: negative index is not allowed(%d)", errMsg, index)
 	}
-	return &UnregisteredTagWithIndex{UnregisteredTag: tag, Index: index}, nil
+	return &UnregisteredTag{UnregisteredUnindexedTag: tag, Index: index}, nil
 }
 
 type TagSet struct {
-	m     map[TagID]*TagWithIndex
-	nameM map[string]*TagWithIndex
+	m     map[TagID]*Tag
+	nameM map[string]*Tag
 }
 
 // NewTagSet returns TagSet.
 // if nil is provided as tags, empty TagSet will be return.
-func NewTagSet(tags []*TagWithIndex) *TagSet {
+func NewTagSet(tags []*Tag) *TagSet {
 	tagSet := &TagSet{
-		m:     map[TagID]*TagWithIndex{},
-		nameM: map[string]*TagWithIndex{},
+		m:     map[TagID]*Tag{},
+		nameM: map[string]*Tag{},
 	}
 	for _, tag := range tags {
 		tagSet.Set(tag)
@@ -155,7 +155,7 @@ func NewTagSet(tags []*TagWithIndex) *TagSet {
 // Otherwise, add or update the tag, and return true.
 // If provided tag already exists but has different ID, update the tag and return true.
 // Otherwise do nothing and returns false.
-func (t *TagSet) Set(tag *TagWithIndex) bool {
+func (t *TagSet) Set(tag *Tag) bool {
 	if sameNamedTag, ok := t.nameM[tag.Name]; ok && sameNamedTag.ID != tag.ID {
 		return false
 	}
@@ -164,17 +164,17 @@ func (t *TagSet) Set(tag *TagWithIndex) bool {
 	return true
 }
 
-func (t *TagSet) Get(id TagID) (*TagWithIndex, bool) {
+func (t *TagSet) Get(id TagID) (*Tag, bool) {
 	tag, ok := t.m[id]
 	return tag, ok
 }
 
-func (t *TagSet) GetByName(name string) (*TagWithIndex, bool) {
+func (t *TagSet) GetByName(name string) (*Tag, bool) {
 	tag, ok := t.nameM[name]
 	return tag, ok
 }
 
-func (t *TagSet) SubSetBy(f func(tag *TagWithIndex) bool) *TagSet {
+func (t *TagSet) SubSetBy(f func(tag *Tag) bool) *TagSet {
 	subset := NewTagSet(nil)
 	for _, tag := range t.m {
 		if f(tag) {
@@ -185,7 +185,7 @@ func (t *TagSet) SubSetBy(f func(tag *TagWithIndex) bool) *TagSet {
 }
 
 // SplitBy splits TagSet to two sub sets based on return value of provided function.
-func (t *TagSet) SplitBy(f func(tag *TagWithIndex) bool) (trueTagSet, falseTagSet *TagSet) {
+func (t *TagSet) SplitBy(f func(tag *Tag) bool) (trueTagSet, falseTagSet *TagSet) {
 	trueSet := NewTagSet(nil)
 	falseSet := NewTagSet(nil)
 	for _, tag := range t.m {
@@ -204,7 +204,7 @@ func (t *TagSet) SubSetByID(idList []TagID) *TagSet {
 	for _, id := range idList {
 		m[id] = struct{}{}
 	}
-	return t.SubSetBy(func(tag *TagWithIndex) bool {
+	return t.SubSetBy(func(tag *Tag) bool {
 		_, ok := m[tag.ID]
 		return ok
 	})
@@ -216,7 +216,7 @@ func (t *TagSet) SubSetByNames(names []string) *TagSet {
 	for _, name := range names {
 		m[name] = struct{}{}
 	}
-	return t.SubSetBy(func(tag *TagWithIndex) bool {
+	return t.SubSetBy(func(tag *Tag) bool {
 		_, ok := m[tag.Name]
 		return ok
 	})
@@ -228,7 +228,7 @@ func (t *TagSet) SplitByNames(names []string) (existsTagSet, nonExistsTagSet *Ta
 	for _, name := range names {
 		m[name] = struct{}{}
 	}
-	return t.SplitBy(func(tag *TagWithIndex) bool {
+	return t.SplitBy(func(tag *Tag) bool {
 		_, ok := m[tag.Name]
 		return ok
 	})
@@ -240,19 +240,19 @@ func (t *TagSet) SplitByID(idList []TagID) (existsTagSet, nonExistsTagSet *TagSe
 	for _, id := range idList {
 		m[id] = struct{}{}
 	}
-	return t.SplitBy(func(tag *TagWithIndex) bool {
+	return t.SplitBy(func(tag *Tag) bool {
 		_, ok := m[tag.ID]
 		return ok
 	})
 }
 
 // ToMap returns two maps.
-func (t *TagSet) ToMap() (map[TagID]*TagWithIndex, map[string]*TagWithIndex) {
+func (t *TagSet) ToMap() (map[TagID]*Tag, map[string]*Tag) {
 	return t.m, t.nameM
 }
 
 // ToTags returns tags
-func (t *TagSet) ToTags() (tags []*TagWithIndex) {
+func (t *TagSet) ToTags() (tags []*Tag) {
 	for _, tag := range t.m {
 		tags = append(tags, tag)
 	}

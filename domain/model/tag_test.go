@@ -10,45 +10,45 @@ import (
 
 func TestNewTagSet(t *testing.T) {
 	type args struct {
-		tags []*model.TagWithIndex
+		tags []*model.Tag
 	}
 	tests := []struct {
 		name      string
 		args      args
-		wantM     map[model.TagID]*model.TagWithIndex
-		wantNameM map[string]*model.TagWithIndex
+		wantM     map[model.TagID]*model.Tag
+		wantNameM map[string]*model.Tag
 	}{
 		{
 			name:      "return empty TagSet from empty tags",
-			args:      args{tags: []*model.TagWithIndex{}},
-			wantM:     map[model.TagID]*model.TagWithIndex{},
-			wantNameM: map[string]*model.TagWithIndex{},
+			args:      args{tags: []*model.Tag{}},
+			wantM:     map[model.TagID]*model.Tag{},
+			wantNameM: map[string]*model.Tag{},
 		},
 		{
 			name: "return TagSet from one tag",
-			args: args{tags: []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			args: args{tags: []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
 			}},
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
 			},
 		},
 		{
 			name: "return TagSet from two tags",
-			args: args{tags: []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			args: args{tags: []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			}},
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
-				"tag2": testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
+				"tag2": testutil.MustNewTag(2, "tag2", 1),
 			},
 		},
 	}
@@ -70,29 +70,29 @@ func TestTagSet_Get(t1 *testing.T) {
 		name   string
 		tagSet *model.TagSet
 		args   args
-		want   *model.TagWithIndex
+		want   *model.Tag
 		want1  bool
 	}{
 		{
 			name:   "get from empty TagSet",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{}),
+			tagSet: model.NewTagSet([]*model.Tag{}),
 			args:   args{id: 1},
 			want:   nil,
 			want1:  false,
 		},
 		{
 			name: "get exist tag from one tag",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
 			}),
 			args:  args{id: 1},
-			want:  testutil.MustNewTagWithIndex(1, "tag1", 0),
+			want:  testutil.MustNewTag(1, "tag1", 0),
 			want1: true,
 		},
 		{
 			name: "get non exist tag from one tag",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
 			}),
 			args:  args{id: 2},
 			want:  nil,
@@ -100,19 +100,19 @@ func TestTagSet_Get(t1 *testing.T) {
 		},
 		{
 			name: "get exist tag from two tags",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			}),
 			args:  args{id: 2},
-			want:  testutil.MustNewTagWithIndex(2, "tag2", 1),
+			want:  testutil.MustNewTag(2, "tag2", 1),
 			want1: true,
 		},
 		{
 			name: "get exist tag from two tags",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			}),
 			args:  args{id: 3},
 			want:  nil,
@@ -136,29 +136,29 @@ func TestTagSet_GetByName(t1 *testing.T) {
 		name   string
 		tagSet *model.TagSet
 		args   args
-		want   *model.TagWithIndex
+		want   *model.Tag
 		want1  bool
 	}{
 		{
 			name:   "get from empty TagSet",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{}),
+			tagSet: model.NewTagSet([]*model.Tag{}),
 			args:   args{name: "tag1"},
 			want:   nil,
 			want1:  false,
 		},
 		{
 			name: "get exist tag from one tag",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
 			}),
 			args:  args{name: "tag1"},
-			want:  testutil.MustNewTagWithIndex(1, "tag1", 0),
+			want:  testutil.MustNewTag(1, "tag1", 0),
 			want1: true,
 		},
 		{
 			name: "get non exist tag from one tag",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
 			}),
 			args:  args{name: "tag2"},
 			want:  nil,
@@ -166,19 +166,19 @@ func TestTagSet_GetByName(t1 *testing.T) {
 		},
 		{
 			name: "get exist tag from two tags",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			}),
 			args:  args{name: "tag2"},
-			want:  testutil.MustNewTagWithIndex(2, "tag2", 1),
+			want:  testutil.MustNewTag(2, "tag2", 1),
 			want1: true,
 		},
 		{
 			name: "get exist tag from two tags",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			}),
 			args:  args{name: "tag3"},
 			want:  nil,
@@ -196,84 +196,84 @@ func TestTagSet_GetByName(t1 *testing.T) {
 
 func TestTagSet_Set(t1 *testing.T) {
 	type args struct {
-		tag *model.TagWithIndex
+		tag *model.Tag
 	}
 	tests := []struct {
 		name      string
 		tagSet    *model.TagSet
 		args      args
 		want      bool
-		wantM     map[model.TagID]*model.TagWithIndex
-		wantNameM map[string]*model.TagWithIndex
+		wantM     map[model.TagID]*model.Tag
+		wantNameM map[string]*model.Tag
 	}{
 		{
 			name: "add tag to TagSet",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			}),
-			args: args{tag: testutil.MustNewTagWithIndex(3, "tag3", 2)},
+			args: args{tag: testutil.MustNewTag(3, "tag3", 2)},
 			want: true,
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
-				"tag2": testutil.MustNewTagWithIndex(2, "tag2", 1),
-				"tag3": testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
+				"tag2": testutil.MustNewTag(2, "tag2", 1),
+				"tag3": testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 		{
 			name: "update tag",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			}),
-			args: args{tag: testutil.MustNewTagWithIndex(2, "updated-tag2", 0)},
+			args: args{tag: testutil.MustNewTag(2, "updated-tag2", 0)},
 			want: true,
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "updated-tag2", 1),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "updated-tag2", 1),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
-				"tag2": testutil.MustNewTagWithIndex(2, "updated-tag2", 1),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
+				"tag2": testutil.MustNewTag(2, "updated-tag2", 1),
 			},
 		},
 		{
 			name: "do nothing for same tag",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			}),
-			args: args{tag: testutil.MustNewTagWithIndex(2, "tag2", 1)},
+			args: args{tag: testutil.MustNewTag(2, "tag2", 1)},
 			want: true,
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
-				"tag2": testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
+				"tag2": testutil.MustNewTag(2, "tag2", 1),
 			},
 		},
 		{
 			name: "do nothing to tag which have same name but different ID, then return false",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			}),
-			args: args{tag: testutil.MustNewTagWithIndex(3, "tag2", 1)},
+			args: args{tag: testutil.MustNewTag(3, "tag2", 1)},
 			want: false,
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
-				"tag2": testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
+				"tag2": testutil.MustNewTag(2, "tag2", 1),
 			},
 		},
 	}
@@ -287,67 +287,67 @@ func TestTagSet_Set(t1 *testing.T) {
 
 func TestTagSet_SubSetBy(t1 *testing.T) {
 	type args struct {
-		f func(tag *model.TagWithIndex) bool
+		f func(tag *model.Tag) bool
 	}
 	tests := []struct {
 		name      string
 		tagSet    *model.TagSet
 		args      args
-		wantM     map[model.TagID]*model.TagWithIndex
-		wantNameM map[string]*model.TagWithIndex
+		wantM     map[model.TagID]*model.Tag
+		wantNameM map[string]*model.Tag
 	}{
 		{
 			name:      "return empty subset if TagSet is empty",
-			tagSet:    model.NewTagSet([]*model.TagWithIndex{}),
-			args:      args{f: func(tag *model.TagWithIndex) bool { return true }},
-			wantM:     map[model.TagID]*model.TagWithIndex{},
-			wantNameM: map[string]*model.TagWithIndex{},
+			tagSet:    model.NewTagSet([]*model.Tag{}),
+			args:      args{f: func(tag *model.Tag) bool { return true }},
+			wantM:     map[model.TagID]*model.Tag{},
+			wantNameM: map[string]*model.Tag{},
 		},
 		{
 			name: "return empty subset if any tag does not match",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
-			args:      args{f: func(tag *model.TagWithIndex) bool { return false }},
-			wantM:     map[model.TagID]*model.TagWithIndex{},
-			wantNameM: map[string]*model.TagWithIndex{},
+			args:      args{f: func(tag *model.Tag) bool { return false }},
+			wantM:     map[model.TagID]*model.Tag{},
+			wantNameM: map[string]*model.Tag{},
 		},
 		{
 			name: "return subset with two tags",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
-			args: args{f: func(tag *model.TagWithIndex) bool {
+			args: args{f: func(tag *model.Tag) bool {
 				return tag.Name == "tag1" || tag.Name == "tag2"
 			}},
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
-				"tag2": testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
+				"tag2": testutil.MustNewTag(2, "tag2", 1),
 			},
 		},
 		{
 			name: "return subset with one tag",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
-			args: args{f: func(tag *model.TagWithIndex) bool {
+			args: args{f: func(tag *model.Tag) bool {
 				return tag.Name == "tag1"
 			}},
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
 			},
 		},
 	}
@@ -364,71 +364,71 @@ func TestTagSet_SubSetBy(t1 *testing.T) {
 
 func TestTagSet_SplitBy(t1 *testing.T) {
 	type args struct {
-		f func(tag *model.TagWithIndex) bool
+		f func(tag *model.Tag) bool
 	}
 	tests := []struct {
 		name       string
 		tagSet     *model.TagSet
 		args       args
-		wantTrueM  map[model.TagID]*model.TagWithIndex
-		wantFalseM map[model.TagID]*model.TagWithIndex
+		wantTrueM  map[model.TagID]*model.Tag
+		wantFalseM map[model.TagID]*model.Tag
 	}{
 		{
 			name:       "return empty subset if TagSet is empty",
-			tagSet:     model.NewTagSet([]*model.TagWithIndex{}),
-			args:       args{f: func(tag *model.TagWithIndex) bool { return true }},
-			wantTrueM:  map[model.TagID]*model.TagWithIndex{},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{},
+			tagSet:     model.NewTagSet([]*model.Tag{}),
+			args:       args{f: func(tag *model.Tag) bool { return true }},
+			wantTrueM:  map[model.TagID]*model.Tag{},
+			wantFalseM: map[model.TagID]*model.Tag{},
 		},
 		{
 			name: "all false",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
-			args:      args{f: func(tag *model.TagWithIndex) bool { return false }},
-			wantTrueM: map[model.TagID]*model.TagWithIndex{},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			args:      args{f: func(tag *model.Tag) bool { return false }},
+			wantTrueM: map[model.TagID]*model.Tag{},
+			wantFalseM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 		{
 			name: "two true",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
-			args: args{f: func(tag *model.TagWithIndex) bool {
+			args: args{f: func(tag *model.Tag) bool {
 				return tag.Name == "tag1" || tag.Name == "tag2"
 			}},
-			wantTrueM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantTrueM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantFalseM: map[model.TagID]*model.Tag{
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 		{
 			name: "one true",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
-			args: args{f: func(tag *model.TagWithIndex) bool {
+			args: args{f: func(tag *model.Tag) bool {
 				return tag.Name == "tag1"
 			}},
-			wantTrueM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantTrueM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
 			},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantFalseM: map[model.TagID]*model.Tag{
+				2: testutil.MustNewTag(2, "tag2", 1),
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 	}
@@ -452,57 +452,57 @@ func TestTagSet_SubSetByID(t1 *testing.T) {
 		name      string
 		tagSet    *model.TagSet
 		args      args
-		wantM     map[model.TagID]*model.TagWithIndex
-		wantNameM map[string]*model.TagWithIndex
+		wantM     map[model.TagID]*model.Tag
+		wantNameM map[string]*model.Tag
 	}{
 		{
 			name:      "return empty subset if TagSet is empty",
-			tagSet:    model.NewTagSet([]*model.TagWithIndex{}),
+			tagSet:    model.NewTagSet([]*model.Tag{}),
 			args:      args{idList: []model.TagID{1}},
-			wantM:     map[model.TagID]*model.TagWithIndex{},
-			wantNameM: map[string]*model.TagWithIndex{},
+			wantM:     map[model.TagID]*model.Tag{},
+			wantNameM: map[string]*model.Tag{},
 		},
 		{
 			name: "return empty subset if any tag does not match",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args:      args{idList: []model.TagID{4}},
-			wantM:     map[model.TagID]*model.TagWithIndex{},
-			wantNameM: map[string]*model.TagWithIndex{},
+			wantM:     map[model.TagID]*model.Tag{},
+			wantNameM: map[string]*model.Tag{},
 		},
 		{
 			name: "return subset with two tags",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args: args{idList: []model.TagID{1, 2}},
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
-				"tag2": testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
+				"tag2": testutil.MustNewTag(2, "tag2", 1),
 			},
 		},
 		{
 			name: "return subset with one tag",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args: args{idList: []model.TagID{1}},
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
 			},
 		},
 	}
@@ -525,61 +525,61 @@ func TestTagSet_SplitByID(t1 *testing.T) {
 		name       string
 		tagSet     *model.TagSet
 		args       args
-		wantTrueM  map[model.TagID]*model.TagWithIndex
-		wantFalseM map[model.TagID]*model.TagWithIndex
+		wantTrueM  map[model.TagID]*model.Tag
+		wantFalseM map[model.TagID]*model.Tag
 	}{
 		{
 			name:       "return empty subset if TagSet is empty",
-			tagSet:     model.NewTagSet([]*model.TagWithIndex{}),
+			tagSet:     model.NewTagSet([]*model.Tag{}),
 			args:       args{idList: []model.TagID{1}},
-			wantTrueM:  map[model.TagID]*model.TagWithIndex{},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{},
+			wantTrueM:  map[model.TagID]*model.Tag{},
+			wantFalseM: map[model.TagID]*model.Tag{},
 		},
 		{
 			name: "all tags in false tag set if non exists ID is given",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args:      args{idList: []model.TagID{4}},
-			wantTrueM: map[model.TagID]*model.TagWithIndex{},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantTrueM: map[model.TagID]*model.Tag{},
+			wantFalseM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 		{
 			name: "two match",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args: args{idList: []model.TagID{1, 2}},
-			wantTrueM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantTrueM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantFalseM: map[model.TagID]*model.Tag{
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 		{
 			name: "one true",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args: args{idList: []model.TagID{1}},
-			wantTrueM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantTrueM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
 			},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantFalseM: map[model.TagID]*model.Tag{
+				2: testutil.MustNewTag(2, "tag2", 1),
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 	}
@@ -603,57 +603,57 @@ func TestTagSet_SubSetByNames(t1 *testing.T) {
 		name      string
 		tagSet    *model.TagSet
 		args      args
-		wantM     map[model.TagID]*model.TagWithIndex
-		wantNameM map[string]*model.TagWithIndex
+		wantM     map[model.TagID]*model.Tag
+		wantNameM map[string]*model.Tag
 	}{
 		{
 			name:      "return empty subset if TagSet is empty",
-			tagSet:    model.NewTagSet([]*model.TagWithIndex{}),
+			tagSet:    model.NewTagSet([]*model.Tag{}),
 			args:      args{names: []string{"tag1"}},
-			wantM:     map[model.TagID]*model.TagWithIndex{},
-			wantNameM: map[string]*model.TagWithIndex{},
+			wantM:     map[model.TagID]*model.Tag{},
+			wantNameM: map[string]*model.Tag{},
 		},
 		{
 			name: "return empty subset if any tag does not match",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args:      args{names: []string{"tag4"}},
-			wantM:     map[model.TagID]*model.TagWithIndex{},
-			wantNameM: map[string]*model.TagWithIndex{},
+			wantM:     map[model.TagID]*model.Tag{},
+			wantNameM: map[string]*model.Tag{},
 		},
 		{
 			name: "return subset with two tags",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args: args{names: []string{"tag1", "tag2"}},
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
-				"tag2": testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
+				"tag2": testutil.MustNewTag(2, "tag2", 1),
 			},
 		},
 		{
 			name: "return subset with one tag",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args: args{names: []string{"tag1"}},
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
 			},
 		},
 	}
@@ -676,61 +676,61 @@ func TestTagSet_SplitByNames(t1 *testing.T) {
 		name       string
 		tagSet     *model.TagSet
 		args       args
-		wantTrueM  map[model.TagID]*model.TagWithIndex
-		wantFalseM map[model.TagID]*model.TagWithIndex
+		wantTrueM  map[model.TagID]*model.Tag
+		wantFalseM map[model.TagID]*model.Tag
 	}{
 		{
 			name:       "return empty subset if TagSet is empty",
-			tagSet:     model.NewTagSet([]*model.TagWithIndex{}),
+			tagSet:     model.NewTagSet([]*model.Tag{}),
 			args:       args{tagNames: []string{"tag1"}},
-			wantTrueM:  map[model.TagID]*model.TagWithIndex{},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{},
+			wantTrueM:  map[model.TagID]*model.Tag{},
+			wantFalseM: map[model.TagID]*model.Tag{},
 		},
 		{
 			name: "all tags in false tag set if non exists ID is given",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args:      args{tagNames: []string{"tag4"}},
-			wantTrueM: map[model.TagID]*model.TagWithIndex{},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantTrueM: map[model.TagID]*model.Tag{},
+			wantFalseM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 		{
 			name: "two match",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args: args{tagNames: []string{"tag1", "tag2"}},
-			wantTrueM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantTrueM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
 			},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantFalseM: map[model.TagID]*model.Tag{
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 		{
 			name: "one true",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
 			args: args{tagNames: []string{"tag1"}},
-			wantTrueM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantTrueM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
 			},
-			wantFalseM: map[model.TagID]*model.TagWithIndex{
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantFalseM: map[model.TagID]*model.Tag{
+				2: testutil.MustNewTag(2, "tag2", 1),
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 	}
@@ -750,31 +750,31 @@ func TestTagSet_ToMap(t1 *testing.T) {
 	tests := []struct {
 		name      string
 		tagSet    *model.TagSet
-		wantM     map[model.TagID]*model.TagWithIndex
-		wantNameM map[string]*model.TagWithIndex
+		wantM     map[model.TagID]*model.Tag
+		wantNameM map[string]*model.Tag
 	}{
 		{
 			name:      "return empty maps if TagSet is empty",
-			tagSet:    model.NewTagSet([]*model.TagWithIndex{}),
-			wantM:     map[model.TagID]*model.TagWithIndex{},
-			wantNameM: map[string]*model.TagWithIndex{},
+			tagSet:    model.NewTagSet([]*model.Tag{}),
+			wantM:     map[model.TagID]*model.Tag{},
+			wantNameM: map[string]*model.Tag{},
 		},
 		{
 			name: "return subset with two tags",
-			tagSet: model.NewTagSet([]*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
-				testutil.MustNewTagWithIndex(3, "tag3", 2),
+			tagSet: model.NewTagSet([]*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
 			}),
-			wantM: map[model.TagID]*model.TagWithIndex{
-				1: testutil.MustNewTagWithIndex(1, "tag1", 0),
-				2: testutil.MustNewTagWithIndex(2, "tag2", 1),
-				3: testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantM: map[model.TagID]*model.Tag{
+				1: testutil.MustNewTag(1, "tag1", 0),
+				2: testutil.MustNewTag(2, "tag2", 1),
+				3: testutil.MustNewTag(3, "tag3", 2),
 			},
-			wantNameM: map[string]*model.TagWithIndex{
-				"tag1": testutil.MustNewTagWithIndex(1, "tag1", 0),
-				"tag2": testutil.MustNewTagWithIndex(2, "tag2", 1),
-				"tag3": testutil.MustNewTagWithIndex(3, "tag3", 2),
+			wantNameM: map[string]*model.Tag{
+				"tag1": testutil.MustNewTag(1, "tag1", 0),
+				"tag2": testutil.MustNewTag(2, "tag2", 1),
+				"tag3": testutil.MustNewTag(3, "tag3", 2),
 			},
 		},
 	}

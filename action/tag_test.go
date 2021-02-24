@@ -40,10 +40,10 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 			name: "Save one tag",
 			args: args{payload: &tagUpdatePayload{
 				WsPayload: WsPayload{"default-workspace"},
-				Tags:      []*model.UnindexedTag{testutil.MustNewTag(1, "tag1")},
+				Tags:      []*model.UnindexedTag{testutil.MustNewUnindexedTag(1, "tag1")},
 			}},
-			wantActions: []*fsa.Action{tagActionCreator.save("default-workspace", []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
+			wantActions: []*fsa.Action{tagActionCreator.save("default-workspace", []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
 			})},
 			wantErr: false,
 		},
@@ -52,13 +52,13 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 			args: args{payload: &tagUpdatePayload{
 				WsPayload: WsPayload{"default-workspace"},
 				Tags: []*model.UnindexedTag{
-					testutil.MustNewTag(1, "tag1"),
-					testutil.MustNewTag(2, "tag2"),
+					testutil.MustNewUnindexedTag(1, "tag1"),
+					testutil.MustNewUnindexedTag(2, "tag2"),
 				},
 			}},
-			wantActions: []*fsa.Action{tagActionCreator.save("default-workspace", []*model.TagWithIndex{
-				testutil.MustNewTagWithIndex(1, "tag1", 0),
-				testutil.MustNewTagWithIndex(2, "tag2", 1),
+			wantActions: []*fsa.Action{tagActionCreator.save("default-workspace", []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+				testutil.MustNewTag(2, "tag2", 1),
 			})},
 			wantErr: false,
 		},
@@ -69,7 +69,7 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 			defer dispatcher.Finish()
 			ctrl := gomock.NewController(t1)
 			tagUseCase := mock_usecase.NewMockTag(ctrl)
-			var setTagsRet []*model.TagWithIndex = nil
+			var setTagsRet []*model.Tag = nil
 			if len(tt.wantActions) > 0 {
 				var payload tagSavePayload
 				if err := mapstructure.Decode(tt.wantActions[0].Payload, &payload); err != nil {
