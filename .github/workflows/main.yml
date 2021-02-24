@@ -45,9 +45,22 @@ jobs:
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      run: echo "::set-output name=dir::$(yarn cache dir)"
+
+    - uses: actions/cache@v2
+      id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      with:
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+
     - name: yarn install, build, and test
+      # specify --network-timeout flag for material-design-icons. See https://qiita.com/GandT/items/9c2afa82609ff6062fd3
       run: |
-        yarn --cwd static install
+        yarn --cwd static install --network-timeout 600000
         yarn --cwd static lint
         yarn --cwd static test
       env:
