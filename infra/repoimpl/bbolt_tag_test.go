@@ -74,7 +74,7 @@ func TestBBoltTag_Save(t *testing.T) {
 		args          args
 		existTagNames []string
 		want          *model.TagWithIndex
-		wantTags      []*model.Tag
+		wantTags      []*model.UnindexedTag
 		wantErr       bool
 	}{
 		{
@@ -85,7 +85,7 @@ func TestBBoltTag_Save(t *testing.T) {
 				tag: testutil.MustNewTagWithIndex(1, "updated-tag1", 0),
 			},
 			want:     testutil.MustNewTagWithIndex(1, "updated-tag1", 0),
-			wantTags: []*model.Tag{{ID: 1, Name: "updated-tag1"}},
+			wantTags: []*model.UnindexedTag{{ID: 1, Name: "updated-tag1"}},
 			wantErr:  false,
 		},
 		{
@@ -96,7 +96,7 @@ func TestBBoltTag_Save(t *testing.T) {
 				tag: testutil.MustNewTagWithIndex(0, "updated-tag2", 1),
 			},
 			want:     testutil.MustNewTagWithIndex(2, "updated-tag2", 1),
-			wantTags: []*model.Tag{{ID: 1, Name: "updated-tag1"}, {ID: 2, Name: "updated-tag2"}},
+			wantTags: []*model.UnindexedTag{{ID: 1, Name: "updated-tag1"}, {ID: 2, Name: "updated-tag2"}},
 			wantErr:  false,
 		},
 		{

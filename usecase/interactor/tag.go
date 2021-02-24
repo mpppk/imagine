@@ -44,7 +44,7 @@ func (a *Tag) List(ws model.WSName) (tags []*model.TagWithIndex, err error) {
 
 // SaveTags persists tags and return saved tags.
 // For each tag, if the tag already exists, update it. Otherwise add new tag with new ID.
-// If model.Tag has non zero value but the tag which have the ID is not persisted, fail immediately and remain tags are not proceeded.
+// If model.TagWithIndex has non zero value but the tag which have the ID is not persisted, fail immediately and remain tags are not proceeded.
 func (a *Tag) SaveTags(ws model.WSName, tags []*model.TagWithIndex) (newTags []*model.TagWithIndex, err error) {
 	errMsg := "failed to save tags"
 	for _, tag := range tags {
@@ -72,7 +72,7 @@ func (a *Tag) SaveTags(ws model.WSName, tags []*model.TagWithIndex) (newTags []*
 }
 
 // SetTags persists tags and return saved tags.
-func (a *Tag) SetTags(ws model.WSName, tags []*model.Tag) (newTags []*model.TagWithIndex, err error) {
+func (a *Tag) SetTags(ws model.WSName, tags []*model.UnindexedTag) (newTags []*model.TagWithIndex, err error) {
 	errMsg := "failed to set tags"
 	tagSet, err := a.tagQuery.ListAsSet(ws)
 	if err != nil {
@@ -104,7 +104,7 @@ func (a *Tag) SetTagByNames(ws model.WSName, tagNames []string) (tags []*model.T
 		return nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
-	var tags2 []*model.Tag
+	var tags2 []*model.UnindexedTag
 	for _, tagName := range tagNames {
 		tag, err := model.NewTag(0, tagName)
 		if err != nil {

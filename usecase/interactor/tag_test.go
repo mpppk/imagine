@@ -83,7 +83,7 @@ func TestTag_SaveTags(t *testing.T) {
 func TestTag_SetTags(t *testing.T) {
 	type args struct {
 		ws   model.WSName
-		tags []*model.Tag
+		tags []*model.UnindexedTag
 	}
 	tests := []struct {
 		name          string
@@ -96,7 +96,7 @@ func TestTag_SetTags(t *testing.T) {
 		{
 			name:          "update tag",
 			existTagNames: []string{"tag1", "tag2"},
-			args: args{ws: "default-workspace", tags: []*model.Tag{
+			args: args{ws: "default-workspace", tags: []*model.UnindexedTag{
 				testutil.MustNewTag(1, "updated-tag1"),
 			}},
 			want: []*model.TagWithIndex{
@@ -109,7 +109,7 @@ func TestTag_SetTags(t *testing.T) {
 		{
 			name:          "replace tag",
 			existTagNames: []string{"tag1", "tag2"},
-			args: args{ws: "default-workspace", tags: []*model.Tag{
+			args: args{ws: "default-workspace", tags: []*model.UnindexedTag{
 				testutil.MustNewTag(0, "tag3"),
 			}},
 			want: []*model.TagWithIndex{
@@ -122,7 +122,7 @@ func TestTag_SetTags(t *testing.T) {
 		{
 			name:          "fail if non exist tag is provided",
 			existTagNames: []string{"tag1", "tag2"},
-			args: args{ws: "default-workspace", tags: []*model.Tag{
+			args: args{ws: "default-workspace", tags: []*model.UnindexedTag{
 				testutil.MustNewTag(99, "tag99"),
 			}},
 			wantErr: true,

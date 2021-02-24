@@ -11,7 +11,7 @@ type Tag interface {
 	// For each tags, if it already exists, update it. Otherwise, add it.
 	SaveTags(ws model.WSName, tags []*model.TagWithIndex) ([]*model.TagWithIndex, error)
 
-	SetTags(ws model.WSName, tags []*model.Tag) ([]*model.TagWithIndex, error)
+	SetTags(ws model.WSName, tags []*model.UnindexedTag) ([]*model.TagWithIndex, error)
 
 	// SetTagByNames remove all existing tags and persists provided tags.
 	SetTagByNames(ws model.WSName, tagNames []string) ([]*model.TagWithIndex, error)

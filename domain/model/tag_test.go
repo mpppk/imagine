@@ -805,7 +805,7 @@ func TestTag_GetID(t1 *testing.T) {
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
-			tag := &model.Tag{
+			tag := &model.UnindexedTag{
 				ID:   tt.fields.ID,
 				Name: tt.fields.Name,
 			}
@@ -819,16 +819,16 @@ func TestTag_SetID(t1 *testing.T) {
 		id uint64
 	}
 	tests := []struct {
-		name string
-		tag  *model.Tag
-		args args
+		name         string
+		unindexedTag *model.UnindexedTag
+		args         args
 	}{
-		{tag: &model.Tag{ID: 1, Name: "tag1"}, args: args{id: 2}},
+		{unindexedTag: &model.UnindexedTag{ID: 1, Name: "tag1"}, args: args{id: 2}},
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
-			tt.tag.SetID(tt.args.id)
-			testutil.Diff(t1, tt.args.id, uint64(tt.tag.ID))
+			tt.unindexedTag.SetID(tt.args.id)
+			testutil.Diff(t1, tt.args.id, uint64(tt.unindexedTag.ID))
 		})
 	}
 }

@@ -9,7 +9,7 @@ func ToTagNames(tags []*model.TagWithIndex) (tagNames []string) {
 	return
 }
 
-func ToTagsWithOrderIndex(unIndexedTags []*model.Tag) (tags []*model.TagWithIndex) {
+func ToTagsWithOrderIndex(unIndexedTags []*model.UnindexedTag) (tags []*model.TagWithIndex) {
 	for i, tag := range unIndexedTags {
 		// error can be ignored because i always be positive
 		tag, _ := tag.Index(i)

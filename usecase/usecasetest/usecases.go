@@ -114,7 +114,7 @@ func newTag(t *testing.T, tag *interactor.Tag) *Tag {
 	}
 }
 
-// SetTagByNames is wrapper for interactor.Tag.SetTagByNames.
+// SetTagByNames is wrapper for usecase/SetTagByNames.
 func (t *Tag) SetTagByNames(ws model.WSName, tagNames []string) []*model.TagWithIndex {
 	t.t.Helper()
 	tags, err := t.tag.SetTagByNames(ws, tagNames)

@@ -31,7 +31,7 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 			name: "Save empty tags",
 			args: args{payload: &tagUpdatePayload{
 				WsPayload: WsPayload{"default-workspace"},
-				Tags:      []*model.Tag{},
+				Tags:      []*model.UnindexedTag{},
 			}},
 			wantActions: []*fsa.Action{tagActionCreator.save("default-workspace", nil)},
 			wantErr:     false,
@@ -40,7 +40,7 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 			name: "Save one tag",
 			args: args{payload: &tagUpdatePayload{
 				WsPayload: WsPayload{"default-workspace"},
-				Tags:      []*model.Tag{testutil.MustNewTag(1, "tag1")},
+				Tags:      []*model.UnindexedTag{testutil.MustNewTag(1, "tag1")},
 			}},
 			wantActions: []*fsa.Action{tagActionCreator.save("default-workspace", []*model.TagWithIndex{
 				testutil.MustNewTagWithIndex(1, "tag1", 0),
@@ -51,7 +51,7 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 			name: "Save two tags",
 			args: args{payload: &tagUpdatePayload{
 				WsPayload: WsPayload{"default-workspace"},
-				Tags: []*model.Tag{
+				Tags: []*model.UnindexedTag{
 					testutil.MustNewTag(1, "tag1"),
 					testutil.MustNewTag(2, "tag2"),
 				},

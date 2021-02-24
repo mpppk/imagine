@@ -419,7 +419,7 @@ func (b *BBoltAsset) ListBy(ws model.WSName, f func(asset *model.Asset) bool) (a
 	return
 }
 
-func (b *BBoltAsset) ListByTags(ws model.WSName, tags []model.Tag) (assets []*model.Asset, err error) {
+func (b *BBoltAsset) ListByTags(ws model.WSName, tags []model.UnindexedTag) (assets []*model.Asset, err error) {
 	if len(tags) == 0 {
 		return nil, errors.New("no tags given to ListByTags")
 	}

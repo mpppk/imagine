@@ -5,28 +5,28 @@ import (
 )
 
 type TagID uint64
-type Tag struct {
+type UnindexedTag struct {
 	ID   TagID  `json:"id"`
 	Name string `json:"name"`
 }
 
-func (t *Tag) Index(index int) (*TagWithIndex, error) {
+func (t *UnindexedTag) Index(index int) (*TagWithIndex, error) {
 	return NewTagWithIndex(t.ID, t.Name, index)
 }
 
-// NewTag construct and returns Tag
-func NewTag(id TagID, name string) (*Tag, error) {
+// NewTag construct and returns UnindexedTag
+func NewTag(id TagID, name string) (*UnindexedTag, error) {
 	if name == "" {
 		return nil, fmt.Errorf("failed to create tag: name is empty")
 	}
-	return &Tag{ID: id, Name: name}, nil
+	return &UnindexedTag{ID: id, Name: name}, nil
 }
 
-func (t *Tag) Unregister() *UnregisteredTag {
+func (t *UnindexedTag) Unregister() *UnregisteredTag {
 	return &UnregisteredTag{Name: t.Name}
 }
 
-func (t *Tag) SafeUnregister() (*UnregisteredTag, error) {
+func (t *UnindexedTag) SafeUnregister() (*UnregisteredTag, error) {
 	if t.ID != 0 {
 		return nil, fmt.Errorf("failed to unregister tag because it has ID(%d)", t.ID)
 	}
@@ -37,8 +37,8 @@ type UnregisteredTag struct {
 	Name string
 }
 
-func (t *UnregisteredTag) Register(id TagID) *Tag {
-	return &Tag{
+func (t *UnregisteredTag) Register(id TagID) *UnindexedTag {
+	return &UnindexedTag{
 		ID:   id,
 		Name: t.Name,
 	}
@@ -52,16 +52,16 @@ func NewUnregisteredTag(name string) (*UnregisteredTag, error) {
 	return &UnregisteredTag{Name: name}, nil
 }
 
-func (t *Tag) GetID() uint64 {
+func (t *UnindexedTag) GetID() uint64 {
 	return uint64(t.ID)
 }
 
-func (t *Tag) SetID(id uint64) {
+func (t *UnindexedTag) SetID(id uint64) {
 	t.ID = TagID(id)
 }
 
 type TagWithIndex struct {
-	*Tag
+	*UnindexedTag
 	Index int
 }
 
@@ -75,12 +75,12 @@ func NewTagWithIndex(id TagID, name string, index int) (*TagWithIndex, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
-	return &TagWithIndex{Tag: tag, Index: index}, nil
+	return &TagWithIndex{UnindexedTag: tag, Index: index}, nil
 }
 
 func (t *TagWithIndex) Unregister() *UnregisteredTagWithIndex {
 	return &UnregisteredTagWithIndex{
-		UnregisteredTag: t.Tag.Unregister(),
+		UnregisteredTag: t.UnindexedTag.Unregister(),
 		Index:           t.Index,
 	}
 }
@@ -105,8 +105,8 @@ type UnregisteredTagWithIndex struct {
 
 func (t *UnregisteredTagWithIndex) Register(id TagID) *TagWithIndex {
 	return &TagWithIndex{
-		Tag:   t.UnregisteredTag.Register(id),
-		Index: t.Index,
+		UnindexedTag: t.UnregisteredTag.Register(id),
+		Index:        t.Index,
 	}
 }
 

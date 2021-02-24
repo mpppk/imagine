@@ -32,7 +32,7 @@ type tagSavePayload struct {
 
 type tagUpdatePayload struct {
 	WsPayload `mapstructure:",squash"`
-	Tags      []*model.Tag `json:"tags"`
+	Tags      []*model.UnindexedTag `json:"tags"`
 }
 
 type tagActionCreator struct{}

@@ -4,15 +4,15 @@ import (
 	"github.com/mpppk/imagine/domain/model"
 )
 
-// MustNewTag construct and returns Tag.
+// MustNewTag construct and returns UnindexedTag.
 // Panic if invalid parameters are provided.
-func MustNewTag(id model.TagID, name string) *model.Tag {
+func MustNewTag(id model.TagID, name string) *model.UnindexedTag {
 	tag, err := model.NewTag(id, name)
 	PanicIfErrExist(err)
 	return tag
 }
 
-// MustNewUnregisteredTag construct and returns Tag.
+// MustNewUnregisteredTag construct and returns UnindexedTag.
 // Panic if invalid parameters are provided.
 func MustNewUnregisteredTag(name string) *model.UnregisteredTag {
 	tag, err := model.NewUnregisteredTag(name)
