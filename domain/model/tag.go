@@ -62,7 +62,7 @@ func (t *UnindexedTag) SetID(id uint64) {
 
 type Tag struct {
 	*UnindexedTag
-	Index int
+	Index int `json:"index"`
 }
 
 // NewTag construct and return Tag
