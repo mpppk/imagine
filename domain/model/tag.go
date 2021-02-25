@@ -98,6 +98,10 @@ func (t *Tag) ReRegister(id TagID) *Tag {
 	return &newTag
 }
 
+func (t *Tag) Unindex() *UnindexedTag {
+	return t.UnindexedTag
+}
+
 type UnregisteredTag struct {
 	*UnregisteredUnindexedTag
 	Index int

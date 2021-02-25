@@ -3,6 +3,8 @@ package action
 import (
 	"fmt"
 
+	"github.com/mpppk/imagine/domain/service/tagsvc"
+
 	"github.com/mpppk/imagine/usecase"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -27,7 +29,7 @@ type tagScanPayload struct {
 
 type tagSavePayload struct {
 	WsPayload `mapstructure:",squash"`
-	Tags      []*model.Tag `json:"tags"`
+	Tags      []*model.UnindexedTag `json:"tags"`
 }
 
 type tagUpdatePayload struct {
@@ -50,7 +52,7 @@ func (t *tagActionCreator) scan(wsName model.WSName, tags []*model.Tag) *fsa.Act
 	}
 }
 
-func (t *tagActionCreator) save(wsName model.WSName, tags []*model.Tag) *fsa.Action {
+func (t *tagActionCreator) save(wsName model.WSName, tags []*model.UnindexedTag) *fsa.Action {
 	return &fsa.Action{
 		Type: TagSaveType,
 		Payload: &tagSavePayload{
@@ -97,7 +99,7 @@ func (t *tagSaveHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 	if err != nil {
 		return fmt.Errorf("failed to save tags on tagSaveHandler: %w", err)
 	}
-	return dispatch(t.action.save(payload.WorkSpaceName, newTags))
+	return dispatch(t.action.save(payload.WorkSpaceName, tagsvc.ToUnindexedTags(newTags)))
 }
 
 type tagHandlerCreator struct {
