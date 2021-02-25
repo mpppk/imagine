@@ -124,8 +124,8 @@ export const global = reducerWithInitialState(globalInitialState)
       tags: immutableSplice(state.tags, targetTagIndex, 1, payload.tag),
     };
   })
-  .case(tagActionCreators.update, (state, payload) => {
-    return { ...state, tags: payload.tags, editTagID: null };
+  .cases([tagActionCreators.update, tagActionCreators.save], (state, payload) => {
+    return { ...state, tags: payload.tags ?? [], editTagID: null };
   })
   .case(indexActionCreators.assetSelect, (state, asset) => {
     return { ...state, selectedAsset: { ...asset } };
