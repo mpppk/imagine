@@ -10,7 +10,7 @@ import (
 )
 
 // Version represents version of this tool
-const Version = "0.1.3"
+const Version = "0.1.4"
 const slug = "mpppk/imagine"
 
 // Do execute updating binary
