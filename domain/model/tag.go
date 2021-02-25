@@ -62,7 +62,7 @@ func (t *UnindexedTag) SetID(id uint64) {
 
 type Tag struct {
 	*UnindexedTag
-	Index int
+	Index int `json:"index"`
 }
 
 // NewTag construct and return Tag
@@ -96,6 +96,10 @@ func (t *Tag) ReRegister(id TagID) *Tag {
 	newTag := *t
 	newTag.ID = id
 	return &newTag
+}
+
+func (t *Tag) Unindex() *UnindexedTag {
+	return t.UnindexedTag
 }
 
 type UnregisteredTag struct {
