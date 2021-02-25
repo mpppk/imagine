@@ -3,6 +3,8 @@ package action
 import (
 	"testing"
 
+	"github.com/mpppk/imagine/domain/service/tagsvc"
+
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/mpppk/imagine/testutil"
@@ -42,8 +44,8 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 				WsPayload: WsPayload{"default-workspace"},
 				Tags:      []*model.UnindexedTag{testutil.MustNewUnindexedTag(1, "tag1")},
 			}},
-			wantActions: []*fsa.Action{tagActionCreator.save("default-workspace", []*model.Tag{
-				testutil.MustNewTag(1, "tag1", 0),
+			wantActions: []*fsa.Action{tagActionCreator.save("default-workspace", []*model.UnindexedTag{
+				testutil.MustNewUnindexedTag(1, "tag1"),
 			})},
 			wantErr: false,
 		},
@@ -56,9 +58,9 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 					testutil.MustNewUnindexedTag(2, "tag2"),
 				},
 			}},
-			wantActions: []*fsa.Action{tagActionCreator.save("default-workspace", []*model.Tag{
-				testutil.MustNewTag(1, "tag1", 0),
-				testutil.MustNewTag(2, "tag2", 1),
+			wantActions: []*fsa.Action{tagActionCreator.save("default-workspace", []*model.UnindexedTag{
+				testutil.MustNewUnindexedTag(1, "tag1"),
+				testutil.MustNewUnindexedTag(2, "tag2"),
 			})},
 			wantErr: false,
 		},
@@ -75,7 +77,7 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 				if err := mapstructure.Decode(tt.wantActions[0].Payload, &payload); err != nil {
 					t1.Fatalf("failed to parse action payload: %#v", tt.wantActions[0])
 				}
-				setTagsRet = payload.Tags
+				setTagsRet = tagsvc.ToTagsWithOrderIndex(payload.Tags)
 			}
 			tagUseCase.EXPECT().SetTags(gomock.Eq(tt.args.payload.WorkSpaceName), gomock.Eq(tt.args.payload.Tags)).Return(setTagsRet, nil)
 
