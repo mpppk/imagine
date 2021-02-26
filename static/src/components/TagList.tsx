@@ -13,7 +13,7 @@ import { TagListItem } from './TagList/TagListItem';
 const useStyles = makeStyles((theme: Theme) => {
   return {
     addButton: {
-      width: 250 - theme.spacing(2),
+      width: 250 - theme.spacing(3),
     },
     draggingList: {
       padding: theme.spacing(1),
