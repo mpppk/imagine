@@ -168,8 +168,9 @@ func (b *BBoltAsset) BatchUpdateByID(ws model.WSName, assets []*model.Asset) (up
 	return
 }
 
-// BatchUpdate update assets by path.
+// BatchUpdateByPath update assets by path.
 // Invalid asset will be skip. For example, an asset that contains a bounding box that does not have an ID.
+// If asset which have non exist path is provided, it will be ignored.
 func (b *BBoltAsset) BatchUpdateByPath(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
 	assetIDList, err := b.pathRepository.ListByPath(ws, assetsvc.ToPaths(assets))
 	if err != nil {

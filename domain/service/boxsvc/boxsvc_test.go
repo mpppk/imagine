@@ -41,7 +41,7 @@ func TestMerge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if gotNewBoxes := (model.BoundingBoxes)(tt.args.baseBoxes).Merge(tt.args.otherBoxes); !reflect.DeepEqual(gotNewBoxes, tt.wantNewBoxes) {
-				t.Errorf("Merge() = %v, want %v", gotNewBoxes, tt.wantNewBoxes)
+				t.Errorf("UpdateBy() = %v, want %v", gotNewBoxes, tt.wantNewBoxes)
 			}
 		})
 	}

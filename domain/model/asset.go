@@ -186,11 +186,23 @@ func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 	return false
 }
 
-// Merge merge the itself and argument asset properties. This is destructive method.
-// If receiver or arg asset is nil, Merge method do nothing.
-func (a *Asset) Merge(asset *Asset) {
+func (a *Asset) CanBeUpdatedBy(asset *Asset) (ok bool, reason string) {
+	if asset.HasID() && a.ID != asset.ID {
+		return false, fmt.Sprintf("IDs are different(%d, %d)", a.ID, asset.ID)
+	}
+	return true, ""
+}
+
+// UpdateBy merge the itself and argument asset properties. This is destructive method.
+// If receiver or arg asset is nil, UpdateBy method do nothing.
+func (a *Asset) UpdateBy(asset *Asset) error {
+	errMsg := "failed to update asset"
 	if a == nil || asset == nil {
-		return
+		return nil
+	}
+
+	if ok, reason := a.CanBeUpdatedBy(asset); !ok {
+		return fmt.Errorf("%s: %s", errMsg, reason)
 	}
 
 	if asset.HasPath() {
@@ -205,6 +217,7 @@ func (a *Asset) Merge(asset *Asset) {
 			a.BoundingBoxes = (BoundingBoxes)(a.BoundingBoxes).Merge(asset.BoundingBoxes)
 		}
 	}
+	return nil
 }
 
 func (a *Asset) ToJson() (string, error) {
