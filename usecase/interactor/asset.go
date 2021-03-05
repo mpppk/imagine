@@ -142,7 +142,7 @@ func (a *Asset) SaveImportAssets(ws model.WSName, importAssets []*model.ImportAs
 	//if err != nil {
 	//	return fmt.Errorf("%s: %w", errMsg, err)
 	//}
-	_, _, skippedAssets, err = a.BatchMergeByPath(ws, assetsWithPath, queries)
+	_, _, skippedAssets, err = a.BatchUpdateByPath(ws, assetsWithPath, queries)
 	if err != nil {
 		return fmt.Errorf("failed to update importAssets: %w", err)
 	}
@@ -202,12 +202,12 @@ func (a *Asset) BatchUpdateByID(ws model.WSName, assets []*model.Asset, queries 
 	return updatedAssets, filteredNewAssets, skippedAssets, nil
 }
 
-// BatchMergeByPath update by provided assets.
+// BatchUpdateByPath update by provided assets.
 // If DB already has same ID asset, merge it and provided asset, then save the asset.
 // If DB does not have same ID asset, do nothing and return as skippedAssets.
 // queries can be nil. Only assets that match queries will be merged.
 // Note: filteredAssets will be returned with updated properties, not original.
-func (a *Asset) BatchMergeByPath(ws model.WSName, assets []*model.Asset, queries []*model.Query) (updatedAssets, filteredAssets, skippedAssets []*model.Asset, err error) {
+func (a *Asset) BatchUpdateByPath(ws model.WSName, assets []*model.Asset, queries []*model.Query) (updatedAssets, filteredAssets, skippedAssets []*model.Asset, err error) {
 	errMsg := "failed to batch merge by path"
 
 	assetPaths := assetsvc.ToPaths(assets)
