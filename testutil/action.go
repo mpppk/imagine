@@ -1,9 +1,7 @@
-package action
+package testutil
 
 import (
 	"testing"
-
-	"github.com/mpppk/imagine/testutil"
 
 	fsa "github.com/mpppk/lorca-fsa"
 )
@@ -14,7 +12,7 @@ type mockDispatcher struct {
 	gotActions  []*fsa.Action
 }
 
-func newMockDispatcher(t *testing.T, expectedActions []*fsa.Action) *mockDispatcher {
+func NewMockDispatcher(t *testing.T, expectedActions []*fsa.Action) *mockDispatcher {
 	return &mockDispatcher{t: t, wantActions: expectedActions}
 }
 
@@ -25,5 +23,5 @@ func (m *mockDispatcher) Dispatch(action *fsa.Action) error {
 
 func (m *mockDispatcher) Finish() {
 	m.t.Helper()
-	testutil.Diff(m.t, m.wantActions, m.gotActions)
+	Diff(m.t, m.wantActions, m.gotActions)
 }

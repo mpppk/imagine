@@ -44,6 +44,7 @@ export type Query =
   | EqualsQuery
   | NotEqualsQuery
   | StartWithQuery
+  | NotStartWithQuery
   | NoTagsQuery
   | PathEqualsQuery;
 
@@ -51,8 +52,10 @@ export type QueryOp =
   | 'equals'
   | 'not-equals'
   | 'start-with'
+  | 'not-start-with'
   | 'no-tags'
   | 'path-equals';
+
 export interface EqualsQuery {
   op: 'equals';
   value: string;
@@ -65,6 +68,11 @@ export interface NotEqualsQuery {
 
 export interface StartWithQuery {
   op: 'start-with';
+  value: string;
+}
+
+export interface NotStartWithQuery {
+  op: 'not-start-with';
   value: string;
 }
 

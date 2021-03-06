@@ -107,6 +107,7 @@ const QueryInputForm: React.FC<QueryInputFormProps> = (props) => {
         />
       );
     case 'start-with':
+    case 'not-start-with':
       return (
         <StartWithForm
           prefix={props.value}
@@ -151,6 +152,7 @@ export const QueryInput: React.FC<QueryInputProps> = (props) => {
             <MenuItem value={'equals'}>Equals</MenuItem>
             <MenuItem value={'not-equals'}>Not Equals</MenuItem>
             <MenuItem value={'start-with'}>Start With</MenuItem>
+            <MenuItem value={'not-start-with'}>Not Start With</MenuItem>
             <MenuItem value={'no-tags'}>No Tags</MenuItem>
             <MenuItem value={'path-equals'}>Path Equals</MenuItem>
           </Select>
