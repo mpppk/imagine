@@ -96,7 +96,7 @@ func newAsset(t *testing.T, asset *interactor.Asset) *Asset {
 
 func (a *Asset) SaveImportAssets(ws model.WSName, assets []*model.ImportAsset, queries []*model.Query) {
 	a.t.Helper()
-	err := a.asset.SaveImportAssets(ws, assets, queries)
+	_, _, _, err := a.asset.SaveImportAssets(ws, assets, queries)
 	if err != nil {
 		a.t.Fatalf("failed to add import assets: %v: %v", err, assets)
 	}

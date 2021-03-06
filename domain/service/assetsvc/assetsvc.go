@@ -156,3 +156,15 @@ func QueryIndex(assets []*model.Asset, queries []*model.Query, tagSet *model.Tag
 	}
 	return
 }
+
+// ReRegister set ID to asset. This is destructive method.
+func ReRegister(assets []*model.Asset, idList []model.AssetID) error {
+	if len(assets) != len(idList) {
+		return fmt.Errorf("invalid arguments are given to assetsvc.ReRegister. length are different(%d, %d)", len(assets), len(idList))
+	}
+
+	for i, asset := range assets {
+		asset.ID = idList[i]
+	}
+	return nil
+}

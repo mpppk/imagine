@@ -325,13 +325,63 @@ func TestAsset_SaveImportAssets(t *testing.T) {
 		queries []*model.Query
 	}
 	tests := []struct {
-		name          string
-		args          args
-		existAssets   []*model.Asset
-		existTagNames []string
-		wantAssets    []*model.Asset
-		wantErr       bool
+		name              string
+		args              args
+		existAssets       []*model.Asset
+		existTagNames     []string
+		wantAddedAssets   []*model.Asset
+		wantUpdatedAssets []*model.Asset
+		wantSkippedAssets []*model.Asset
+		wantAssets        []*model.Asset
+		wantErr           bool
 	}{
+		{
+			name: "add assets",
+			args: args{
+				ws: testWSName,
+				assets: []*model.ImportAsset{
+					model.NewImportAsset(0, "path1", []*model.ImportBoundingBox{
+						model.NewImportBoundingBoxFromTagID(1),
+						model.NewImportBoundingBoxFromTagID(2),
+					}),
+					model.NewImportAsset(0, "path2", []*model.ImportBoundingBox{
+						model.NewImportBoundingBoxFromTagID(1),
+						model.NewImportBoundingBoxFromTagID(3),
+					}),
+					model.NewImportAsset(0, "path3", []*model.ImportBoundingBox{
+						model.NewImportBoundingBoxFromTagID(2),
+						model.NewImportBoundingBoxFromTagID(3),
+					}),
+				},
+			},
+			existTagNames: []string{"tag1", "tag2xxx", "xxxtag2", "tag4"},
+			existAssets:   []*model.Asset{},
+			wantAddedAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 2}},
+				},
+				{ID: 2, Name: "path2", Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 3}},
+				},
+				{ID: 3, Name: "path3", Path: "path3",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 2}, {TagID: 3}},
+				},
+			},
+			wantUpdatedAssets: nil,
+			wantSkippedAssets: nil,
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 2}},
+				},
+				{ID: 2, Name: "path2", Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 3}},
+				},
+				{ID: 3, Name: "path3", Path: "path3",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 2}, {TagID: 3}},
+				},
+			},
+			wantErr: false,
+		},
 		{
 			name: "add and update assets",
 			args: args{
@@ -351,12 +401,68 @@ func TestAsset_SaveImportAssets(t *testing.T) {
 				model.NewAssetFromFilePath("path1"),
 				model.NewAssetFromFilePath("path2"),
 			},
+			wantAddedAssets: []*model.Asset{
+				{ID: 3, Name: "path3", Path: "path3"},
+			},
+			wantUpdatedAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}},
+				},
+			},
+			wantSkippedAssets: nil,
 			wantAssets: []*model.Asset{
 				{ID: 1, Name: "path1", Path: "path1",
 					BoundingBoxes: []*model.BoundingBox{{TagID: 1}},
 				},
 				{ID: 2, Name: "path2", Path: "path2"},
 				{ID: 3, Name: "path3", Path: "path3"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "add and update assets which equals and start-with queries",
+			args: args{
+				ws: testWSName,
+				assets: []*model.ImportAsset{
+					{
+						Asset: &model.Asset{ID: 1, Path: "path1", Name: "path1"},
+						BoundingBoxes: []*model.ImportBoundingBox{
+							{TagName: "tag4"},
+						},
+					},
+					{Asset: &model.Asset{Path: "path2", Name: "updated-path2"}},
+					{Asset: &model.Asset{Path: "path3", Name: "path3"}},
+				},
+				queries: []*model.Query{
+					{Op: model.EqualsQueryOP, Value: "tag1"},
+					{Op: model.StartWithQueryOP, Value: "tag2"},
+				},
+			},
+			existTagNames: []string{"tag1", "tag2xxx", "xxxtag2", "tag4"},
+			existAssets: []*model.Asset{
+				{Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 2}}},
+				{Name: "path2", Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 3}}},
+				{Name: "path3", Path: "path3",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 2}, {TagID: 3}}},
+			},
+			wantAddedAssets: nil,
+			wantUpdatedAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 2}, {TagID: 4}}},
+			},
+			wantSkippedAssets: []*model.Asset{
+				{Path: "path2", Name: "updated-path2"},
+				{Name: "path3", Path: "path3"},
+			},
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 2}, {TagID: 4}}},
+				{ID: 2, Name: "path2", Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 3}}},
+				{ID: 3, Name: "path3", Path: "path3",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 2}, {TagID: 3}}},
 			},
 			wantErr: false,
 		},
@@ -382,6 +488,17 @@ func TestAsset_SaveImportAssets(t *testing.T) {
 			existAssets: []*model.Asset{
 				model.NewAssetFromFilePath("path1"),
 				model.NewAssetFromFilePath("path2"),
+			},
+			wantAddedAssets: []*model.Asset{
+				{ID: 3, Name: "path3", Path: "path3"},
+			},
+			wantUpdatedAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}},
+				},
+			},
+			wantSkippedAssets: []*model.Asset{
+				{Path: "path2", Name: "updated-path2"},
 			},
 			wantAssets: []*model.Asset{
 				{ID: 1, Name: "path1", Path: "path1",
@@ -411,6 +528,15 @@ func TestAsset_SaveImportAssets(t *testing.T) {
 				model.NewAssetFromFilePath("path1"),
 				model.NewAssetFromFilePath("path2"),
 			},
+			wantAddedAssets: []*model.Asset{
+				{ID: 3, Name: "path3", Path: "path3"},
+			},
+			wantUpdatedAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 2}},
+				},
+			},
+			wantSkippedAssets: nil,
 			wantAssets: []*model.Asset{
 				{ID: 1, Name: "path1", Path: "path1",
 					BoundingBoxes: []*model.BoundingBox{{TagID: 2}},
@@ -440,6 +566,13 @@ func TestAsset_SaveImportAssets(t *testing.T) {
 					{TagID: 1}, {TagID: 2},
 				}},
 			},
+			wantAddedAssets: nil,
+			wantUpdatedAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 2}, {TagID: 1, X: 1}},
+				},
+			},
+			wantSkippedAssets: nil,
 			wantAssets: []*model.Asset{
 				{ID: 1, Name: "path1", Path: "path1",
 					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 2}, {TagID: 1, X: 1}},
@@ -455,13 +588,19 @@ func TestAsset_SaveImportAssets(t *testing.T) {
 			ut.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
 			ut.Tag.SetTagByNames(tt.args.ws, tt.existTagNames)
 
-			err := ut.Usecases.Asset.SaveImportAssets(tt.args.ws, tt.args.assets, tt.args.queries)
+			addedAssets, updatedAssets, skippedAssets, err := ut.Usecases.Asset.SaveImportAssets(tt.args.ws, tt.args.assets, tt.args.queries)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SaveImportAssets() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			} else if tt.wantErr {
+				assets := ut.Client.Asset.List(tt.args.ws)
+				testutil.Diff(t, tt.wantAssets, assets)
 				return
 			}
+
+			testutil.Diff(t, tt.wantAddedAssets, addedAssets)
+			testutil.Diff(t, tt.wantUpdatedAssets, updatedAssets)
+			testutil.Diff(t, tt.wantSkippedAssets, skippedAssets)
 
 			assets := ut.Client.Asset.List(tt.args.ws)
 			testutil.Diff(t, tt.wantAssets, assets)

@@ -63,6 +63,14 @@ type ImportBoundingBox struct {
 	TagName      string `json:"tagName"`
 }
 
+func NewImportBoundingBoxFromTagID(tagID TagID) *ImportBoundingBox {
+	return &ImportBoundingBox{
+		BoundingBox: &BoundingBox{
+			TagID: tagID,
+		},
+	}
+}
+
 func (b *ImportBoundingBox) Validate(tagSet *TagSet) error {
 	if !b.HasTagName() && !b.HasTagID() {
 		return fmt.Errorf("bouding box's tag name and tag id are empty")
@@ -96,6 +104,16 @@ func (b *ImportBoundingBox) HasTagName() bool {
 }
 
 type AssetID uint64
+
+func NewAssetID(id int) (AssetID, error) {
+	if id < 0 {
+		return 0, fmt.Errorf("negative number can not be AssetID: %d", id)
+	}
+	if id == 0 {
+		return 0, fmt.Errorf("zero can not be AssetID")
+	}
+	return AssetID(id), nil
+}
 
 func AssetIDListToUint64List(assetIDList []AssetID) (idList []uint64) {
 	for _, id := range assetIDList {
@@ -257,6 +275,15 @@ type ImportAsset struct {
 	BoundingBoxes []*ImportBoundingBox `json:"boundingBoxes"`
 }
 
+func NewImportAsset(id AssetID, path string, boxes []*ImportBoundingBox) *ImportAsset {
+	a := NewImportAssetFromFilePath(path)
+	if id != 0 {
+		a.ID = id
+	}
+	a.BoundingBoxes = boxes
+	return a
+}
+
 func NewImportAssetFromJson(contents []byte) (*ImportAsset, error) {
 	var asset ImportAsset
 	if err := json.Unmarshal(contents, &asset); err != nil {
@@ -286,6 +313,10 @@ func (a *ImportAsset) Validate(tagSet *TagSet) error {
 
 func (a *ImportAsset) ToAsset(tagSet *TagSet) (*Asset, error) {
 	var boxes []*BoundingBox
+
+	if a.Asset.BoundingBoxes != nil {
+		return nil, fmt.Errorf("failed to convert import asset to asset. import asset should not have bounding box, instead use import bounding box: %#v", a.Asset.BoundingBoxes)
+	}
 
 	for _, box := range a.BoundingBoxes {
 		newBox := box.BoundingBox
