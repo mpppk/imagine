@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mpppk/imagine/usecase/usecasetest"
@@ -71,6 +72,53 @@ func TestAssetUpdate(t *testing.T) {
 				{ID: 3, Name: "path3", Path: "path3"},
 			},
 		},
+		{
+			name:   "find by path and update bounding box with path-equals query",
+			wsName: "default-workspace",
+			existAssets: []*model.ImportAsset{
+				{Asset: model.NewAssetFromFilePath("path1")},
+				{Asset: model.NewAssetFromFilePath("path2")},
+				{Asset: model.NewAssetFromFilePath("path3")},
+			},
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			command:       `asset update --query path-equals=path1`,
+			stdInText: `{"path": "path1", "boundingBoxes": [{"tagID": 1}]}
+{"path": "path2", "boundingBoxes": [{"tagID": 2}]}`,
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
+				{ID: 2, Name: "path2", Path: "path2"},
+				{ID: 3, Name: "path3", Path: "path3"},
+			},
+		},
+		{
+			name:   "find by path and update bounding box with equals and start-with queries",
+			wsName: "default-workspace",
+			existAssets: []*model.ImportAsset{
+				model.NewImportAsset(0, "path1", []*model.ImportBoundingBox{
+					model.NewImportBoundingBoxFromTagID(1),
+					model.NewImportBoundingBoxFromTagID(2),
+				}),
+				model.NewImportAsset(0, "path2", []*model.ImportBoundingBox{
+					model.NewImportBoundingBoxFromTagID(1),
+					model.NewImportBoundingBoxFromTagID(3),
+				}),
+				model.NewImportAsset(0, "path3", []*model.ImportBoundingBox{
+					model.NewImportBoundingBoxFromTagID(2),
+					model.NewImportBoundingBoxFromTagID(3),
+				}),
+			},
+			existTagNames: []string{"tag1", "tag2xxx", "xxxtag2", "tag4"},
+			command:       `asset update --query equals=tag1,start-with=tag2`,
+			stdInText: `{"path": "path1", "boundingBoxes": [{"tagID": 4}]}
+{"path": "path2", "boundingBoxes": [{"tagID": 2}]}`,
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 2}, {TagID: 4}}},
+				{ID: 2, Name: "path2", Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 1}, {TagID: 3}}},
+				{ID: 3, Name: "path3", Path: "path3",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 2}, {TagID: 3}}},
+			},
+		},
 	}
 
 	for _, c := range cases {
@@ -78,8 +126,12 @@ func TestAssetUpdate(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, c.wsName)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Asset.AddOrMergeImportAssets(c.wsName, c.existAssets)
 				usecases.Tag.SetTagByNames(c.wsName, c.existTagNames)
+				usecases.Asset.SaveImportAssets(c.wsName, c.existAssets, nil)
+				for _, asset := range usecases.Client.Asset.List(c.wsName) {
+					fmt.Printf("%#v\n", asset)
+
+				}
 			})
 
 			cmdWithFlag := c.command + " --db " + u.DBPath

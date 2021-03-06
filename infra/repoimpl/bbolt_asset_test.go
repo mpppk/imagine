@@ -350,7 +350,7 @@ func TestBBoltAsset_BatchUpdateByID(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
-			ut.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
+			ut.Asset.SaveImportAssets(tt.args.ws, tt.existAssets, nil)
 			ut.Tag.SetTagByNames(tt.args.ws, tt.existTagNames)
 
 			updatedAssets, skippedAssets, err := ut.Usecases.Client.Asset.BatchUpdateByID(tt.args.ws, tt.args.assets)
@@ -482,7 +482,7 @@ func TestBBoltAsset_BatchUpdateByPath(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
-			ut.Asset.AddOrMergeImportAssets(tt.args.ws, tt.existAssets)
+			ut.Asset.SaveImportAssets(tt.args.ws, tt.existAssets, nil)
 			ut.Tag.SetTagByNames(tt.args.ws, tt.existTagNames)
 
 			updatedAssets, skippedAssets, err := ut.Usecases.Client.Asset.BatchUpdateByPath(tt.args.ws, tt.args.assets)

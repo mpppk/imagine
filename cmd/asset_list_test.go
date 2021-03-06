@@ -39,7 +39,7 @@ func TestAssetList(t *testing.T) {
 			u := usecasetest.NewTestUseCaseUser(t, c.wsName)
 			defer u.RemoveDB()
 			u.Use(func(usecases *usecasetest.UseCases) {
-				usecases.Asset.AddOrMergeImportAssets(c.wsName, c.existAssets)
+				usecases.Asset.SaveImportAssets(c.wsName, c.existAssets, nil)
 				usecases.Tag.SetTagByNames(c.wsName, c.existTagNames)
 			})
 

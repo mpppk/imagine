@@ -20,7 +20,12 @@ type Asset interface {
 	Has(ws model.WSName, id model.AssetID) (ok bool, err error)
 	Update(ws model.WSName, asset *model.Asset) error
 	BatchUpdateByID(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error)
+
+	// BatchUpdateByPath update assets by path.
+	// Invalid asset will be skip. For example, an asset that contains a bounding box that does not have an ID.
+	// If asset which have non exist path is provided, it will be ignored.
 	BatchUpdateByPath(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error)
+
 	Delete(ws model.WSName, id model.AssetID) error
 	ListByAsync(ctx context.Context, ws model.WSName, f func(asset *model.Asset) bool, cap int) (assetChan <-chan *model.Asset, err error)
 	ListRawByAsync(ctx context.Context, ws model.WSName, f func(v []byte) bool, cap int) (c <-chan []byte, err error)

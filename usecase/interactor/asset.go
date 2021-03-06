@@ -85,10 +85,16 @@ func (a *Asset) ReadImportAssetsWithProgressBar(ws model.WSName, reader io.Reade
 	return nil
 }
 
-func (a *Asset) AddOrMergeImportAssetsFromReader(ws model.WSName, reader io.Reader, capacity int) error {
+// SaveImportAssetsFromReader updates by Id or path that provided from reader.
+// If ID is specified, find asset by ID and update properties. (includes path if it specified)
+// If ID is not specified and path is specified, find asset by path and update properties.
+// Specified properties are updated and omitted properties are reserved.
+// The number of assets specified by capacity is buffered and processed at one time.
+// queries can be nil. Only assets that match queries will be merged.
+func (a *Asset) SaveImportAssetsFromReader(ws model.WSName, reader io.Reader, capacity int, queries []*model.Query) error {
 	f := func(importAssets []*model.ImportAsset) error {
 		log.Printf("debug: new batch: %d assets are loaded from reader", capacity)
-		if err := a.AddOrMergeImportAssets(ws, importAssets); err != nil {
+		if _, _, _, err := a.SaveImportAssets(ws, importAssets, queries); err != nil {
 			return fmt.Errorf("faled to add or update assets from reader: %w", err)
 		}
 		return nil
@@ -96,23 +102,25 @@ func (a *Asset) AddOrMergeImportAssetsFromReader(ws model.WSName, reader io.Read
 	return a.ReadImportAssetsWithProgressBar(ws, reader, capacity, f)
 }
 
-// AddOrMergeImportAssets updates assets by ID or path.
+// SaveImportAssets updates assets by ID or path.
 // If ID is specified, find asset by ID and update properties. (includes path if it specified)
 // If ID is not specified and path is specified, find asset by path and update properties.
 // Specified properties are updated and omitted properties are reserved.
-func (a *Asset) AddOrMergeImportAssets(ws model.WSName, importAssets []*model.ImportAsset) error {
+// queries can be nil. Only assets that match queries will be merged.
+func (a *Asset) SaveImportAssets(ws model.WSName, importAssets []*model.ImportAsset, queries []*model.Query) (addedAssets, updatedAssets, skippedAssets []*model.Asset, err error) {
+	errMsg := "failed to save import assets"
 	if _, err := a.tagRepository.AddByNames(ws, assetsvc.ToUniqTagNames(importAssets)); err != nil {
-		return fmt.Errorf("failed to add tags by names: %w", err)
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	tagSet, err := a.tagQuery.ListAsSet(ws)
 	if err != nil {
-		return fmt.Errorf("failed to get tag list: %w", err)
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	assets, err := assetsvc.ToAssets(importAssets, tagSet)
 	if err != nil {
-		return err
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	assetsWithID, assetsWithOutID := assetsvc.SplitByID(assets)
@@ -120,52 +128,88 @@ func (a *Asset) AddOrMergeImportAssets(ws model.WSName, importAssets []*model.Im
 
 	needToAddAssets := assetsWithOutIDAndPath
 
-	_, skippedAssets, err := a.BatchMergeByID(ws, assetsWithID)
+	updatedAssets1, filteredAssets1, skippedAssets1, err := a.BatchUpdateByID(ws, assetsWithID, queries)
 	if err != nil {
-		return err
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
-
 	needToAddAssets = append(needToAddAssets, skippedAssets...)
 
-	_, skippedAssets, err = a.BatchMergeByPath(ws, assetsWithPath)
+	updatedAssets2, filteredAssets2, skippedAssets2, err := a.BatchUpdateByPath(ws, assetsWithPath, queries)
 	if err != nil {
-		return fmt.Errorf("failed to update importAssets: %w", err)
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
-	needToAddAssets = append(needToAddAssets, skippedAssets...)
+	needToAddAssets = append(needToAddAssets, skippedAssets1...)
+	needToAddAssets = append(needToAddAssets, skippedAssets2...)
 
-	_, err = a.assetRepository.BatchAdd(ws, needToAddAssets)
+	addedIDList, err := a.assetRepository.BatchAdd(ws, needToAddAssets)
 	if err != nil {
-		return fmt.Errorf("failed to add asset from image path: %w", err)
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
-	return nil
+	if err := assetsvc.ReRegister(needToAddAssets, addedIDList); err != nil {
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+	return needToAddAssets, append(updatedAssets1, updatedAssets2...), append(filteredAssets1, filteredAssets2...), nil
 }
 
-// BatchMergeByID update by provided assets.
+func (a *Asset) queryIndex(ws model.WSName, assets []*model.Asset, queries []*model.Query, matchToNil bool) (matchedAssetsIndex, filteredAssetsIndex []int, err error) {
+	errMsg := "failed to query assets"
+	tagSet, err := a.tagQuery.ListAsSet(ws)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+	matchedAssetsIndex, filteredAssetsIndex = assetsvc.QueryIndex(assets, queries, tagSet, matchToNil)
+	return matchedAssetsIndex, filteredAssetsIndex, nil
+}
+
+// BatchUpdateByID update by provided assets.
 // If DB already has same ID asset, merge it and provided asset, then save the asset.
 // If DB does not have same ID asset, do nothing and return as skippedAssets.
-func (a *Asset) BatchMergeByID(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
+// queries can be nil. Only assets that match queries will be merged. Unmatched assets will be returned as filteredAssets.
+func (a *Asset) BatchUpdateByID(ws model.WSName, assets []*model.Asset, queries []*model.Query) (updatedAssets, filteredAssets, skippedAssets []*model.Asset, err error) {
+	errMsg := "failed to batch merge by ID"
+
 	assetIDList := assetsvc.ToAssetIDList(assets)
 	newAssets, err := a.assetRepository.ListByIDList(ws, assetIDList)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to list assets: %w", err)
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
-	assetsvc.Merge(newAssets, assets)
+	skippedAssets = assetsvc.FilterByIndex(assets, assetsvc.NilIndex(newAssets))
 
-	updatedAssets, skippedAssets, err = a.assetRepository.BatchUpdateByID(ws, newAssets)
+	matchedAssetsIndex, filteredAssetsIndex, err := a.queryIndex(ws, newAssets, queries, true)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to update assets by ID: %w", err)
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
-	return
+
+	if err := assetsvc.Update(newAssets, assets); err != nil {
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+
+	matchedNewAssets := assetsvc.FilterByIndex(newAssets, matchedAssetsIndex)
+	filteredNewAssets := assetsvc.FilterByIndex(assets, filteredAssetsIndex)
+
+	updatedAssets, _, err = a.assetRepository.BatchUpdateByID(ws, matchedNewAssets)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to update assets by ID: %w", err)
+	}
+
+	return updatedAssets, filteredNewAssets, skippedAssets, nil
 }
 
-func (a *Asset) BatchMergeByPath(ws model.WSName, assets []*model.Asset) (updatedAssets, skippedAssets []*model.Asset, err error) {
+// BatchUpdateByPath update by provided assets.
+// If DB already has same ID asset, merge it and provided asset, then save the asset.
+// If DB does not have same ID asset, do nothing and return as skippedAssets.
+// queries can be nil. Only assets that match queries will be merged.
+// Note: filteredAssets will be returned with updated properties, not original.
+func (a *Asset) BatchUpdateByPath(ws model.WSName, assets []*model.Asset, queries []*model.Query) (updatedAssets, filteredAssets, skippedAssets []*model.Asset, err error) {
+	errMsg := "failed to batch merge by path"
+
 	assetPaths := assetsvc.ToPaths(assets)
 	newAssets, err := a.assetRepository.ListByPaths(ws, assetPaths)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to list assets: %w", err)
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	for i, newAsset := range newAssets {
@@ -173,15 +217,25 @@ func (a *Asset) BatchMergeByPath(ws model.WSName, assets []*model.Asset) (update
 			skippedAssets = append(skippedAssets, assets[i])
 		}
 	}
-	assetsvc.Merge(newAssets, assets)
-	newAssets = assetsvc.FilterNil(newAssets)
 
-	updatedAssets, skippedAssets2, err := a.assetRepository.BatchUpdateByPath(ws, newAssets)
+	matchedAssetsIndex, filteredAssetsIndex, err := a.queryIndex(ws, newAssets, queries, true)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to update assets by ID: %w", err)
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+
+	if err := assetsvc.Update(newAssets, assets); err != nil {
+		return nil, nil, nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+	matchedNewAssets := assetsvc.FilterByIndex(newAssets, matchedAssetsIndex)
+	matchedNewAssets = assetsvc.FilterNil(matchedNewAssets)
+	filteredNewAssets := assetsvc.FilterByIndex(assets, filteredAssetsIndex)
+
+	updatedAssets, skippedAssets2, err := a.assetRepository.BatchUpdateByPath(ws, matchedNewAssets)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to update assets by ID: %w", err)
 	}
 	skippedAssets = append(skippedAssets, skippedAssets2...)
-	return
+	return updatedAssets, filteredNewAssets, skippedAssets, nil
 }
 
 func (a *Asset) AddAssetFromImagePathListIfDoesNotExist(ws model.WSName, filePathList []string) ([]model.AssetID, error) {

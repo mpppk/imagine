@@ -34,7 +34,7 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 			}
 
 			// FIXME: capacity
-			if err := usecases.Asset.AddOrMergeImportAssetsFromReader(conf.WorkSpace, cmd.InOrStdin(), 10000); err != nil {
+			if err := usecases.Asset.SaveImportAssetsFromReader(conf.WorkSpace, cmd.InOrStdin(), 10000, conf.Queries); err != nil {
 				return fmt.Errorf("failed to import asset from reader: %w", err)
 			}
 
@@ -50,6 +50,12 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 					Usage: "If the asset with the specified ID does not exist, create a new one",
 				},
 				Value: false,
+			},
+			&option.StringFlag{
+				BaseFlag: &option.BaseFlag{
+					Name:  "query",
+					Usage: "Only assets that match query will be updated",
+				},
 			},
 		}
 		return option.RegisterFlags(cmd, flags)

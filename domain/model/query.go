@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"log"
 	"strings"
 )
@@ -15,9 +16,28 @@ const (
 	PathEqualsQueryOP QueryOP = "path-equals"
 )
 
+var ops = []QueryOP{EqualsQueryOP, NotEqualsQueryOP, StartWithQueryOP, NoTagsQueryOP, PathEqualsQueryOP}
+
 type Query struct {
 	Op    QueryOP `json:"op"`
 	Value string  `json:"value"`
+}
+
+func toQueryOP(opStr string) (QueryOP, bool) {
+	for _, op := range ops {
+		if string(op) == opStr {
+			return op, true
+		}
+	}
+	return "", false
+}
+
+func NewQuery(opStr, value string) (*Query, error) {
+	op, ok := toQueryOP(opStr)
+	if !ok {
+		return nil, fmt.Errorf("failed to create query. invalid query opStr is provided: %s", opStr)
+	}
+	return &Query{Op: op, Value: value}, nil
 }
 
 func (q *Query) Match(asset *Asset, tagSet *TagSet) bool {
@@ -42,7 +62,7 @@ func (q *Query) Match(asset *Asset, tagSet *TagSet) bool {
 	case NoTagsQueryOP:
 		return len(asset.BoundingBoxes) == 0
 	case PathEqualsQueryOP:
-		return true // FIXME
+		return asset != nil && asset.Path == q.Value
 	default:
 		log.Printf("warning: unknown query op is given: %s", q.Op)
 		return false

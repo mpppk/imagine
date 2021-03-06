@@ -63,6 +63,14 @@ type ImportBoundingBox struct {
 	TagName      string `json:"tagName"`
 }
 
+func NewImportBoundingBoxFromTagID(tagID TagID) *ImportBoundingBox {
+	return &ImportBoundingBox{
+		BoundingBox: &BoundingBox{
+			TagID: tagID,
+		},
+	}
+}
+
 func (b *ImportBoundingBox) Validate(tagSet *TagSet) error {
 	if !b.HasTagName() && !b.HasTagID() {
 		return fmt.Errorf("bouding box's tag name and tag id are empty")
@@ -96,6 +104,16 @@ func (b *ImportBoundingBox) HasTagName() bool {
 }
 
 type AssetID uint64
+
+func NewAssetID(id int) (AssetID, error) {
+	if id < 0 {
+		return 0, fmt.Errorf("negative number can not be AssetID: %d", id)
+	}
+	if id == 0 {
+		return 0, fmt.Errorf("zero can not be AssetID")
+	}
+	return AssetID(id), nil
+}
 
 func AssetIDListToUint64List(assetIDList []AssetID) (idList []uint64) {
 	for _, id := range assetIDList {
@@ -186,11 +204,23 @@ func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 	return false
 }
 
-// Merge merge the itself and argument asset properties. This is destructive method.
-// If receiver or arg asset is nil, Merge method do nothing.
-func (a *Asset) Merge(asset *Asset) {
+func (a *Asset) CanBeUpdatedBy(asset *Asset) (ok bool, reason string) {
+	if asset.HasID() && a.ID != asset.ID {
+		return false, fmt.Sprintf("IDs are different(%d, %d)", a.ID, asset.ID)
+	}
+	return true, ""
+}
+
+// UpdateBy merge the itself and argument asset properties. This is destructive method.
+// If receiver or arg asset is nil, UpdateBy method do nothing.
+func (a *Asset) UpdateBy(asset *Asset) error {
+	errMsg := "failed to update asset"
 	if a == nil || asset == nil {
-		return
+		return nil
+	}
+
+	if ok, reason := a.CanBeUpdatedBy(asset); !ok {
+		return fmt.Errorf("%s: %s", errMsg, reason)
 	}
 
 	if asset.HasPath() {
@@ -205,6 +235,7 @@ func (a *Asset) Merge(asset *Asset) {
 			a.BoundingBoxes = (BoundingBoxes)(a.BoundingBoxes).Merge(asset.BoundingBoxes)
 		}
 	}
+	return nil
 }
 
 func (a *Asset) ToJson() (string, error) {
@@ -244,6 +275,15 @@ type ImportAsset struct {
 	BoundingBoxes []*ImportBoundingBox `json:"boundingBoxes"`
 }
 
+func NewImportAsset(id AssetID, path string, boxes []*ImportBoundingBox) *ImportAsset {
+	a := NewImportAssetFromFilePath(path)
+	if id != 0 {
+		a.ID = id
+	}
+	a.BoundingBoxes = boxes
+	return a
+}
+
 func NewImportAssetFromJson(contents []byte) (*ImportAsset, error) {
 	var asset ImportAsset
 	if err := json.Unmarshal(contents, &asset); err != nil {
@@ -273,6 +313,10 @@ func (a *ImportAsset) Validate(tagSet *TagSet) error {
 
 func (a *ImportAsset) ToAsset(tagSet *TagSet) (*Asset, error) {
 	var boxes []*BoundingBox
+
+	if a.Asset.BoundingBoxes != nil {
+		return nil, fmt.Errorf("failed to convert import asset to asset. import asset should not have bounding box, instead use import bounding box: %#v", a.Asset.BoundingBoxes)
+	}
 
 	for _, box := range a.BoundingBoxes {
 		newBox := box.BoundingBox

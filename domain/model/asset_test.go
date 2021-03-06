@@ -96,10 +96,11 @@ func TestAssetMerge(t *testing.T) {
 		asset *model.Asset
 	}
 	tests := []struct {
-		name  string
-		args  args
-		asset *model.Asset
-		want  *model.Asset
+		name    string
+		args    args
+		asset   *model.Asset
+		want    *model.Asset
+		wantErr bool
 	}{
 		{
 			name:  "do nothing if arg asset is nil",
@@ -114,6 +115,14 @@ func TestAssetMerge(t *testing.T) {
 			asset: &model.Asset{ID: 1, Name: "path1", Path: "path1"},
 			args: args{
 				asset: &model.Asset{ID: 1, Path: "path2"},
+			},
+			want: &model.Asset{ID: 1, Name: "path2", Path: "path2"},
+		},
+		{
+			name:  "update path even if arg asset does not have ID",
+			asset: &model.Asset{ID: 1, Name: "path1", Path: "path1"},
+			args: args{
+				asset: &model.Asset{Path: "path2"},
 			},
 			want: &model.Asset{ID: 1, Name: "path2", Path: "path2"},
 		},
@@ -141,12 +150,25 @@ func TestAssetMerge(t *testing.T) {
 			},
 			want: &model.Asset{ID: 1, Name: "path2", Path: "path2", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
 		},
+		{
+			name:  "fail if IDs are different",
+			asset: &model.Asset{ID: 1, Name: "path1", Path: "path1", BoundingBoxes: []*model.BoundingBox{{TagID: 1}}},
+			args: args{
+				asset: &model.Asset{ID: 2, Path: "path2"},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tt.asset.Merge(tt.args.asset)
+			if err := tt.asset.UpdateBy(tt.args.asset); (err != nil) != tt.wantErr {
+				t.Errorf("Asset.Merge: want error: %v, got: %v", tt.wantErr, err)
+			}
+			if tt.wantErr {
+				return
+			}
 			testutil.Diff(t, tt.want, tt.asset)
 		})
 	}
