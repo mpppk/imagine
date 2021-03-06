@@ -11,6 +11,7 @@ import (
 	"github.com/mpppk/imagine/infra"
 	"github.com/mpppk/imagine/infra/queryimpl"
 	"github.com/mpppk/imagine/infra/repoimpl"
+	"github.com/mpppk/imagine/usecase"
 	"github.com/mpppk/imagine/usecase/interactor"
 	"go.etcd.io/bbolt"
 )
@@ -22,22 +23,22 @@ func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	tag := repoimpl.NewBBoltTag(b)
 	queryTag := queryimpl.NewBBoltTag(b)
 	clientTag := client.NewTag(tag, queryTag)
-	interactorAsset := interactor.NewAsset(asset, clientTag)
+	usecaseAsset := interactor.NewAsset(asset, clientTag)
 	interactorTag := interactor.NewTag(clientTag)
 	workSpace := repoimpl.NewBBoltWorkSpace(b)
 	meta := repoimpl.NewBoltMeta(b)
 	clientClient := client.New(asset, clientTag, workSpace, meta)
-	handlerCreator := action.NewHandlerCreator(interactorAsset, interactorTag, clientClient, b)
+	handlerCreator := action.NewHandlerCreator(usecaseAsset, interactorTag, clientClient, b)
 	return handlerCreator
 }
 
-func InitializeAssetUseCase(b *bbolt.DB) *interactor.Asset {
+func InitializeAssetUseCase(b *bbolt.DB) usecase.Asset {
 	asset := repoimpl.NewBBoltAsset(b)
 	tag := repoimpl.NewBBoltTag(b)
 	queryTag := queryimpl.NewBBoltTag(b)
 	clientTag := client.NewTag(tag, queryTag)
-	interactorAsset := interactor.NewAsset(asset, clientTag)
-	return interactorAsset
+	usecaseAsset := interactor.NewAsset(asset, clientTag)
+	return usecaseAsset
 }
 
 func InitializeTagUseCase(b *bbolt.DB) *interactor.Tag {

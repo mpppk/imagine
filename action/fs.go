@@ -9,9 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mpppk/imagine/usecase/interactor"
-
 	"github.com/mpppk/imagine/infra"
+	"github.com/mpppk/imagine/usecase"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -119,7 +118,7 @@ func (f *fsActionCreator) baseDirSelect(wsName model.WSName, basePath string) *f
 }
 
 type fsScanHandler struct {
-	assetUseCase *interactor.Asset
+	assetUseCase usecase.Asset
 	action       *fsActionCreator
 	scanning     bool
 }
@@ -203,7 +202,7 @@ func (f *fsScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 }
 
 type fsServeHandler struct {
-	assetUseCase *interactor.Asset
+	assetUseCase usecase.Asset
 	action       *fsActionCreator
 	server       *http.Server
 }
@@ -238,7 +237,7 @@ func (f *fsServeHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 }
 
 type fsBaseDirDialogHandler struct {
-	assetUseCase *interactor.Asset
+	assetUseCase usecase.Asset
 	action       *fsActionCreator
 }
 
@@ -265,11 +264,11 @@ func (f *fsBaseDirDialogHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) e
 }
 
 type fsHandlerCreator struct {
-	assetUseCase *interactor.Asset
+	assetUseCase usecase.Asset
 	action       *fsActionCreator
 }
 
-func newFSHandlerCreator(assetUseCase *interactor.Asset) *fsHandlerCreator {
+func newFSHandlerCreator(assetUseCase usecase.Asset) *fsHandlerCreator {
 	return &fsHandlerCreator{
 		assetUseCase: assetUseCase,
 		action:       &fsActionCreator{},

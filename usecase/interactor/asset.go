@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mpppk/imagine/usecase"
+
 	"github.com/mpppk/imagine/domain/client"
 	"github.com/mpppk/imagine/domain/query"
 	"github.com/mpppk/imagine/domain/service/assetsvc"
@@ -26,7 +28,7 @@ type Asset struct {
 	tagQuery        query.Tag
 }
 
-func NewAsset(assetRepository repository.Asset, tag *client.Tag) *Asset {
+func NewAsset(assetRepository repository.Asset, tag *client.Tag) usecase.Asset {
 	return &Asset{
 		assetRepository: assetRepository,
 		tagRepository:   tag.TagRepository,

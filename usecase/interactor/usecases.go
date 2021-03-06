@@ -3,6 +3,8 @@ package interactor
 import (
 	"fmt"
 
+	"github.com/mpppk/imagine/usecase"
+
 	"github.com/mpppk/imagine/domain/client"
 
 	"github.com/mpppk/imagine/domain/model"
@@ -10,7 +12,7 @@ import (
 )
 
 type UseCases struct {
-	Asset     *Asset
+	Asset     usecase.Asset
 	Tag       *Tag
 	Migration *Migration
 	Client    *client.Client

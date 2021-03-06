@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/mpppk/imagine/domain/client"
+	"github.com/mpppk/imagine/usecase"
 
 	"github.com/mpppk/imagine/usecase/interactor"
 
@@ -84,10 +85,10 @@ func newClient(t *testing.T, c *client.Client) *Client {
 
 type Asset struct {
 	t     *testing.T
-	asset *interactor.Asset
+	asset usecase.Asset
 }
 
-func newAsset(t *testing.T, asset *interactor.Asset) *Asset {
+func newAsset(t *testing.T, asset usecase.Asset) *Asset {
 	return &Asset{
 		t:     t,
 		asset: asset,
