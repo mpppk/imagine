@@ -3,9 +3,8 @@ package action
 import (
 	"fmt"
 
-	"github.com/mpppk/imagine/usecase/interactor"
-
 	"github.com/mpppk/imagine/domain/model"
+	"github.com/mpppk/imagine/usecase"
 
 	"github.com/mitchellh/mapstructure"
 	fsa "github.com/mpppk/lorca-fsa"
@@ -108,7 +107,7 @@ func (a *boxActionCreator) delete(name model.WSName, assetID model.AssetID, boxI
 }
 
 type boxAssignRequestHandler struct {
-	assetUseCase     *interactor.Asset
+	assetUseCase     usecase.Asset
 	boxActionCreator *boxActionCreator
 }
 
@@ -125,7 +124,7 @@ func (d *boxAssignRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) 
 }
 
 type boxUnAssignRequestHandler struct {
-	assetUseCase     *interactor.Asset
+	assetUseCase     usecase.Asset
 	boxActionCreator *boxActionCreator
 }
 
@@ -143,7 +142,7 @@ func (d *boxUnAssignRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch
 }
 
 type boxModifyRequestHandler struct {
-	assetUseCase     *interactor.Asset
+	assetUseCase     usecase.Asset
 	boxActionCreator *boxActionCreator
 }
 
@@ -161,7 +160,7 @@ func (d *boxModifyRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) 
 }
 
 type boxDeleteRequestHandler struct {
-	assetUseCase     *interactor.Asset
+	assetUseCase     usecase.Asset
 	boxActionCreator *boxActionCreator
 }
 
@@ -178,12 +177,12 @@ func (d *boxDeleteRequestHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) 
 }
 
 type boxHandlerCreator struct {
-	assetUseCase     *interactor.Asset
+	assetUseCase     usecase.Asset
 	boxActionCreator *boxActionCreator
 }
 
 func newBoxHandlerCreator(
-	assetUseCase *interactor.Asset,
+	assetUseCase usecase.Asset,
 ) *boxHandlerCreator {
 	return &boxHandlerCreator{
 		assetUseCase:     assetUseCase,

@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mpppk/imagine/usecase/interactor"
-
 	"github.com/mpppk/imagine/domain/model"
+	"github.com/mpppk/imagine/usecase"
 
 	"github.com/mitchellh/mapstructure"
 	fsa "github.com/mpppk/lorca-fsa"
@@ -64,7 +63,7 @@ type assetScanHandler struct {
 	c                  <-chan *model.Asset
 	cnt                int
 	queryCancel        context.CancelFunc
-	assetUseCase       *interactor.Asset
+	assetUseCase       usecase.Asset
 	assetActionCreator *assetActionCreator
 }
 
@@ -106,12 +105,12 @@ func (d *assetScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 }
 
 type assetHandlerCreator struct {
-	assetUseCase       *interactor.Asset
+	assetUseCase       usecase.Asset
 	assetActionCreator *assetActionCreator
 }
 
 func newAssetHandlerCreator(
-	assetUseCase *interactor.Asset,
+	assetUseCase usecase.Asset,
 ) *assetHandlerCreator {
 	return &assetHandlerCreator{
 		assetUseCase:       assetUseCase,

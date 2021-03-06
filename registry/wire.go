@@ -9,6 +9,7 @@ import (
 	"github.com/mpppk/imagine/infra"
 	"github.com/mpppk/imagine/infra/queryimpl"
 	"github.com/mpppk/imagine/infra/repoimpl"
+	"github.com/mpppk/imagine/usecase"
 	"github.com/mpppk/imagine/usecase/interactor"
 	"go.etcd.io/bbolt"
 )
@@ -34,7 +35,7 @@ func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	return nil
 }
 
-func InitializeAssetUseCase(b *bbolt.DB) *interactor.Asset {
+func InitializeAssetUseCase(b *bbolt.DB) usecase.Asset {
 	wire.Build(
 		client.NewTag,
 		interactor.NewAsset,
