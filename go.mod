@@ -3,7 +3,7 @@ module github.com/mpppk/imagine
 go 1.16
 
 require (
-	github.com/blang/semver v3.5.1+incompatible
+	github.com/blang/semver v3.8.0+incompatible
 	github.com/blang/semver/v4 v4.0.0
 	github.com/briandowns/spinner v1.12.0
 	github.com/comail/colog v0.0.0-20160416085026-fba8e7b1f46c
