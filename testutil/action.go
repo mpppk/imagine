@@ -7,13 +7,12 @@ import (
 )
 
 type mockDispatcher struct {
-	t           *testing.T
-	wantActions []*fsa.Action
-	gotActions  []*fsa.Action
+	t          *testing.T
+	gotActions []*fsa.Action
 }
 
-func NewMockDispatcher(t *testing.T, expectedActions []*fsa.Action) *mockDispatcher {
-	return &mockDispatcher{t: t, wantActions: expectedActions}
+func NewMockDispatcher(t *testing.T) *mockDispatcher {
+	return &mockDispatcher{t: t}
 }
 
 func (m *mockDispatcher) Dispatch(action *fsa.Action) error {
@@ -21,7 +20,17 @@ func (m *mockDispatcher) Dispatch(action *fsa.Action) error {
 	return nil
 }
 
-func (m *mockDispatcher) Finish() {
+func (m *mockDispatcher) Test(wantActions []*fsa.Action) {
 	m.t.Helper()
-	Diff(m.t, m.wantActions, m.gotActions)
+	Diff(m.t, wantActions, m.gotActions)
+}
+
+func (m *mockDispatcher) Clean() {
+	m.t.Helper()
+	m.gotActions = nil
+}
+
+func (m *mockDispatcher) TestAndClean(wantActions []*fsa.Action) {
+	m.Test(wantActions)
+	m.Clean()
 }
