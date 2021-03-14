@@ -85,6 +85,7 @@ func (d *assetScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 			return err
 		}
 		d.c = c
+		d.cnt = 0
 	}
 
 	var ret []*model.Asset
@@ -98,10 +99,11 @@ func (d *assetScanHandler) Do(action *fsa.Action, dispatch fsa.Dispatch) error {
 
 	if len(ret) > 0 {
 		d.cnt += len(ret)
-		return dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret, d.cnt))
-	} else {
-		return dispatch(d.assetActionCreator.scanFinish(payload.WorkSpaceName, d.cnt))
+		if err := dispatch(d.assetActionCreator.scanRunning(payload.WorkSpaceName, ret, d.cnt)); err != nil {
+			return err
+		}
 	}
+	return dispatch(d.assetActionCreator.scanFinish(payload.WorkSpaceName, d.cnt))
 }
 
 type assetHandlerCreator struct {

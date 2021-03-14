@@ -31,6 +31,7 @@ func (m *mockDispatcher) Clean() {
 }
 
 func (m *mockDispatcher) TestAndClean(wantActions []*fsa.Action) {
+	m.t.Helper()
 	m.Test(wantActions)
 	m.Clean()
 }

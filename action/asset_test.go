@@ -21,6 +21,7 @@ func newAssetChannel(assets []*model.Asset) chan *model.Asset {
 	for _, asset := range assets {
 		c <- asset
 	}
+	close(c)
 	return c
 }
 
@@ -48,7 +49,7 @@ func Test_assetScanHandler_Do(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name: "",
+			name: "scan assets",
 			args: args{
 				&fsa.Action{
 					Type: "",
@@ -74,7 +75,34 @@ func Test_assetScanHandler_Do(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		// TODO: scanのcancel、queries、2回目のscanでcntが引き継がれているかなどをテスト
+		{
+			name: "scan assets but there are less than the required number",
+			args: args{
+				&fsa.Action{
+					Type: "",
+					Payload: &assetScanRequestPayload{
+						WsPayload:  WsPayload{"default-workspace"},
+						RequestNum: 3,
+						Queries:    nil,
+						Reset:      false,
+					},
+					Error: false,
+					Meta:  nil,
+				},
+			},
+			existAssets: []*model.Asset{
+				{ID: 1, Path: "path1", Name: "path1"},
+				{ID: 2, Path: "path2", Name: "path2"},
+			},
+			wantActions: []*fsa.Action{
+				assetAction.scanRunning("default-workspace", []*model.Asset{
+					{ID: 1, Path: "path1", Name: "path1"},
+					{ID: 2, Path: "path2", Name: "path2"},
+				}, 2),
+				assetAction.scanFinish("default-workspace", 2),
+			},
+			wantErr: false,
+		},
 		{
 			name: "",
 			args: args{
@@ -137,7 +165,7 @@ func Test_assetScanHandler_Do_Twice(t *testing.T) {
 		wantErr2     bool
 	}{
 		{
-			name: "",
+			name: "scan twice",
 			args1: args{
 				&fsa.Action{
 					Type: "",
@@ -181,7 +209,151 @@ func Test_assetScanHandler_Do_Twice(t *testing.T) {
 			wantErr1: false,
 			wantErr2: false,
 		},
-		// TODO: scanのcancel、queries、2回目のscanでcntが引き継がれているかなどをテスト
+		{
+			name: "scan twice but has no asset on second scan",
+			args1: args{
+				&fsa.Action{
+					Type: "",
+					Payload: &assetScanRequestPayload{
+						WsPayload:  WsPayload{"default-workspace"},
+						RequestNum: 2,
+						Queries:    nil,
+						Reset:      false,
+					},
+					Error: false,
+					Meta:  nil,
+				},
+			},
+			args2: args{
+				&fsa.Action{
+					Type: "",
+					Payload: &assetScanRequestPayload{
+						WsPayload:  WsPayload{"default-workspace"},
+						RequestNum: 2,
+						Queries:    nil,
+						Reset:      false,
+					},
+					Error: false,
+					Meta:  nil,
+				},
+			},
+			existAssets: []*model.Asset{
+				{ID: 1, Path: "path1", Name: "path1"},
+				{ID: 2, Path: "path2", Name: "path2"},
+			},
+			wantActions1: []*fsa.Action{
+				assetAction.scanRunning("default-workspace", []*model.Asset{
+					{ID: 1, Path: "path1", Name: "path1"},
+					{ID: 2, Path: "path2", Name: "path2"},
+				}, 2),
+			},
+			wantActions2: []*fsa.Action{
+				assetAction.scanFinish("default-workspace", 2),
+			},
+			wantErr1: false,
+			wantErr2: false,
+		},
+		{
+			// use case have query handling responsibility so this test only check that queries are passed to usecase
+			name: "scan twice with queries",
+			args1: args{
+				&fsa.Action{
+					Type: "",
+					Payload: &assetScanRequestPayload{
+						WsPayload:  WsPayload{"default-workspace"},
+						RequestNum: 1,
+						Queries: []*model.Query{
+							{
+								Op:    "start-with",
+								Value: "xxx-",
+							},
+						},
+						Reset: false,
+					},
+					Error: false,
+					Meta:  nil,
+				},
+			},
+			args2: args{
+				&fsa.Action{
+					Type: "",
+					Payload: &assetScanRequestPayload{
+						WsPayload:  WsPayload{"default-workspace"},
+						RequestNum: 1,
+						Queries: []*model.Query{
+							{
+								Op:    "start-with",
+								Value: "xxx-",
+							},
+						},
+						Reset: false,
+					},
+					Error: false,
+					Meta:  nil,
+				},
+			},
+			existAssets: []*model.Asset{
+				{ID: 1, Path: "xxx-path1", Name: "xxx-path1"},
+				{ID: 4, Path: "xxx-path4", Name: "xxx-path4"},
+			},
+			wantActions1: []*fsa.Action{
+				assetAction.scanRunning("default-workspace", []*model.Asset{
+					{ID: 1, Path: "xxx-path1", Name: "xxx-path1"},
+				}, 1),
+			},
+			wantActions2: []*fsa.Action{
+				assetAction.scanRunning("default-workspace", []*model.Asset{
+					{ID: 4, Path: "xxx-path4", Name: "xxx-path4"},
+				}, 2),
+			},
+			wantErr1: false,
+			wantErr2: false,
+		},
+		{
+			name: "reset scan",
+			args1: args{
+				&fsa.Action{
+					Type: "",
+					Payload: &assetScanRequestPayload{
+						WsPayload:  WsPayload{"default-workspace"},
+						RequestNum: 1,
+						Queries:    nil,
+						Reset:      false,
+					},
+					Error: false,
+					Meta:  nil,
+				},
+			},
+			args2: args{
+				&fsa.Action{
+					Type: "",
+					Payload: &assetScanRequestPayload{
+						WsPayload:  WsPayload{"default-workspace"},
+						RequestNum: 1,
+						Queries:    nil,
+						Reset:      true,
+					},
+					Error: false,
+					Meta:  nil,
+				},
+			},
+			existAssets: []*model.Asset{
+				{ID: 1, Path: "path1", Name: "path1"},
+				{ID: 2, Path: "path2", Name: "path2"},
+			},
+			wantActions1: []*fsa.Action{
+				assetAction.scanRunning("default-workspace", []*model.Asset{
+					{ID: 1, Path: "path1", Name: "path1"},
+				}, 1),
+			},
+			wantActions2: []*fsa.Action{
+				assetAction.scanRunning("default-workspace", []*model.Asset{
+					{ID: 1, Path: "path1", Name: "path1"},
+				}, 1),
+			},
+			wantErr1: false,
+			wantErr2: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
