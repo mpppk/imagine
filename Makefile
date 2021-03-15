@@ -2,9 +2,9 @@ SHELL = /bin/bash
 
 .PHONY: setup
 setup:
-	go get github.com/google/wire/cmd/wire
-	go get github.com/goreleaser/goreleaser
-	go get github.com/golang/mock/mockgen@v1.4.4
+	go install github.com/google/wire/cmd/wire
+	go install github.com/goreleaser/goreleaser
+	go install github.com/golang/mock/mockgen@v1.4.4
 
 .PHONY: clean
 clean:
