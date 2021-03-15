@@ -7,7 +7,6 @@ imagine
 *.db
 mock_*.go
 static/out
-statik
 db/
 
 # for GitHub Actions
