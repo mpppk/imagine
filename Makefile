@@ -4,13 +4,11 @@ SHELL = /bin/bash
 setup:
 	go get github.com/google/wire/cmd/wire
 	go get github.com/goreleaser/goreleaser
-	go get github.com/rakyll/statik
 	go get github.com/golang/mock/mockgen@v1.4.4
 
 .PHONY: clean
 clean:
 	rm -rf static/out
-	rm -rf statik
 	rm -f imagine
 
 .PHONY: lint
@@ -50,7 +48,6 @@ go-generate: wire
 .PHONY: generate
 generate: go-generate
 	yarn --cwd static export
-	statik -f -src static/out
 
 .PHONY: build
 build: test

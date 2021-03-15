@@ -8,6 +8,7 @@ require (
 	github.com/briandowns/spinner v1.12.0
 	github.com/comail/colog v0.0.0-20160416085026-fba8e7b1f46c
 	github.com/fatih/color v1.10.0 // indirect
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gen2brain/dlgs v0.0.0-20210222160047-2f436553172f
 	github.com/golang/mock v1.4.4
 	github.com/google/go-cmp v0.5.5
@@ -19,10 +20,8 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/mpppk/lorca-fsa v0.2.0
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
-	github.com/onsi/ginkgo v1.14.1 // indirect
 	github.com/onsi/gomega v1.10.2 // indirect
 	github.com/pelletier/go-toml v1.8.1 // indirect
-	github.com/rakyll/statik v0.1.7
 	github.com/rhysd/go-github-selfupdate v1.2.3
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cast v1.3.1 // indirect
