@@ -189,6 +189,50 @@ func TestQuery_Match(t *testing.T) {
 				},
 				tagSet: model.NewTagSet([]*model.Tag{
 					testutil.MustNewTag(1, "tag1", 0),
+					testutil.MustNewTag(2, "tag2xxx", 1),
+				}),
+			},
+			want: false,
+		},
+		{
+			name: "not-start-with op match if asset does not have tag which have name started with specified value",
+			query: &model.Query{
+				Op:    model.NotStartWithQueryOP,
+				Value: "tag1",
+			},
+			args: args{
+				asset: &model.Asset{
+					ID:   1,
+					Name: "path1",
+					Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1},
+					},
+				},
+				tagSet: model.NewTagSet([]*model.Tag{
+					testutil.MustNewTag(1, "xxxtag1", 0),
+					testutil.MustNewTag(2, "tag2xxx", 1),
+				}),
+			},
+			want: true,
+		},
+		{
+			name: "start-with op does not match if asset have tag matched prefix",
+			query: &model.Query{
+				Op:    model.NotStartWithQueryOP,
+				Value: "tag1",
+			},
+			args: args{
+				asset: &model.Asset{
+					ID:   1,
+					Name: "path1",
+					Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1},
+					},
+				},
+				tagSet: model.NewTagSet([]*model.Tag{
+					testutil.MustNewTag(1, "tag1xxx", 0),
 					testutil.MustNewTag(2, "tag2", 1),
 				}),
 			},

@@ -67,8 +67,7 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
-			dispatcher := newMockDispatcher(t1, tt.wantActions)
-			defer dispatcher.Finish()
+			dispatcher := testutil.NewMockDispatcher(t1)
 			ctrl := gomock.NewController(t1)
 			tagUseCase := mock_usecase.NewMockTag(ctrl)
 			var setTagsRet []*model.Tag = nil
@@ -90,6 +89,7 @@ func Test_tagSaveHandler_Do(t1 *testing.T) {
 			if err := t.Do(action, dispatcher.Dispatch); (err != nil) != tt.wantErr {
 				t1.Errorf("Do() error = %v, wantErr %v", err, tt.wantErr)
 			}
+			dispatcher.Test(tt.wantActions)
 		})
 	}
 }

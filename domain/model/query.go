@@ -9,14 +9,15 @@ import (
 type QueryOP string
 
 const (
-	EqualsQueryOP     QueryOP = "equals"
-	NotEqualsQueryOP  QueryOP = "not-equals"
-	StartWithQueryOP  QueryOP = "start-with"
-	NoTagsQueryOP     QueryOP = "no-tags"
-	PathEqualsQueryOP QueryOP = "path-equals"
+	EqualsQueryOP       QueryOP = "equals"
+	NotEqualsQueryOP    QueryOP = "not-equals"
+	StartWithQueryOP    QueryOP = "start-with"
+	NotStartWithQueryOP QueryOP = "not-start-with"
+	NoTagsQueryOP       QueryOP = "no-tags"
+	PathEqualsQueryOP   QueryOP = "path-equals"
 )
 
-var ops = []QueryOP{EqualsQueryOP, NotEqualsQueryOP, StartWithQueryOP, NoTagsQueryOP, PathEqualsQueryOP}
+var ops = []QueryOP{EqualsQueryOP, NotEqualsQueryOP, StartWithQueryOP, NotStartWithQueryOP, NoTagsQueryOP, PathEqualsQueryOP}
 
 type Query struct {
 	Op    QueryOP `json:"op"`
@@ -57,6 +58,11 @@ func (q *Query) Match(asset *Asset, tagSet *TagSet) bool {
 	case StartWithQueryOP:
 		f := func(tag *Tag) bool {
 			return strings.HasPrefix(tag.Name, q.Value)
+		}
+		return asset.HasAnyOneOfTagID(tagSet.SubSetBy(f))
+	case NotStartWithQueryOP:
+		f := func(tag *Tag) bool {
+			return !strings.HasPrefix(tag.Name, q.Value)
 		}
 		return asset.HasAnyOneOfTagID(tagSet.SubSetBy(f))
 	case NoTagsQueryOP:
