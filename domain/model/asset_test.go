@@ -262,3 +262,50 @@ func TestNewImportAssetFromJson(t *testing.T) {
 		})
 	}
 }
+
+func TestAsset_IsAddable(t *testing.T) {
+	tests := []struct {
+		name  string
+		asset *model.Asset
+		want  bool
+	}{
+		{
+			name: "addable",
+			asset: &model.Asset{
+				ID:   0,
+				Name: "path1",
+				Path: "path1",
+			},
+			want: true,
+		},
+		{
+			name:  "not addable because asset is nil",
+			asset: nil,
+			want:  false,
+		},
+		{
+			name: "not addable because ID is not zero",
+			asset: &model.Asset{
+				ID:   1,
+				Name: "path1",
+				Path: "path1",
+			},
+			want: false,
+		},
+		{
+			name: "not addable because Path is empty",
+			asset: &model.Asset{
+				ID:   0,
+				Name: "path1",
+				Path: "",
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, _ := tt.asset.IsAddable()
+			testutil.Diff(t, tt.want, got)
+		})
+	}
+}

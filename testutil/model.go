@@ -35,3 +35,11 @@ func MustNewUnregisteredTag(name string, index int) *model.UnregisteredTag {
 	PanicIfErrExist(err)
 	return tag
 }
+
+// ReadAllAssetsFromCh read all assets from channel
+func ReadAllAssetsFromCh(ch <-chan *model.Asset) (assets []*model.Asset) {
+	for asset := range ch {
+		assets = append(assets, asset)
+	}
+	return
+}

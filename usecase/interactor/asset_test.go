@@ -1,6 +1,7 @@
 package interactor_test
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -604,6 +605,119 @@ func TestAsset_SaveImportAssets(t *testing.T) {
 
 			assets := ut.Client.Asset.List(tt.args.ws)
 			testutil.Diff(t, tt.wantAssets, assets)
+		})
+	}
+}
+
+func TestAsset_ListAsyncByQueries(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		ws      model.WSName
+		queries []*model.Query
+	}
+	tests := []struct {
+		name          string
+		args          args
+		existAssets   []*model.Asset
+		existTagNames []string
+		wantAssets    []*model.Asset
+		wantErr       bool
+	}{
+		{
+			name: "list",
+			args: args{
+				ctx:     context.Background(),
+				ws:      "default-workspace",
+				queries: []*model.Query{},
+			},
+			existAssets: []*model.Asset{
+				model.NewAssetFromFilePath("path1"),
+				model.NewAssetFromFilePath("path2"),
+			},
+			existTagNames: []string{"tag1", "tag2"},
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1", Path: "path1"},
+				{ID: 2, Name: "path2", Path: "path2"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "list with equals query",
+			args: args{
+				ctx:     context.Background(),
+				ws:      "default-workspace",
+				queries: []*model.Query{{Op: "equals", Value: "tag1"}},
+			},
+			existAssets: []*model.Asset{
+				{Path: "path1", Name: "path1", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 2}, {TagID: 3},
+				}},
+				{Path: "path2", Name: "path2", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 2}, {TagID: 3},
+				}},
+			},
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			wantAssets: []*model.Asset{
+				{ID: 1, Path: "path1", Name: "path1", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 2}, {TagID: 3},
+				}},
+			},
+			wantErr: false,
+		},
+		{
+			name: "list with not-start-with query",
+			args: args{
+				ctx:     context.Background(),
+				ws:      "default-workspace",
+				queries: []*model.Query{{Op: "not-start-with", Value: "tag1"}},
+			},
+			existAssets: []*model.Asset{
+				{Path: "path1", Name: "path1", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 2}, {TagID: 3},
+				}},
+				{Path: "path2", Name: "path2", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 2}, {TagID: 3},
+				}},
+				{Path: "path3", Name: "path3", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 3},
+				}},
+				{Path: "path4", Name: "path4", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 2},
+				}},
+			},
+			existTagNames: []string{"tag1", "tag11", "tag2"},
+			wantAssets: []*model.Asset{
+				// path1 and path2 should match because they have tag which not start with "tag1"(in other words, "tag2")
+				{ID: 1, Path: "path1", Name: "path1", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 2}, {TagID: 3},
+				}},
+				{ID: 2, Path: "path2", Name: "path2", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 2}, {TagID: 3},
+				}},
+				{ID: 3, Path: "path3", Name: "path3", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 3},
+				}},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Tag.SetTagByNames(tt.args.ws, tt.existTagNames)
+			ut.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
+
+			assetCh, err := ut.Usecases.Asset.ListAsyncByQueries(tt.args.ctx, tt.args.ws, tt.args.queries)
+			gotAssets := testutil.ReadAllAssetsFromCh(assetCh)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListAsyncByQueries() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			} else if tt.wantErr {
+				return
+			}
+
+			testutil.Diff(t, tt.wantAssets, gotAssets)
 		})
 	}
 }

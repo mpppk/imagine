@@ -79,8 +79,8 @@ func (b *BBoltAsset) BatchAdd(ws model.WSName, assets []*model.Asset) ([]model.A
 	var dataList []blt.BoltData
 	var paths []string
 	for _, asset := range assets {
-		if !asset.IsAddable() {
-			return nil, fmt.Errorf("failed to add asset because it is not addable. asset:%#v", asset)
+		if ok, reason := asset.IsAddable(); !ok {
+			return nil, fmt.Errorf("failed to add asset because it is not addable. reason: %v. asset:%#v", reason, asset)
 		}
 
 		dataList = append(dataList, asset)

@@ -189,7 +189,7 @@ func TestQuery_Match(t *testing.T) {
 				},
 				tagSet: model.NewTagSet([]*model.Tag{
 					testutil.MustNewTag(1, "tag1", 0),
-					testutil.MustNewTag(2, "tag2", 1),
+					testutil.MustNewTag(2, "tag2xxx", 1),
 				}),
 			},
 			want: false,
