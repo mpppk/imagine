@@ -99,6 +99,20 @@ func (b *BBoltBaseTag) ListBy(ws model.WSName, f func(tag *model.Tag) bool) (ass
 	return
 }
 
+// ListByQueries list tags by queries
+func (b *BBoltBaseTag) ListByQueries(ws model.WSName, queries []*model.Query) (tags []*model.Tag, err error) {
+	errMsg := "failed to list tags by queries"
+	tagSet, err := b.ListAsSet(ws)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+	tags = tagSet.ToTags()
+	for _, q := range queries {
+		tags = q.ListMatchedTags(tags)
+	}
+	return
+}
+
 func (b *BBoltBaseTag) ListAsSet(ws model.WSName) (set *model.TagSet, err error) {
 	tags, err := b.ListAll(ws)
 	if err != nil {
