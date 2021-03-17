@@ -1,7 +1,6 @@
 package cmd_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/mpppk/imagine/usecase/usecasetest"
@@ -128,10 +127,6 @@ func TestAssetUpdate(t *testing.T) {
 			u.Use(func(usecases *usecasetest.UseCases) {
 				usecases.Tag.SetTagByNames(c.wsName, c.existTagNames)
 				usecases.Asset.SaveImportAssets(c.wsName, c.existAssets, nil)
-				for _, asset := range usecases.Client.Asset.List(c.wsName) {
-					fmt.Printf("%#v\n", asset)
-
-				}
 			})
 
 			cmdWithFlag := c.command + " --db " + u.DBPath

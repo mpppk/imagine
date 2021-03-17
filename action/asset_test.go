@@ -368,12 +368,15 @@ func Test_assetScanHandler_Do_Twice(t *testing.T) {
 				gomock.Eq(payload1.Queries),
 			).Return(newAssetChannel(tt.existAssets), nil)
 
-			payload2 := decodeAssetScanRequestPayload(t, tt.args1.action.Payload)
-			assetUseCase.EXPECT().ListAsyncByQueries(
-				gomock.Any(),
-				gomock.Eq(payload2.WorkSpaceName),
-				gomock.Eq(payload2.Queries),
-			).Return(newAssetChannel(tt.existAssets), nil)
+			payload2 := decodeAssetScanRequestPayload(t, tt.args2.action.Payload)
+
+			if payload2.Reset {
+				assetUseCase.EXPECT().ListAsyncByQueries(
+					gomock.Any(),
+					gomock.Eq(payload2.WorkSpaceName),
+					gomock.Eq(payload2.Queries),
+				).Return(newAssetChannel(tt.existAssets), nil)
+			}
 
 			handler := newAssetHandlerCreator(assetUseCase).Scan()
 
