@@ -129,7 +129,7 @@ type Asset struct {
 	BoundingBoxes []*BoundingBox `json:"boundingBoxes"`
 }
 
-func NewAssetFromBytes(bytes []byte) (*Asset, error) {
+func NewAssetFromJson(bytes []byte) (*Asset, error) {
 	var asset Asset
 	if err := json.Unmarshal(bytes, &asset); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal asset: %w", err)
@@ -248,11 +248,16 @@ func (a *Asset) UpdateBy(asset *Asset) error {
 }
 
 func (a *Asset) ToJson() (string, error) {
+	b, err := a.ToJsonBytes()
+	return string(b), err
+}
+
+func (a *Asset) ToJsonBytes() ([]byte, error) {
 	contents, err := json.Marshal(a)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal asset to json: %w", err)
+		return nil, fmt.Errorf("failed to marshal asset to json: %w", err)
 	}
-	return string(contents), nil
+	return contents, nil
 }
 
 func (a *Asset) ToCSVRow(tagSet *TagSet) (string, error) {
