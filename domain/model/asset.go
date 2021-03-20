@@ -204,6 +204,25 @@ func (a *Asset) HasTag(tagID TagID) bool {
 	return false
 }
 
+// UnAssignTagByIndex un assign tag which have provided index
+func (a *Asset) UnAssignTagByIndex(index int) {
+	a.BoundingBoxes[index] = a.BoundingBoxes[len(a.BoundingBoxes)-1]
+	a.BoundingBoxes = a.BoundingBoxes[:len(a.BoundingBoxes)-1]
+}
+
+// UnAssignTagIfExist un assign tag which have provided tag ID.
+// This method returns true if tag is actually deleted.
+// If asset does not have tag which have provided ID, return false.
+func (a *Asset) UnAssignTagIfExist(tagID TagID) bool {
+	for i, box := range a.BoundingBoxes {
+		if box.TagID == tagID {
+			a.UnAssignTagByIndex(i)
+			return true
+		}
+	}
+	return false
+}
+
 func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 	for _, box := range a.BoundingBoxes {
 		if _, ok := tagSet.Get(box.TagID); ok {
