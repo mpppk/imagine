@@ -2,6 +2,7 @@ package repoimpl_test
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/mpppk/imagine/testutil"
@@ -586,4 +587,103 @@ func TestBBoltAsset_Map(t *testing.T) {
 			testutil.Diff(t, tt.wantAssets, assets)
 		})
 	}
+}
+
+func TestBBoltAsset_UnAssignTag(t *testing.T) {
+	type args struct {
+		ws    model.WSName
+		tagID model.TagID
+	}
+	tests := []struct {
+		name          string
+		args          args
+		existAssets   []*model.Asset
+		existTagNames []string
+		wantAssets    []*model.Asset
+		wantErr       bool
+	}{
+		{
+			name: "",
+			args: args{
+				ws:    "default-workspace",
+				tagID: 1,
+			},
+			existAssets: []*model.Asset{
+				{
+					Name: "path1",
+					Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1}, {TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					Name: "path2",
+					Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					Name: "path3",
+					Path: "path3",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1},
+					},
+				},
+			},
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			wantAssets: []*model.Asset{
+				{
+					ID:   1,
+					Name: "path1",
+					Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					ID:   2,
+					Name: "path2",
+					Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					ID:            3,
+					Name:          "path3",
+					Path:          "path3",
+					BoundingBoxes: []*model.BoundingBox{},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
+			ut.Tag.SetTagByNames(tt.args.ws, tt.existTagNames)
+
+			err := ut.Usecases.Client.Asset.UnAssignTag(tt.args.ws, tt.args.tagID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnAssignTag() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			} else if err != nil {
+				return
+			}
+
+			assets := ut.Client.Asset.List(tt.args.ws)
+			for _, asset := range assets {
+				sortBoundingBoxesByTagID(asset)
+			}
+			testutil.Diff(t, tt.wantAssets, assets)
+		})
+	}
+}
+
+func sortBoundingBoxesByTagID(asset *model.Asset) {
+	sort.Slice(asset.BoundingBoxes, func(i, j int) bool {
+		return asset.BoundingBoxes[i].TagID < asset.BoundingBoxes[j].TagID
+	})
 }

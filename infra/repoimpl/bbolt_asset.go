@@ -489,9 +489,14 @@ func toAssetIDList(idList []uint64) (assetIDList []model.AssetID) {
 
 // UnAssignTag unassign given tag from all assets.
 // return assets which have given tag.
-func (b *BBoltAsset) UnAssignTag(ws model.WSName, tagID model.TagID) ([]*model.Asset, error) {
-	// TODO: implement
-	return nil, nil
+func (b *BBoltAsset) UnAssignTag(ws model.WSName, tagID model.TagID) error {
+	f := func(asset *model.Asset) *model.Asset {
+		if unAssigned := asset.UnAssignTagIfExist(tagID); unAssigned {
+			return asset
+		}
+		return nil
+	}
+	return b.Map(ws, f)
 }
 
 // Map updates each asset by provided function.
