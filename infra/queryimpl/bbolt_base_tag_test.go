@@ -1,6 +1,7 @@
 package queryimpl_test
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/mpppk/imagine/testutil"
@@ -78,6 +79,9 @@ func TestBBoltTag_ListByQueries(t *testing.T) {
 			} else if tt.wantErr {
 				return
 			}
+			sort.Slice(gotTags, func(i, j int) bool {
+				return gotTags[i].ID < gotTags[j].ID
+			})
 			testutil.Diff(t, tt.wantTags, gotTags)
 		})
 	}

@@ -1,6 +1,8 @@
 package testutil
 
 import (
+	"sort"
+
 	"github.com/mpppk/imagine/domain/model"
 )
 
@@ -42,4 +44,16 @@ func ReadAllAssetsFromCh(ch <-chan *model.Asset) (assets []*model.Asset) {
 		assets = append(assets, asset)
 	}
 	return
+}
+
+func SortBoundingBoxesByTagID(asset *model.Asset) {
+	sort.Slice(asset.BoundingBoxes, func(i, j int) bool {
+		return asset.BoundingBoxes[i].TagID < asset.BoundingBoxes[j].TagID
+	})
+}
+
+func SortTagsByID(asset *model.Asset) {
+	sort.Slice(asset.BoundingBoxes, func(i, j int) bool {
+		return asset.BoundingBoxes[i].TagID < asset.BoundingBoxes[j].TagID
+	})
 }

@@ -21,7 +21,7 @@ type UseCases struct {
 func New(asset repository.Asset, tag *client.Tag, workspace repository.WorkSpace, meta repository.Meta) *UseCases {
 	return &UseCases{
 		Asset:     NewAsset(asset, tag),
-		Tag:       NewTag(tag),
+		Tag:       NewTag(tag, asset),
 		Migration: NewMigration(asset, meta),
 		Client:    client.New(asset, tag, workspace, meta),
 	}

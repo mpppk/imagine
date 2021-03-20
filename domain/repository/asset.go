@@ -38,7 +38,7 @@ type Asset interface {
 
 	// UnAssignTag unassign given tag from all assets.
 	// return assets which have given tag.
-	UnAssignTag(ws model.WSName, tagID model.TagID) error
+	UnAssignTags(ws model.WSName, tagIDList ...model.TagID) error
 
 	// Map updates each asset by provided function.
 	// If provided function returns nil, the asset will not be updated.
