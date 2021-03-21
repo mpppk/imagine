@@ -101,10 +101,27 @@ func RegisterFlags(cmd *cobra.Command, flags []Flag) error {
 	return nil
 }
 
+func BindFlagsToViper(cmd *cobra.Command, flags []Flag) error {
+	for _, flag := range flags {
+		if err := BindFlagToViper(cmd, flag); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func BindFlagToViper(cmd *cobra.Command, flag Flag) error {
+	baseFlag := flag.getBaseFlag()
+	flagSet := getFlagSet(cmd, baseFlag)
+	if err := viper.BindPFlag(baseFlag.getViperName(), flagSet.Lookup(baseFlag.Name)); err != nil {
+		return err
+	}
+	return nil
+}
+
 // RegisterFlag register flag to provided cmd and viper
 func RegisterFlag(cmd *cobra.Command, flag Flag) error {
 	baseFlag := flag.getBaseFlag()
-	flagSet := getFlagSet(cmd, baseFlag)
 
 	var rerr error
 	switch f := flag.(type) {
@@ -146,7 +163,7 @@ func RegisterFlag(cmd *cobra.Command, flag Flag) error {
 		return err
 	}
 
-	if err := viper.BindPFlag(baseFlag.getViperName(), flagSet.Lookup(baseFlag.Name)); err != nil {
+	if err := BindFlagToViper(cmd, flag); err != nil {
 		return err
 	}
 	return nil

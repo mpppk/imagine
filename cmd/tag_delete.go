@@ -13,9 +13,20 @@ import (
 )
 
 func newTagDeleteCmd(fs afero.Fs) (*cobra.Command, error) {
+	flags := []option.Flag{
+		&option.StringFlag{
+			BaseFlag: &option.BaseFlag{
+				Name:  "query",
+				Usage: "Only tags that match query will be deleted",
+			},
+		},
+	}
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "delete tags",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return option.BindFlagsToViper(cmd, flags)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			conf, err := option.NewTagDeleteCmdConfigFromViper(args)
 			if err != nil {
@@ -46,20 +57,7 @@ func newTagDeleteCmd(fs afero.Fs) (*cobra.Command, error) {
 			return nil
 		},
 	}
-
-	registerFlags := func(cmd *cobra.Command) error {
-		flags := []option.Flag{
-			&option.StringFlag{
-				BaseFlag: &option.BaseFlag{
-					Name:  "query",
-					Usage: "Only tags that match query will be deleted",
-				},
-			},
-		}
-		return option.RegisterFlags(cmd, flags)
-	}
-
-	if err := registerFlags(cmd); err != nil {
+	if err := option.RegisterFlags(cmd, flags); err != nil {
 		return nil, err
 	}
 	return cmd, nil

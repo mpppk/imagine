@@ -12,11 +12,29 @@ import (
 )
 
 func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
+	flags := []option.Flag{
+		&option.BoolFlag{
+			BaseFlag: &option.BaseFlag{
+				Name:  "new",
+				Usage: "If the asset with the specified ID does not exist, create a new one",
+			},
+			Value: false,
+		},
+		&option.StringFlag{
+			BaseFlag: &option.BaseFlag{
+				Name:  "query",
+				Usage: "Only assets that match query will be updated",
+			},
+		},
+	}
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "update assets",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return option.BindFlagsToViper(cmd, flags)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			conf, err := option.NewAssetAddCmdConfigFromViper(args)
+			conf, err := option.NewAssetUpdateCmdConfigFromViper()
 			if err != nil {
 				return err
 			}
@@ -42,26 +60,7 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 		},
 	}
 
-	registerFlags := func(cmd *cobra.Command) error {
-		flags := []option.Flag{
-			&option.BoolFlag{
-				BaseFlag: &option.BaseFlag{
-					Name:  "new",
-					Usage: "If the asset with the specified ID does not exist, create a new one",
-				},
-				Value: false,
-			},
-			&option.StringFlag{
-				BaseFlag: &option.BaseFlag{
-					Name:  "query",
-					Usage: "Only assets that match query will be updated",
-				},
-			},
-		}
-		return option.RegisterFlags(cmd, flags)
-	}
-
-	if err := registerFlags(cmd); err != nil {
+	if err := option.RegisterFlags(cmd, flags); err != nil {
 		return nil, err
 	}
 	return cmd, nil
