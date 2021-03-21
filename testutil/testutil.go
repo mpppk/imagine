@@ -17,6 +17,7 @@ import (
 )
 
 func ExecuteCommand(t *testing.T, cmd *cobra.Command, command, in string) string {
+	t.Helper()
 	if in != "" {
 		cmd.SetIn(strings.NewReader(in))
 	}

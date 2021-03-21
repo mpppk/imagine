@@ -205,7 +205,7 @@ func (b *BBoltAsset) ListByIDList(ws model.WSName, idList []model.AssetID) (asse
 			assets = append(assets, nil)
 			continue
 		}
-		asset, err := model.NewAssetFromBytes(content)
+		asset, err := model.NewAssetFromJson(content)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create new asset from json: %w", err)
 		}
@@ -485,4 +485,50 @@ func toAssetIDList(idList []uint64) (assetIDList []model.AssetID) {
 		assetIDList = append(assetIDList, model.AssetID(id))
 	}
 	return
+}
+
+// UnAssignTag unassign given tag from all assets.
+// return assets which have given tag.
+func (b *BBoltAsset) UnAssignTags(ws model.WSName, tagIDList ...model.TagID) error {
+	if len(tagIDList) == 0 {
+		return nil
+	}
+	f := func(asset *model.Asset) *model.Asset {
+		dirty := false
+		for _, tagID := range tagIDList {
+			if unAssigned := asset.UnAssignTagIfExist(tagID); unAssigned {
+				dirty = true
+			}
+		}
+		if !dirty {
+			return nil
+		}
+		return asset
+	}
+	return b.Map(ws, f)
+}
+
+// Map updates each asset by provided function.
+// If provided function returns nil, the asset will not be updated.
+func (b *BBoltAsset) Map(ws model.WSName, f func(asset *model.Asset) *model.Asset) error {
+	return b.base.BucketFunc(blt.CreateAssetBucketNames(ws), func(bucket *bolt.Bucket) error {
+		cursor := bucket.Cursor()
+		min := blt.Itob(1)
+		for k, v := cursor.Seek(min); k != nil; k, v = cursor.Next() {
+			asset, err := model.NewAssetFromJson(v)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal asset: %w", err)
+			}
+			if newAsset := f(asset); newAsset != nil {
+				b, err := newAsset.ToJsonBytes()
+				if err != nil {
+					return err
+				}
+				if err := bucket.Put(k, b); err != nil {
+					return fmt.Errorf("failed to map asset: %w", err)
+				}
+			}
+		}
+		return nil
+	})
 }

@@ -35,5 +35,14 @@ type Asset interface {
 	ListByPaths(ws model.WSName, paths []string) ([]*model.Asset, error)
 	ListByIDListAsync(ctx context.Context, ws model.WSName, idList []model.AssetID, cap int) (assetChan <-chan *model.Asset, errChan <-chan error, err error)
 	ForEach(ws model.WSName, f func(asset *model.Asset) error) error
+
+	// UnAssignTag unassign given tag from all assets.
+	// return assets which have given tag.
+	UnAssignTags(ws model.WSName, tagIDList ...model.TagID) error
+
+	// Map updates each asset by provided function.
+	// If provided function returns nil, the asset will not be updated.
+	Map(ws model.WSName, f func(asset *model.Asset) *model.Asset) error
+
 	Revalidate(ws model.WSName) error
 }

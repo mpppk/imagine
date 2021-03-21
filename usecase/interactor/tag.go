@@ -15,15 +15,17 @@ import (
 
 type Tag struct {
 	// FIXME: use client
-	tagRepository repository.Tag
-	tagQuery      query.Tag
+	assetRepository repository.Asset
+	tagRepository   repository.Tag
+	tagQuery        query.Tag
 }
 
-func NewTag(c *client.Tag) *Tag {
+func NewTag(c *client.Tag, asset repository.Asset) *Tag {
 	// FIXME: use client
 	return &Tag{
-		tagRepository: c.TagRepository,
-		tagQuery:      c.TagQuery,
+		assetRepository: asset,
+		tagRepository:   c.TagRepository,
+		tagQuery:        c.TagQuery,
 	}
 }
 
@@ -121,4 +123,23 @@ func (a *Tag) SetTagByNames(ws model.WSName, tagNames []string) (tags []*model.T
 		return nil, fmt.Errorf("%s: %w", errMsg, err)
 	}
 	return
+}
+
+// Delete deletes and returns tags which match queries
+func (a *Tag) Delete(ws model.WSName, queries []*model.Query) (deletedTags []*model.Tag, err error) {
+	errMsg := "failed to delete tags"
+	tags, err := a.tagQuery.ListByQueries(ws, queries)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+
+	if err := a.assetRepository.UnAssignTags(ws, tagsvc.ToTagIDList(tags)...); err != nil {
+		return nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+
+	if err := a.tagRepository.Delete(ws, tagsvc.ToTagIDList(tags)); err != nil {
+		return nil, fmt.Errorf("%s: %w", errMsg, err)
+	}
+
+	return tags, nil
 }

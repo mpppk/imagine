@@ -511,3 +511,282 @@ func consumeAllAssetsFromChan(ch <-chan *model.Asset, errCh <-chan error) (asset
 		}
 	}
 }
+
+func TestBBoltAsset_Map(t *testing.T) {
+	type args struct {
+		ws model.WSName
+		f  func(asset *model.Asset) *model.Asset
+	}
+	tests := []struct {
+		name          string
+		args          args
+		existAssets   []*model.ImportAsset
+		existTagNames []string
+		wantAssets    []*model.Asset
+		wantErr       bool
+	}{
+		{
+			name: "update each assets",
+			existAssets: []*model.ImportAsset{
+				model.NewImportAssetFromFilePath("path1"),
+				model.NewImportAssetFromFilePath("path2"),
+				model.NewImportAssetFromFilePath("path3"),
+			},
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			args: args{
+				ws: "workspace-for-test",
+				f: func(asset *model.Asset) *model.Asset {
+					asset.Name += "-append"
+					return asset
+				},
+			},
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1-append", Path: "path1"},
+				{ID: 2, Name: "path2-append", Path: "path2"},
+				{ID: 3, Name: "path3-append", Path: "path3"},
+			},
+		},
+		{
+			name: "do nothing if f returns nil",
+			existAssets: []*model.ImportAsset{
+				model.NewImportAssetFromFilePath("path1"),
+				model.NewImportAssetFromFilePath("path2"),
+				model.NewImportAssetFromFilePath("path3"),
+			},
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			args: args{
+				ws: "workspace-for-test",
+				f: func(asset *model.Asset) *model.Asset {
+					if asset.Name == "path2" {
+						return nil
+					}
+					asset.Name += "-append"
+					return asset
+				},
+			},
+			wantAssets: []*model.Asset{
+				{ID: 1, Name: "path1-append", Path: "path1"},
+				{ID: 2, Name: "path2", Path: "path2"},
+				{ID: 3, Name: "path3-append", Path: "path3"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Asset.SaveImportAssets(tt.args.ws, tt.existAssets, nil)
+			ut.Tag.SetTagByNames(tt.args.ws, tt.existTagNames)
+
+			err := ut.Usecases.Client.Asset.Map(tt.args.ws, tt.args.f)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddByFilePathListifDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			assets := ut.Client.Asset.List(tt.args.ws)
+			testutil.Diff(t, tt.wantAssets, assets)
+		})
+	}
+}
+
+func TestBBoltAsset_UnAssignTag(t *testing.T) {
+	type args struct {
+		ws        model.WSName
+		tagIDList []model.TagID
+	}
+	tests := []struct {
+		name          string
+		args          args
+		existAssets   []*model.Asset
+		existTagNames []string
+		wantAssets    []*model.Asset
+		wantErr       bool
+	}{
+		{
+			name: "delete tag",
+			args: args{
+				ws:        "default-workspace",
+				tagIDList: []model.TagID{1},
+			},
+			existAssets: []*model.Asset{
+				{
+					Name: "path1",
+					Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1}, {TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					Name: "path2",
+					Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					Name: "path3",
+					Path: "path3",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1},
+					},
+				},
+			},
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			wantAssets: []*model.Asset{
+				{
+					ID:   1,
+					Name: "path1",
+					Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					ID:   2,
+					Name: "path2",
+					Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					ID:            3,
+					Name:          "path3",
+					Path:          "path3",
+					BoundingBoxes: []*model.BoundingBox{},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "delete tags",
+			args: args{
+				ws:        "default-workspace",
+				tagIDList: []model.TagID{1, 2},
+			},
+			existAssets: []*model.Asset{
+				{
+					Name: "path1",
+					Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1}, {TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					Name: "path2",
+					Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					Name: "path3",
+					Path: "path3",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1},
+					},
+				},
+			},
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			wantAssets: []*model.Asset{
+				{
+					ID:            1,
+					Name:          "path1",
+					Path:          "path1",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 3}},
+				},
+				{
+					ID:            2,
+					Name:          "path2",
+					Path:          "path2",
+					BoundingBoxes: []*model.BoundingBox{{TagID: 3}},
+				},
+				{
+					ID:            3,
+					Name:          "path3",
+					Path:          "path3",
+					BoundingBoxes: []*model.BoundingBox{},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "do nothing if no tag provided",
+			args: args{
+				ws:        "default-workspace",
+				tagIDList: []model.TagID{},
+			},
+			existAssets: []*model.Asset{
+				{
+					Name: "path1",
+					Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1}, {TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					Name: "path2",
+					Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					Name: "path3",
+					Path: "path3",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1},
+					},
+				},
+			},
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			wantAssets: []*model.Asset{
+				{
+					ID:   1,
+					Name: "path1",
+					Path: "path1",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1}, {TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					ID:   2,
+					Name: "path2",
+					Path: "path2",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 2}, {TagID: 3},
+					},
+				},
+				{
+					ID:   3,
+					Name: "path3",
+					Path: "path3",
+					BoundingBoxes: []*model.BoundingBox{
+						{TagID: 1},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
+			ut.Tag.SetTagByNames(tt.args.ws, tt.existTagNames)
+
+			err := ut.Usecases.Client.Asset.UnAssignTags(tt.args.ws, tt.args.tagIDList...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnAssignTags() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			} else if err != nil {
+				return
+			}
+
+			assets := ut.Client.Asset.List(tt.args.ws)
+			for _, asset := range assets {
+				testutil.SortBoundingBoxesByTagID(asset)
+			}
+			testutil.Diff(t, tt.wantAssets, assets)
+		})
+	}
+}

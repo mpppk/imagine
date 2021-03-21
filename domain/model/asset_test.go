@@ -309,3 +309,66 @@ func TestAsset_IsAddable(t *testing.T) {
 		})
 	}
 }
+
+func TestAsset_UnAssignTagIfExist(t *testing.T) {
+	type args struct {
+		tagID model.TagID
+	}
+	tests := []struct {
+		name      string
+		asset     *model.Asset
+		args      args
+		want      bool
+		wantAsset *model.Asset
+	}{
+		{
+			name: "remove tag and returns true",
+			asset: &model.Asset{
+				ID:   1,
+				Name: "path1",
+				Path: "path1",
+				BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 2}, {TagID: 3},
+				},
+			},
+			args: args{tagID: 2},
+			want: true,
+			wantAsset: &model.Asset{
+				ID:   1,
+				Name: "path1",
+				Path: "path1",
+				BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 3},
+				},
+			},
+		},
+		{
+			name: "tag does not found and returns false",
+			asset: &model.Asset{
+				ID:   1,
+				Name: "path1",
+				Path: "path1",
+				BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 2}, {TagID: 3},
+				},
+			},
+			args: args{tagID: 4},
+			want: false,
+			wantAsset: &model.Asset{
+				ID:   1,
+				Name: "path1",
+				Path: "path1",
+				BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 2}, {TagID: 3},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.asset.UnAssignTagIfExist(tt.args.tagID); got != tt.want {
+				t.Errorf("UnAssignTagIfExist() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

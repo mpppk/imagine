@@ -7,34 +7,34 @@ import (
 	"github.com/spf13/viper"
 )
 
-// AssetAddCmdConfig is config for asset update command
-type RawAssetAddCmdConfig struct {
+// AssetUpdateCmdConfig is config for asset update command
+type RawAssetUpdateCmdConfig struct {
 	DB        string
 	WorkSpace model.WSName
 	New       bool
 	Query     string
 }
 
-func (c *RawAssetAddCmdConfig) parse() (*AssetAddCmdConfig, error) {
+func (c *RawAssetUpdateCmdConfig) parse() (*AssetUpdateCmdConfig, error) {
 	queries, err := parseQuery(c.Query)
 	if err != nil {
 		return nil, err
 	}
-	return &AssetAddCmdConfig{
-		RawAssetAddCmdConfig: c,
-		Queries:              queries,
+	return &AssetUpdateCmdConfig{
+		RawAssetUpdateCmdConfig: c,
+		Queries:                 queries,
 	}, nil
 }
 
-// AssetAddCmdConfig is config for eval command
-type AssetAddCmdConfig struct {
-	*RawAssetAddCmdConfig
+// AssetUpdateCmdConfig is config for eval command
+type AssetUpdateCmdConfig struct {
+	*RawAssetUpdateCmdConfig
 	Queries []*model.Query
 }
 
-// NewAssetAddCmdConfigFromViper generate config for eval command from viper
-func NewAssetAddCmdConfigFromViper(args []string) (*AssetAddCmdConfig, error) {
-	var conf RawAssetAddCmdConfig
+// NewAssetUpdateCmdConfigFromViper generate config for eval command from viper
+func NewAssetUpdateCmdConfigFromViper() (*AssetUpdateCmdConfig, error) {
+	var conf RawAssetUpdateCmdConfig
 	if err := viper.Unmarshal(&conf); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config from viper: %w", err)
 	}

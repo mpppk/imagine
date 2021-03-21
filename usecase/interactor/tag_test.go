@@ -272,3 +272,83 @@ func TestTag_SetTagByNamesTwice(t *testing.T) {
 		})
 	}
 }
+
+func TestTag_Delete(t *testing.T) {
+	type args struct {
+		ws      model.WSName
+		queries []*model.Query
+	}
+	tests := []struct {
+		name          string
+		existAssets   []*model.Asset
+		existTagNames []string
+		args          args
+		want          []*model.Tag
+		wantAssets    []*model.Asset
+		wantTags      []*model.Tag
+		wantErr       bool
+	}{
+		{
+			name:          "delete tag which match queries",
+			existTagNames: []string{"tag1", "tag2", "tag3"},
+			existAssets: []*model.Asset{
+				{Path: "path1", Name: "path1", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1}, {TagID: 2}, {TagID: 3},
+				}},
+				{Path: "path2", Name: "path2", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 2}, {TagID: 3},
+				}},
+				{Path: "path3", Name: "path3", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 1},
+				}},
+			},
+			args: args{
+				ws: "default-workspace",
+				queries: []*model.Query{
+					{Op: "equals", Value: "tag1"},
+				},
+			},
+			want: []*model.Tag{
+				testutil.MustNewTag(1, "tag1", 0),
+			},
+			wantAssets: []*model.Asset{
+				{ID: 1, Path: "path1", Name: "path1", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 2}, {TagID: 3},
+				}},
+				{ID: 2, Path: "path2", Name: "path2", BoundingBoxes: []*model.BoundingBox{
+					{TagID: 2}, {TagID: 3},
+				}},
+				{ID: 3, Path: "path3", Name: "path3", BoundingBoxes: []*model.BoundingBox{}},
+			},
+			wantTags: []*model.Tag{
+				testutil.MustNewTag(2, "tag2", 1),
+				testutil.MustNewTag(3, "tag3", 2),
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		usecasetest.RunParallelWithUseCases(t, tt.name, tt.args.ws, func(t *testing.T, ut *usecasetest.UseCases) {
+			ut.Tag.SetTagByNames(tt.args.ws, tt.existTagNames)
+			ut.Client.Asset.BatchAdd(tt.args.ws, tt.existAssets)
+
+			tags, err := ut.Usecases.Tag.Delete(tt.args.ws, tt.args.queries)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			} else if tt.wantErr {
+				return
+			}
+			testutil.Diff(t, tt.want, tags)
+
+			newAssets := ut.Client.Asset.List(tt.args.ws)
+			for _, asset := range newAssets {
+				testutil.SortBoundingBoxesByTagID(asset)
+			}
+			testutil.Diff(t, tt.wantAssets, newAssets)
+
+			newTags := ut.Tag.List(tt.args.ws)
+			testutil.Diff(t, tt.wantTags, newTags)
+		})
+	}
+}

@@ -129,7 +129,7 @@ type Asset struct {
 	BoundingBoxes []*BoundingBox `json:"boundingBoxes"`
 }
 
-func NewAssetFromBytes(bytes []byte) (*Asset, error) {
+func NewAssetFromJson(bytes []byte) (*Asset, error) {
 	var asset Asset
 	if err := json.Unmarshal(bytes, &asset); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal asset: %w", err)
@@ -204,6 +204,25 @@ func (a *Asset) HasTag(tagID TagID) bool {
 	return false
 }
 
+// UnAssignTagByIndex un assign tag which have provided index
+func (a *Asset) UnAssignTagByIndex(index int) {
+	a.BoundingBoxes[index] = a.BoundingBoxes[len(a.BoundingBoxes)-1]
+	a.BoundingBoxes = a.BoundingBoxes[:len(a.BoundingBoxes)-1]
+}
+
+// UnAssignTagIfExist un assign tag which have provided tag ID.
+// This method returns true if tag is actually deleted.
+// If asset does not have tag which have provided ID, return false.
+func (a *Asset) UnAssignTagIfExist(tagID TagID) bool {
+	for i, box := range a.BoundingBoxes {
+		if box.TagID == tagID {
+			a.UnAssignTagByIndex(i)
+			return true
+		}
+	}
+	return false
+}
+
 func (a *Asset) HasAnyOneOfTagID(tagSet *TagSet) bool {
 	for _, box := range a.BoundingBoxes {
 		if _, ok := tagSet.Get(box.TagID); ok {
@@ -248,11 +267,16 @@ func (a *Asset) UpdateBy(asset *Asset) error {
 }
 
 func (a *Asset) ToJson() (string, error) {
+	b, err := a.ToJsonBytes()
+	return string(b), err
+}
+
+func (a *Asset) ToJsonBytes() ([]byte, error) {
 	contents, err := json.Marshal(a)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal asset to json: %w", err)
+		return nil, fmt.Errorf("failed to marshal asset to json: %w", err)
 	}
-	return string(contents), nil
+	return contents, nil
 }
 
 func (a *Asset) ToCSVRow(tagSet *TagSet) (string, error) {

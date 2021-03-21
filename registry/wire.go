@@ -51,6 +51,7 @@ func InitializeTagUseCase(b *bbolt.DB) *interactor.Tag {
 		client.NewTag,
 		interactor.NewTag,
 		queryimpl.NewBBoltTag,
+		repoimpl.NewBBoltAsset,
 		repoimpl.NewBBoltTag,
 	)
 	return nil

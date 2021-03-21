@@ -74,3 +74,30 @@ func (q *Query) Match(asset *Asset, tagSet *TagSet) bool {
 		return false
 	}
 }
+
+// MatchToTag check whether the tag match this query or not.
+func (q *Query) MatchToTag(tag *Tag) bool {
+	switch q.Op {
+	case EqualsQueryOP:
+		return q.Value == tag.Name
+	case NotEqualsQueryOP:
+		return q.Value != tag.Name
+	case StartWithQueryOP:
+		return strings.HasPrefix(tag.Name, q.Value)
+	case NotStartWithQueryOP:
+		return !strings.HasPrefix(tag.Name, q.Value)
+	default:
+		log.Printf("warning: unknown query op is given: %s", q.Op)
+		return false
+	}
+}
+
+// ListMatchedTags lists tags which match this query
+func (q *Query) ListMatchedTags(tags []*Tag) (matchedTags []*Tag) {
+	for _, tag := range tags {
+		if q.MatchToTag(tag) {
+			matchedTags = append(matchedTags, tag)
+		}
+	}
+	return
+}

@@ -10,6 +10,7 @@ type Tag interface {
 	ListAll(ws model.WSName) ([]*model.Tag, error)
 	ListByAsync(ws model.WSName, f func(tagWithIndex *model.Tag) bool, cap int) (tagChan <-chan *model.Tag, err error)
 	ListBy(ws model.WSName, f func(tagWithIndex *model.Tag) bool) (tags []*model.Tag, err error)
+	ListByQueries(ws model.WSName, queries []*model.Query) (tags []*model.Tag, err error)
 	ListAsSet(ws model.WSName) (set *model.TagSet, err error)
 	ForEach(ws model.WSName, f func(tagWithIndex *model.Tag) error) error
 }

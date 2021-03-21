@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/mpppk/imagine/registry"
@@ -11,33 +12,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
+func newTagDeleteCmd(fs afero.Fs) (*cobra.Command, error) {
 	flags := []option.Flag{
-		&option.BoolFlag{
-			BaseFlag: &option.BaseFlag{
-				Name:  "new",
-				Usage: "If the asset with the specified ID does not exist, create a new one",
-			},
-			Value: false,
-		},
 		&option.StringFlag{
 			BaseFlag: &option.BaseFlag{
 				Name:  "query",
-				Usage: "Only assets that match query will be updated",
+				Usage: "Only tags that match query will be deleted",
 			},
 		},
 	}
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "update assets",
+		Use:   "delete",
+		Short: "delete tags",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return option.BindFlagsToViper(cmd, flags)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			conf, err := option.NewAssetUpdateCmdConfigFromViper()
+			conf, err := option.NewTagDeleteCmdConfigFromViper(args)
 			if err != nil {
 				return err
 			}
+
 			usecases, err := registry.NewBoltUseCasesWithDBPath(conf.DB)
 			if err != nil {
 				return fmt.Errorf("failed to create usecases instance: %w", err)
@@ -47,19 +42,21 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 					panic(err)
 				}
 			}()
-			if err := usecases.InitializeWorkSpace(conf.WorkSpace); err != nil {
-				return fmt.Errorf("failed to initialize asset usecase: %w", err)
-			}
 
-			// FIXME: capacity
-			if err := usecases.Asset.SaveImportAssetsFromReader(conf.WorkSpace, cmd.InOrStdin(), 10000, conf.Queries); err != nil {
-				return fmt.Errorf("failed to import asset from reader: %w", err)
+			deletedTags, err := usecases.Tag.Delete(conf.WorkSpace, conf.Queries)
+			if err != nil {
+				return err
 			}
-
+			for _, tag := range deletedTags {
+				contents, err := json.Marshal(tag)
+				if err != nil {
+					return fmt.Errorf("failed to marshal tag to json: %w", err)
+				}
+				cmd.Println(string(contents))
+			}
 			return nil
 		},
 	}
-
 	if err := option.RegisterFlags(cmd, flags); err != nil {
 		return nil, err
 	}
@@ -67,5 +64,5 @@ func newAssetUpdateCmd(fs afero.Fs) (*cobra.Command, error) {
 }
 
 func init() {
-	assetSubCmdGenerator = append(assetSubCmdGenerator, newAssetUpdateCmd)
+	tagSubCmdGenerator = append(tagSubCmdGenerator, newTagDeleteCmd)
 }
