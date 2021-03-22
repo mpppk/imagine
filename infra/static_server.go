@@ -2,6 +2,7 @@ package infra
 
 import (
 	"fmt"
+	"io/fs"
 	"net/http"
 
 	"github.com/mpppk/imagine/static"
@@ -32,8 +33,12 @@ func (f *fileServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 }
 
 func NewHtmlServer(port uint) (*http.Server, error) {
+	assets, err := fs.Sub(static.Assets, "out")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create html server: %w", err)
+	}
 	mux := http.NewServeMux()
-	mux.Handle("/", newFileServer(http.FS(static.Assets)))
+	mux.Handle("/", newFileServer(http.FS(assets)))
 	return &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: mux,
