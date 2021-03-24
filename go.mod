@@ -9,7 +9,7 @@ require (
 	github.com/comail/colog v0.0.0-20160416085026-fba8e7b1f46c
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/gen2brain/dlgs v0.0.0-20210222160047-2f436553172f
+	github.com/gen2brain/dlgs v0.0.0-20210324163825-f2c7498414a6
 	github.com/golang/mock v1.5.0
 	github.com/google/go-cmp v0.5.5
 	github.com/google/wire v0.5.0
