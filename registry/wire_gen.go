@@ -24,7 +24,7 @@ func NewBoltHandlerCreator(b *bbolt.DB) *action.HandlerCreator {
 	queryTag := queryimpl.NewBBoltTag(b)
 	clientTag := client.NewTag(tag, queryTag)
 	usecaseAsset := interactor.NewAsset(asset, clientTag)
-	interactorTag := interactor.NewTag(clientTag)
+	interactorTag := interactor.NewTag(clientTag, asset)
 	workSpace := repoimpl.NewBBoltWorkSpace(b)
 	meta := repoimpl.NewBoltMeta(b)
 	clientClient := client.New(asset, clientTag, workSpace, meta)
@@ -45,7 +45,8 @@ func InitializeTagUseCase(b *bbolt.DB) *interactor.Tag {
 	tag := repoimpl.NewBBoltTag(b)
 	queryTag := queryimpl.NewBBoltTag(b)
 	clientTag := client.NewTag(tag, queryTag)
-	interactorTag := interactor.NewTag(clientTag)
+	asset := repoimpl.NewBBoltAsset(b)
+	interactorTag := interactor.NewTag(clientTag, asset)
 	return interactorTag
 }
 
