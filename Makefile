@@ -2,9 +2,10 @@ SHELL = /bin/bash
 
 .PHONY: setup
 setup:
-	go install github.com/google/wire/cmd/wire
-	go install github.com/goreleaser/goreleaser
-	go install github.com/golang/mock/mockgen@v1.4.4
+	# Pin wire version to v0.4.0 because  wire@v0.5.0 has go:generate command problem with go install [package@version]
+	go install github.com/google/wire/cmd/wire@v0.4.0
+	go install github.com/goreleaser/goreleaser@v0.161.1
+	go install github.com/golang/mock/mockgen@v1.5
 
 .PHONY: clean
 clean:
