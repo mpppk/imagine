@@ -5,11 +5,13 @@ setup:
 	# Pin wire version to v0.4.0 because  wire@v0.5.0 has go:generate command problem with go install [package@version]
 	go install github.com/google/wire/cmd/wire@v0.4.0
 	go install github.com/goreleaser/goreleaser@v0.161.1
+	go install github.com/rakyll/statik@v0.1.7
 	go install github.com/golang/mock/mockgen@v1.5
 
 .PHONY: clean
 clean:
 	rm -rf static/out
+	rm -rf statik
 	rm -f imagine
 
 .PHONY: lint

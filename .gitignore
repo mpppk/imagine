@@ -3,6 +3,7 @@ vendor/
 static/.next
 static/node_modules
 static/cypress/videos
+statik
 imagine
 *.db
 mock_*.go

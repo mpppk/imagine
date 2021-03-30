@@ -1,10 +1,13 @@
 package infra
 
+//go:generate statik -f -src ../static/out --dest ..
+
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/mpppk/imagine/static"
+	_ "github.com/mpppk/imagine/statik"
+	"github.com/rakyll/statik/fs"
 )
 
 func NewFileServer(port uint, basePath string) *http.Server {
@@ -32,8 +35,12 @@ func (f *fileServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 }
 
 func NewHtmlServer(port uint) (*http.Server, error) {
+	statikFS, err := fs.New()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize html fs: %w", err)
+	}
 	mux := http.NewServeMux()
-	mux.Handle("/", newFileServer(http.FS(static.Assets)))
+	mux.Handle("/", newFileServer(statikFS))
 	return &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: mux,

@@ -14,6 +14,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/mpppk/lorca-fsa v0.2.0
+	github.com/rakyll/statik v0.1.7
 	github.com/rhysd/go-github-selfupdate v1.2.3
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.1.3
