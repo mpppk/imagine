@@ -46,7 +46,7 @@
   "devDependencies": {
     "@types/base16": "1.0.2",
     "@types/jest": "26.0.24",
-    "@types/lodash": "4.14.173",
+    "@types/lodash": "4.14.174",
     "@types/lodash.curry": "4.1.6",
     "@types/react": "17.0.24",
     "@types/react-beautiful-dnd": "13.1.2",
