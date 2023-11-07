@@ -850,10 +850,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-window-infinite-loader@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@types/react-window-infinite-loader/-/react-window-infinite-loader-1.0.4.tgz#2130555d3037f842e6fff939a6563849fd4d1046"
-  integrity sha512-bfztJr6udQ/8+/KsomCDOh/bWQv9uQZzpvPwhZC/izKuVdilH+yv/ql4m9Dql5DgbomGiKPzphaZrqIf2ApyTA==
+"@types/react-window-infinite-loader@1.0.9":
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/@types/react-window-infinite-loader/-/react-window-infinite-loader-1.0.9.tgz#9b24d4e60f20397ff853c6857f7fe0645becbeb9"
+  integrity sha512-gEInTjQwURCnDOFyIEK2+fWB5gTjqwx30O62QfxA9stE5aiB6EWkGj4UMhc0axq7/FV++Gs/TGW8FtgEx0S6Tw==
   dependencies:
     "@types/react" "*"
     "@types/react-window" "*"
@@ -4505,10 +4505,10 @@ react-virtualized-auto-sizer@1.0.6:
   resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.6.tgz#66c5b1c9278064c5ef1699ed40a29c11518f97ca"
   integrity sha512-7tQ0BmZqfVF6YYEWcIGuoR3OdYe8I/ZFbNclFlGOC3pMqunkYF/oL30NCjSGl9sMEb17AnzixDz98Kqc3N76HQ==
 
-react-window-infinite-loader@1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/react-window-infinite-loader/-/react-window-infinite-loader-1.0.7.tgz#958ef1a689d20dce122ef377583acd987760aee8"
-  integrity sha512-wg3LWkUpG21lhv+cZvNy+p0+vtclZw+9nP2vO6T9PKT50EN1cUq37Dq6FzcM38h/c2domE0gsUhb6jHXtGogAA==
+react-window-infinite-loader@1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/react-window-infinite-loader/-/react-window-infinite-loader-1.0.9.tgz#d861c03d5cbc550e2f185371af820fd22d46c099"
+  integrity sha512-5Hg89IdU4Vrp0RT8kZYKeTIxWZYhNkVXeI1HbKo01Vm/Z7qztDvXljwx16sMzsa9yapRJQW3ODZfMUw38SOWHw==
 
 react-window@1.8.6:
   version "1.8.6"
